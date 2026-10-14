@@ -94,6 +94,73 @@
 			"tableOfContents": {
 				"title": "目录"
 			}
+		},
+		"invite": {
+			"meta": {
+				"title": "Accept your invitation to Sealos",
+				"description": "Sign up through a friend's invite link and you both get ¥5 in cloud credits. New users earn another ¥10 by signing in to Sealos Desktop — ¥15 in total."
+			},
+			"hero": {
+				"badge": "Invite friends · Rewards for both",
+				"title": "You're invited to Sealos",
+				"titleFromInviter": "{inviter} invites you to Sealos",
+				"subtitle": "Sign up through this invite link and you and your friend each get ¥5 in cloud credits. New users earn another ¥10 by signing in to Sealos Desktop — ¥15 in total.",
+				"primaryCta": "Sign up & accept invitation",
+				"secondaryCta": "Download Sealos Desktop",
+				"inviteeRewardLabel": "Invited new user gets",
+				"inviteeRewardValue": "¥15",
+				"inviteeRewardDetail": "¥5 for signing up + ¥10 for the first Desktop sign-in",
+				"inviterRewardLabel": "Inviter gets",
+				"inviterRewardValue": "¥5",
+				"inviterRewardDetail": "For each friend who signs up and completes the steps",
+				"invalid": {
+					"not_found": "This invite link is invalid or expired. You can still sign up and download as usual, but this registration will not be tied to a referral reward.",
+					"disabled": "This invite link has been disabled. You can still sign up and download as usual, but this registration will not be tied to a referral reward.",
+					"unavailable": "The referral activity is currently unavailable. You can still sign up and use Sealos."
+				}
+			},
+			"steps": {
+				"title": "Get your rewards in four steps",
+				"note": "Desktop sign-in and real-name verification can happen in either order; rewards are credited automatically once conditions are met — no manual claim needed.",
+				"items": {
+					"register": {
+						"title": "Sign up & accept the invite",
+						"description": "Click \"Sign up & accept invitation\" to register on the Sealos China console. The referral is locked in at first registration."
+					},
+					"download": {
+						"title": "Download the app",
+						"description": "Download and install the Sealos Desktop client on your computer."
+					},
+					"signin": {
+						"title": "Sign in with the same account",
+						"description": "Sign in to the client with the account you just registered — the login is recorded automatically."
+					},
+					"realname": {
+						"title": "Complete real-name verification",
+						"description": "Finish personal or enterprise real-name verification on the console; rewards are credited automatically once all conditions are met."
+					}
+				}
+			},
+			"download": {
+				"title": "Download Sealos Desktop",
+				"subtitle": "Install the app and sign in with your account to claim the ¥10 first sign-in reward.",
+				"macArm64": "macOS (Apple Silicon)",
+				"macX64": "macOS (Intel)",
+				"windows": "Windows",
+				"currentPlatform": "Automatically matched to your platform",
+				"unavailable": "Downloads are temporarily unavailable. Please refresh and try again later."
+			},
+			"rules": {
+				"title": "Activity details",
+				"items": [
+					"The activity is available on the Sealos China site only; accounts registered via API do not join the referral rewards.",
+					"Referral rewards apply to newly invited users only: ¥5 for the invitee and ¥5 for the inviter.",
+					"The ¥10 Desktop first sign-in reward covers new and existing users who have not claimed it, once per account.",
+					"Rewards are cloud credits (gift-code balance), redeemed automatically once conditions are met — no manual application.",
+					"The referral is locked in only when the account is first created; existing accounts cannot be bound retroactively.",
+					"Inviters are not required to complete real-name verification."
+				]
+			}
 		}
 	},
 	"components": {

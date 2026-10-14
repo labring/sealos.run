@@ -94,6 +94,73 @@
 			"tableOfContents": {
 				"title": "目录"
 			}
+		},
+		"invite": {
+			"meta": {
+				"title": "接受邀请，加入 Sealos",
+				"description": "通过好友的专属邀请链接注册 Sealos，你和好友各得 ¥5 云资源券；新用户在 Sealos Desktop 登录再领 ¥10 首次登录礼，合计 ¥15。"
+			},
+			"hero": {
+				"badge": "邀请好友 · 双方有礼",
+				"title": "接受邀请，加入 Sealos",
+				"titleFromInviter": "{inviter} 邀请你加入 Sealos",
+				"subtitle": "通过专属邀请链接注册，你和好友各得 ¥5 云资源券；新用户在 Sealos Desktop 登录再领 ¥10 首次登录礼，合计 ¥15。",
+				"primaryCta": "注册并接受邀请",
+				"secondaryCta": "下载 Sealos Desktop",
+				"inviteeRewardLabel": "受邀新用户可得",
+				"inviteeRewardValue": "¥15",
+				"inviteeRewardDetail": "注册得 ¥5 + 客户端首次登录再得 ¥10",
+				"inviterRewardLabel": "邀请人可得",
+				"inviterRewardValue": "¥5",
+				"inviterRewardDetail": "每位通过邀请注册并完成条件的好友",
+				"invalid": {
+					"not_found": "邀请链接无效或已过期。你仍可以正常注册和下载，但本次注册不会关联邀请奖励。",
+					"disabled": "该邀请链接已被停用。你仍可以正常注册和下载，但本次注册不会关联邀请奖励。",
+					"unavailable": "邀请活动当前不可用。你仍可以正常注册和下载 Sealos。"
+				}
+			},
+			"steps": {
+				"title": "四步拿到奖励",
+				"note": "客户端登录与实名认证先后顺序均可；条件满足后奖励自动发放到账，无需人工申请。",
+				"items": {
+					"register": {
+						"title": "注册并接受邀请",
+						"description": "点击「注册并接受邀请」进入 Sealos 国内控制台完成注册，邀请关系在首次注册时确定。"
+					},
+					"download": {
+						"title": "下载客户端",
+						"description": "在电脑上下载并安装 Sealos Desktop 客户端。"
+					},
+					"signin": {
+						"title": "登录同一账号",
+						"description": "在客户端登录刚注册的同一个账号，系统自动记录客户端登录事实。"
+					},
+					"realname": {
+						"title": "完成实名认证",
+						"description": "在控制台完成个人或企业实名认证，奖励条件齐备后自动到账。"
+					}
+				}
+			},
+			"download": {
+				"title": "下载 Sealos Desktop",
+				"subtitle": "安装后在客户端登录你的账号，即可领取 ¥10 首次登录礼。",
+				"macArm64": "macOS（Apple Silicon）",
+				"macX64": "macOS（Intel）",
+				"windows": "Windows",
+				"currentPlatform": "已为你自动匹配当前平台",
+				"unavailable": "下载暂时不可用，请稍后刷新重试。"
+			},
+			"rules": {
+				"title": "活动说明",
+				"items": [
+					"活动仅面向 Sealos 国内站用户；通过 API 注册的账号不参与邀请奖励。",
+					"邀请奖励仅限受邀注册的新用户：受邀注册得 ¥5、邀请人得 ¥5。",
+					"¥10 客户端首次登录礼覆盖尚未领取的新老用户，每个账号限领一次。",
+					"奖励为云资源券（兑换码余额），条件满足后自动兑换到账，无需人工申请。",
+					"邀请关系仅在首次创建账号时确定，已有账号无法补绑邀请。",
+					"邀请人无需完成实名认证。"
+				]
+			}
 		}
 	},
 	"components": {
