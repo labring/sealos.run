@@ -101,18 +101,11 @@
 				"description": "Sign up through a friend's invite link and you both get ¥5 in cloud credits. New users earn another ¥10 by signing in to Sealos Desktop — ¥15 in total."
 			},
 			"hero": {
-				"badge": "Invite friends · Rewards for both",
-				"title": "You're invited to Sealos",
-				"titleFromInviter": "{inviter} invites you to Sealos",
-				"subtitle": "Sign up through this invite link and you and your friend each get ¥5 in cloud credits. New users earn another ¥10 by signing in to Sealos Desktop — ¥15 in total.",
-				"primaryCta": "Sign up & accept invitation",
-				"secondaryCta": "Download Sealos Desktop",
-				"inviteeRewardLabel": "Invited new user gets",
-				"inviteeRewardValue": "¥15",
-				"inviteeRewardDetail": "¥5 for signing up + ¥10 for the first Desktop sign-in",
-				"inviterRewardLabel": "Inviter gets",
-				"inviterRewardValue": "¥5",
-				"inviterRewardDetail": "For each friend who signs up and completes the steps",
+				"inviterLine": "invites you to try Sealos Desktop",
+				"titleLine1": "Your friend is already here —",
+				"titleLine2": "now bring your next idea.",
+				"subtitle": "Accept this invitation and start with your first idea. Explore Sealos apps and a new way to create.",
+				"primaryCta": "Get started",
 				"invalid": {
 					"not_found": "This invite link is invalid or expired. You can still sign up and download as usual, but this registration will not be tied to a referral reward.",
 					"disabled": "This invite link has been disabled. You can still sign up and download as usual, but this registration will not be tied to a referral reward.",
@@ -120,34 +113,27 @@
 				}
 			},
 			"steps": {
-				"title": "Get your rewards in four steps",
-				"note": "Desktop sign-in and real-name verification can happen in either order; rewards are credited automatically once conditions are met — no manual claim needed.",
+				"title": "Three simple steps to more possibilities.",
 				"items": {
-					"register": {
-						"title": "Sign up & accept the invite",
-						"description": "Click \"Sign up & accept invitation\" to register on the Sealos China console. The referral is locked in at first registration."
-					},
 					"download": {
-						"title": "Download the app",
-						"description": "Download and install the Sealos Desktop client on your computer."
+						"title": "Download Sealos Desktop",
+						"description": "Install Sealos Desktop on your computer and let your next idea start here."
 					},
 					"signin": {
-						"title": "Sign in with the same account",
-						"description": "Sign in to the client with the account you just registered — the login is recorded automatically."
+						"title": "Sign in & verify",
+						"description": "Sign in, get started, and complete the invite activity requirements."
 					},
-					"realname": {
-						"title": "Complete real-name verification",
-						"description": "Finish personal or enterprise real-name verification on the console; rewards are credited automatically once all conditions are met."
+					"reward": {
+						"title": "Get your reward",
+						"description": "Receive cloud resource credits to back your ideas."
 					}
 				}
 			},
 			"download": {
-				"title": "Download Sealos Desktop",
-				"subtitle": "Install the app and sign in with your account to claim the ¥10 first sign-in reward.",
-				"macArm64": "macOS (Apple Silicon)",
-				"macX64": "macOS (Intel)",
-				"windows": "Windows",
-				"currentPlatform": "Automatically matched to your platform",
+				"title": "Ship your next business in one sentence",
+				"subtitle": "Download Sealos Desktop and let the Agent handle shipping and ops, so you can focus on the business itself.",
+				"mac": "Download for Mac",
+				"windows": "Download for Windows",
 				"unavailable": "Downloads are temporarily unavailable. Please refresh and try again later."
 			},
 			"rules": {
@@ -160,6 +146,13 @@
 					"The referral is locked in only when the account is first created; existing accounts cannot be bound retroactively.",
 					"Inviters are not required to complete real-name verification."
 				]
+			},
+			"giftCard": {
+				"eyebrow": "A welcome gift from Sealos",
+				"title": "Claim your invite reward",
+				"description": "Invite a friend: once they sign in and complete real-name verification, you both get ¥5 in balance. No cap — invite more, earn more!",
+				"amount": "¥5",
+				"validity": "Valid: forever"
 			}
 		}
 	},

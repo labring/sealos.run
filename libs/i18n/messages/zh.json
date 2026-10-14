@@ -101,18 +101,11 @@
 				"description": "通过好友的专属邀请链接注册 Sealos，你和好友各得 ¥5 云资源券；新用户在 Sealos Desktop 登录再领 ¥10 首次登录礼，合计 ¥15。"
 			},
 			"hero": {
-				"badge": "邀请好友 · 双方有礼",
-				"title": "接受邀请，加入 Sealos",
-				"titleFromInviter": "{inviter} 邀请你加入 Sealos",
-				"subtitle": "通过专属邀请链接注册，你和好友各得 ¥5 云资源券；新用户在 Sealos Desktop 登录再领 ¥10 首次登录礼，合计 ¥15。",
-				"primaryCta": "注册并接受邀请",
-				"secondaryCta": "下载 Sealos Desktop",
-				"inviteeRewardLabel": "受邀新用户可得",
-				"inviteeRewardValue": "¥15",
-				"inviteeRewardDetail": "注册得 ¥5 + 客户端首次登录再得 ¥10",
-				"inviterRewardLabel": "邀请人可得",
-				"inviterRewardValue": "¥5",
-				"inviterRewardDetail": "每位通过邀请注册并完成条件的好友",
+				"inviterLine": "邀请你一起体验 Sealos Desktop",
+				"titleLine1": "好友已就位，",
+				"titleLine2": "就等你的新想法。",
+				"subtitle": "接受这份邀请，从你的第一个想法开始。一起探索 Sealos App，开启新的创造体验。",
+				"primaryCta": "立即体验",
 				"invalid": {
 					"not_found": "邀请链接无效或已过期。你仍可以正常注册和下载，但本次注册不会关联邀请奖励。",
 					"disabled": "该邀请链接已被停用。你仍可以正常注册和下载，但本次注册不会关联邀请奖励。",
@@ -120,34 +113,27 @@
 				}
 			},
 			"steps": {
-				"title": "四步拿到奖励",
-				"note": "客户端登录与实名认证先后顺序均可；条件满足后奖励自动发放到账，无需人工申请。",
+				"title": "简单三步，开启更多可能。",
 				"items": {
-					"register": {
-						"title": "注册并接受邀请",
-						"description": "点击「注册并接受邀请」进入 Sealos 国内控制台完成注册，邀请关系在首次注册时确定。"
-					},
 					"download": {
-						"title": "下载客户端",
-						"description": "在电脑上下载并安装 Sealos Desktop 客户端。"
+						"title": "下载 Sealos Desktop",
+						"description": "在电脑上安装 Sealos Desktop，让下一个想法从这里开始。"
 					},
 					"signin": {
-						"title": "登录同一账号",
-						"description": "在客户端登录刚注册的同一个账号，系统自动记录客户端登录事实。"
+						"title": "登录，实名认证",
+						"description": "登录账号，开始使用，并完成邀请活动要求。"
 					},
-					"realname": {
-						"title": "完成实名认证",
-						"description": "在控制台完成个人或企业实名认证，奖励条件齐备后自动到账。"
+					"reward": {
+						"title": "获得专属奖励",
+						"description": "获得云资源优惠券，为你的想法多添一份支持。"
 					}
 				}
 			},
 			"download": {
-				"title": "下载 Sealos Desktop",
-				"subtitle": "安装后在客户端登录你的账号，即可领取 ¥10 首次登录礼。",
-				"macArm64": "macOS（Apple Silicon）",
-				"macX64": "macOS（Intel）",
-				"windows": "Windows",
-				"currentPlatform": "已为你自动匹配当前平台",
+				"title": "你的下一个业务，一句话上线",
+				"subtitle": "下载 Sealos Desktop，让 Agent 负责上线与运维，你专注业务本身。",
+				"mac": "Mac 版下载",
+				"windows": "Windows 版下载",
 				"unavailable": "下载暂时不可用，请稍后刷新重试。"
 			},
 			"rules": {
@@ -160,6 +146,13 @@
 					"邀请关系仅在首次创建账号时确定，已有账号无法补绑邀请。",
 					"邀请人无需完成实名认证。"
 				]
+			},
+			"giftCard": {
+				"eyebrow": "Sealos 给你的见面礼",
+				"title": "获得邀请礼",
+				"description": "邀请一名好友，被邀请人登录后完成实名认证，双方余额+5元。邀请无上限，多邀多得！",
+				"amount": "¥5",
+				"validity": "有效期至：永久"
 			}
 		}
 	},

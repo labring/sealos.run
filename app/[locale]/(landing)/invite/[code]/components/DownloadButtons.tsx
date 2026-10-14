@@ -1,72 +1,47 @@
 'use client';
 
 import React from 'react';
-import { CheckIcon } from '@/assets/icons';
-import { Button } from '@/libs/components/ui/button';
-import { Icon } from '@/libs/components/ui/icon';
 import { useTranslations } from '@/libs/i18n/client';
-import { cn } from '@/libs/utils/styling';
 import type { DesktopDownloadKey, DesktopDownloads } from '../utils/desktop-downloads';
+import { AppleIcon, WindowsIcon } from './DesignIcons';
 
-const BUTTON_ORDER: DesktopDownloadKey[] = ['macArm64', 'macX64', 'windows'];
-
-const detectPlatform = (): DesktopDownloadKey | null => {
-	const ua = navigator.userAgent;
-	if (/Mac|iPhone|iPad/i.test(ua)) {
-		return /arm|aarch/i.test(navigator.platform) || !/Intel/i.test(ua) ? 'macArm64' : 'macX64';
+const detectMacVariant = (): 'macArm64' | 'macX64' => {
+	if (/arm|aarch/i.test(navigator.platform)) {
+		return 'macArm64';
 	}
-	if (/Windows/i.test(ua)) {
-		return 'windows';
-	}
-	return null;
+	return /Intel/i.test(navigator.userAgent) ? 'macX64' : 'macArm64';
 };
 
 export function DownloadButtons({ downloads }: { downloads: DesktopDownloads }) {
 	const t = useTranslations('pages.invite.download');
-	const [current, setCurrent] = React.useState<DesktopDownloadKey | null>(null);
+	const [macVariant, setMacVariant] = React.useState<DesktopDownloadKey>('macArm64');
 
 	React.useEffect(() => {
-		setCurrent(detectPlatform());
+		setMacVariant(detectMacVariant());
 	}, []);
 
-	const available = BUTTON_ORDER.filter((key) => downloads[key]);
-	if (!available.length) {
+	const buttons = [
+		{ label: t('mac'), href: downloads[macVariant], Icon: AppleIcon },
+		{ label: t('windows'), href: downloads.windows, Icon: WindowsIcon },
+	].filter((button): button is { label: string; href: string; Icon: typeof AppleIcon } => Boolean(button.href));
+
+	if (!buttons.length) {
 		return <p className='text-muted-foreground text-sm'>{t('unavailable')}</p>;
 	}
 
 	return (
-		<div className='flex flex-col items-center gap-3'>
-			<div className='flex flex-col items-center gap-3 sm:flex-row'>
-				{available.map((key) => {
-					const isCurrent = current === key;
-					return (
-						<Button
-							key={key}
-							asChild
-							variant={isCurrent ? 'default' : 'outline'}
-							size='lg'
-							className='h-12 px-8 text-base'
-						>
-							<a
-								href={downloads[key]}
-								className={cn(isCurrent && 'gap-2')}
-								download
-							>
-								{isCurrent && (
-									<Icon
-										src={CheckIcon}
-										className='size-4'
-									/>
-								)}
-								{t(key)}
-							</a>
-						</Button>
-					);
-				})}
-			</div>
-			{current && available.includes(current) && (
-				<p className='text-muted-foreground text-sm'>{t('currentPlatform')}</p>
-			)}
+		<div className='flex flex-wrap items-center justify-center gap-2.5'>
+			{buttons.map(({ label, href, Icon }) => (
+				<a
+					key={label}
+					href={href}
+					download
+					className='bg-zinc-900 border-zinc-200 flex items-center gap-2.5 rounded-full border border-solid px-5.5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90'
+				>
+					<Icon className='h-4.5 w-auto shrink-0' />
+					{label}
+				</a>
+			))}
 		</div>
 	);
 }

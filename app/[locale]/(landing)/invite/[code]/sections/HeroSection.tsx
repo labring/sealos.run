@@ -1,7 +1,8 @@
-import { Logo } from '@/libs/components/Logo';
-import { Badge } from '@/libs/components/ui/badge';
-import { Button } from '@/libs/components/ui/button';
+import Image from 'next/image';
+import { LandingOutlineButton } from '@/libs/components/LandingOutlineButton';
 import { getTranslations } from '@/libs/i18n/server';
+import { avatarDefault } from '../assets';
+import { GiftCard } from '../components/GiftCard';
 import { consoleInviteUrl } from '../utils/invite.config';
 import type { InvitePreview } from '../utils/invite-preview';
 
@@ -14,54 +15,49 @@ export async function HeroSection({ code, preview }: { code: string; preview: In
 			: null;
 
 	return (
-		<section className='container mx-auto flex flex-col items-center gap-6 px-6 pt-16 pb-12 text-center sm:pt-24'>
-			<Badge variant='outline'>{t('badge')}</Badge>
+		<section className='container mx-auto px-6 pt-24 pb-16 sm:pt-28 lg:pb-24'>
+			<div className='flex flex-col gap-14 lg:flex-row lg:items-start lg:gap-8'>
+				<div className='flex max-w-2xl flex-col items-start gap-8'>
+					{preview.status === 'valid' && (
+						<div className='flex items-center gap-2.5'>
+							<span className='bg-white size-12 overflow-hidden rounded-full'>
+								<Image
+									src={avatarDefault}
+									alt=''
+									className='size-full object-cover'
+								/>
+							</span>
+							<div className='text-neutral-500 flex flex-col text-lg leading-[1.7]'>
+								<span>{preview.inviterNickname ?? '***'}</span>
+								<span>{t('inviterLine')}</span>
+							</div>
+						</div>
+					)}
 
-			<Logo withLogotype />
+					<h1 className='text-4xl leading-snug font-semibold text-balance sm:text-5xl lg:text-[56px] lg:leading-snug'>
+						{t('titleLine1')}
+						<br />
+						{t('titleLine2')}
+					</h1>
 
-			<div className='flex max-w-2xl flex-col gap-4'>
-				<h1 className='text-3xl leading-tight font-semibold text-balance sm:text-4xl'>
-					{preview.status === 'valid' && preview.inviterNickname
-						? t('titleFromInviter', { inviter: preview.inviterNickname })
-						: t('title')}
-				</h1>
-				<p className='text-base text-muted-foreground text-pretty sm:text-lg'>{t('subtitle')}</p>
-			</div>
+					<p className='text-muted-foreground text-lg leading-7 text-pretty'>{t('subtitle')}</p>
 
-			{invalidMessage && (
-				<output className='border-destructive/30 bg-destructive/5 text-destructive max-w-xl border-hairline block rounded-lg border-solid px-4 py-3 text-sm'>
-					{invalidMessage}
-				</output>
-			)}
+					{invalidMessage && (
+						<output className='border-destructive/30 bg-destructive/5 text-destructive max-w-xl border-hairline block rounded-lg border-solid px-4 py-3 text-sm'>
+							{invalidMessage}
+						</output>
+					)}
 
-			<div className='flex flex-col items-center gap-3 sm:flex-row'>
-				<Button
-					asChild
-					size='lg'
-					className='h-12 px-8 text-base'
-				>
-					<a href={consoleInviteUrl(code)}>{t('primaryCta')}</a>
-				</Button>
-				<Button
-					asChild
-					variant='outline'
-					size='lg'
-					className='h-12 px-8 text-base'
-				>
-					<a href='#download'>{t('secondaryCta')}</a>
-				</Button>
-			</div>
-
-			<div className='grid w-full max-w-xl gap-4 pt-4 sm:grid-cols-2'>
-				<div className='bg-card border-hairline flex flex-col gap-1 rounded-lg border border-solid p-6'>
-					<p className='text-muted-foreground text-sm'>{t('inviteeRewardLabel')}</p>
-					<p className='text-brand text-3xl font-semibold'>{t('inviteeRewardValue')}</p>
-					<p className='text-muted-foreground text-sm'>{t('inviteeRewardDetail')}</p>
+					<LandingOutlineButton
+						href={consoleInviteUrl(code)}
+						size='lg'
+					>
+						{t('primaryCta')}
+					</LandingOutlineButton>
 				</div>
-				<div className='bg-card border-hairline flex flex-col gap-1 rounded-lg border border-solid p-6'>
-					<p className='text-muted-foreground text-sm'>{t('inviterRewardLabel')}</p>
-					<p className='text-brand text-3xl font-semibold'>{t('inviterRewardValue')}</p>
-					<p className='text-muted-foreground text-sm'>{t('inviterRewardDetail')}</p>
+
+				<div className='w-full lg:w-auto lg:shrink'>
+					<GiftCard />
 				</div>
 			</div>
 		</section>
