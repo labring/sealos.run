@@ -60,7 +60,12 @@ const fetchManifest = async (manifest: 'latest-mac.yml' | 'latest.yml') => {
  * retry hint instead of broken download buttons.
  */
 export async function getDesktopDownloads(): Promise<DesktopDownloads> {
-	const manifests = await Promise.all([fetchManifest('latest-mac.yml'), fetchManifest('latest.yml')]);
+	// One unreachable feed must not fail the whole invite page SSR: fetch rejections
+	// (timeout, DNS) degrade that source to an empty manifest so only its own
+	// download buttons show the retry hint. Non-2xx already degrades in fetchManifest.
+	const manifests = await Promise.allSettled([fetchManifest('latest-mac.yml'), fetchManifest('latest.yml')]).then(
+		(results) => results.map((result) => (result.status === 'fulfilled' ? result.value : '')),
+	);
 	const downloads: DesktopDownloads = {};
 	for (const manifest of manifests) {
 		for (const [key, url] of Object.entries(parseManifestInstallers(manifest))) {
