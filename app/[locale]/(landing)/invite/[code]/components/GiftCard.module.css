@@ -1,0 +1,156 @@
+.scene {
+	width: 100%;
+	max-width: 513px;
+	margin-inline: auto;
+	padding: 48px 0 64px;
+}
+
+@media (min-width: 640px) {
+	.scene {
+		max-width: 553px;
+		padding-inline: 20px;
+	}
+}
+
+.entrance {
+	transform: translateY(0);
+}
+
+.stack {
+	position: relative;
+	isolation: isolate;
+}
+
+.shape {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+
+.backInteraction {
+	position: absolute;
+	inset: 0;
+	transform: translateY(0) rotate(0deg);
+}
+
+.back {
+	position: absolute;
+	inset: 0;
+	transform-origin: 28% 50%;
+	transform: translateY(16px) rotate(-7.29deg);
+}
+
+.ticket {
+	position: relative;
+	display: grid;
+	grid-template-columns: 330fr 183fr;
+	min-height: 224px;
+	transform: rotate(0deg);
+	filter: drop-shadow(0 12px 18px rgb(30 64 110 / 9%));
+}
+
+.details {
+	position: relative;
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	justify-content: space-between;
+	gap: 28px;
+	padding: 24px 20px;
+}
+
+.giftLabel {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: #52657d;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.value {
+	position: relative;
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 20px 12px;
+}
+
+.barcode {
+	width: 56px;
+	height: 16px;
+	margin-top: 20px;
+	background: repeating-linear-gradient(
+		90deg,
+		#718096 0 1px,
+		transparent 1px 3px,
+		#718096 3px 5px,
+		transparent 5px 7px
+	);
+	opacity: 0.3;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.scene[data-entered="false"] .entrance {
+		opacity: 0.85;
+		transform: translateY(14px) rotate(-2deg) scale(0.98);
+	}
+
+	.scene[data-entered="true"] .entrance {
+		animation: arrive 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+	}
+
+	.scene[data-entered="false"] .back {
+		transform: translateY(4px) rotate(-2deg);
+	}
+
+	.scene[data-entered="true"] .back {
+		animation: unfold 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+	}
+}
+
+@keyframes arrive {
+	from {
+		opacity: 0.85;
+		transform: translateY(14px) rotate(-2deg) scale(0.98);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) rotate(0deg) scale(1);
+	}
+}
+
+@keyframes unfold {
+	from {
+		transform: translateY(4px) rotate(-2deg);
+	}
+	to {
+		transform: translateY(16px) rotate(-7.29deg);
+	}
+}
+
+@keyframes fade {
+	from {
+		opacity: 0.85;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	/* Override pointer-driven inline transforms immediately when the preference changes. */
+	.stack,
+	.backInteraction {
+		/* biome-ignore lint/complexity/noImportantStyles: Reduced motion must override Motion's inline transforms. */
+		transform: none !important;
+	}
+
+	.scene[data-entered="true"] .entrance {
+		animation: fade 180ms ease both;
+	}
+}

@@ -1,40 +1,93 @@
+import React from 'react';
 import { getTranslations } from '@/libs/i18n/server';
 import { GiftBadgeIcon } from './DesignIcons';
+import styles from './GiftCard.module.css';
+import { GiftCardMotion } from './GiftCardMotion';
 
-/**
- * The ¥5 gift card from the design spec: a straight front card sitting over a
- * twin card rotated 7deg and nudged down behind it, warm drop shadow, dashed
- * divider. Padding reserves room so the rotated twin is never clipped.
- */
+// Ticket silhouette from Paper, including the two notches at the perforation.
+const TICKET_PATH =
+	'M499 0C506.732 0 513 6.268 513 14V167C513 174.732 506.732 181 499 181H339.987C339.727 175.709 335.355 171.5 330 171.5C324.645 171.5 320.273 175.709 320.013 181H14C6.268 181 0 174.732 0 167V14C0 6.268 6.268 0 14 0H320.013C320.005 0.166 320 0.332 320 0.5C320 6.023 324.477 10.5 330 10.5C335.523 10.5 340 6.023 340 0.5C340 0.332 339.995 0.166 339.987 0H499Z';
+
+function TicketShape({ back = false }: { back?: boolean }) {
+	const gradientId = React.useId();
+
+	return (
+		<svg
+			aria-hidden='true'
+			viewBox='0 0 513 181'
+			preserveAspectRatio='none'
+			className={styles['shape']}
+		>
+			<defs>
+				<linearGradient
+					id={gradientId}
+					x1='0'
+					y1='0'
+					x2='1'
+					y2='1'
+				>
+					<stop
+						offset='0'
+						stopColor='#ffffff'
+					/>
+					<stop
+						offset='1'
+						stopColor='#f3f8ff'
+					/>
+				</linearGradient>
+			</defs>
+			<path
+				d={TICKET_PATH}
+				fill={back ? '#171717' : `url(#${gradientId})`}
+				stroke={back ? '#171717' : '#dce3ed'}
+				strokeWidth='1'
+				vectorEffect='non-scaling-stroke'
+			/>
+			<path
+				d='M330 20V161'
+				fill='none'
+				stroke='#94a3b8'
+				strokeOpacity='0.5'
+				strokeDasharray='4 5'
+				vectorEffect='non-scaling-stroke'
+			/>
+		</svg>
+	);
+}
+
 export async function GiftCard() {
 	const t = await getTranslations('pages.invite.giftCard');
 
 	return (
-		<div className='relative mx-auto w-full max-w-[513px] px-5 pt-8 pb-20 lg:mx-0'>
-			<div
-				aria-hidden
-				className='border-zinc-200 absolute inset-x-5 top-20 bottom-8 rotate-[8deg] rounded-[14px] border bg-white'
-				style={{
-					backgroundImage:
-						'linear-gradient(to top left in oklab, rgba(10, 163, 249, 0.1), rgba(181, 180, 255, 0.1))',
-				}}
-			/>
-			<div className='border-zinc-200 bg-card relative flex flex-col gap-6 rounded-[14px] border px-5 py-4 shadow-[4px_4px_16px_rgba(255,251,218,0.4)] sm:flex-row'>
-				<div className='flex min-w-0 flex-1 flex-col justify-between gap-6 py-1'>
-					<div className='flex items-center gap-2'>
-						<GiftBadgeIcon className='text-zinc-950 size-5 shrink-0' />
-						<p className='text-zinc-950 text-xs'>{t('eyebrow')}</p>
+		<GiftCardMotion back={<TicketShape back />}>
+			<div className={styles['ticket']}>
+				<TicketShape />
+				<div className={styles['details']}>
+					<div className={styles['giftLabel']}>
+						<GiftBadgeIcon
+							aria-hidden='true'
+							className='size-4 shrink-0'
+						/>
+						<p>{t('eyebrow')}</p>
 					</div>
-					<div className='flex flex-col gap-3'>
-						<p className='text-2xl font-medium'>{t('title')}</p>
-						<p className='text-muted-foreground text-sm text-pretty'>{t('description')}</p>
+					<div className='space-y-3'>
+						<p className='text-xl leading-snug font-medium sm:text-2xl'>{t('title')}</p>
+						<p className='text-muted-foreground text-xs leading-relaxed sm:text-sm'>{t('description')}</p>
 					</div>
 				</div>
-				<div className='border-zinc-900/30 flex w-full shrink-0 flex-col items-center justify-center gap-1 border-t border-dashed pt-4 sm:w-[168px] sm:border-t-0 sm:border-l sm:border-dashed sm:pt-0 sm:pl-5'>
-					<p className='text-5xl font-semibold'>{t('amount')}</p>
-					<p className='text-zinc-950 text-xs'>{t('validity')}</p>
+				<div className={styles['value']}>
+					<GiftBadgeIcon
+						aria-hidden='true'
+						className='mb-4 size-5 text-blue-400'
+					/>
+					<p className='text-5xl leading-none font-semibold tracking-tight sm:text-6xl'>{t('amount')}</p>
+					<p className='mt-3 text-center text-xs text-muted-foreground'>{t('validity')}</p>
+					<div
+						aria-hidden='true'
+						className={styles['barcode']}
+					/>
 				</div>
 			</div>
-		</div>
+		</GiftCardMotion>
 	);
 }

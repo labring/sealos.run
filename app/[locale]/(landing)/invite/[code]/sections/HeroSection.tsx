@@ -16,8 +16,8 @@ export async function HeroSection({ code, preview }: { code: string; preview: In
 
 	return (
 		<section className='container mx-auto px-6 pt-24 pb-16 sm:pt-28 lg:pb-24'>
-			<div className='flex flex-col gap-14 lg:flex-row lg:items-start lg:gap-8'>
-				<div className='flex max-w-2xl flex-col items-start gap-8'>
+			<div className='flex flex-col items-center gap-14 xl:flex-row xl:items-start xl:justify-between xl:gap-8'>
+				<div className='flex w-full min-w-0 max-w-2xl flex-col items-center gap-8 text-center xl:items-start xl:text-left'>
 					{preview.status === 'valid' && (
 						<div className='flex items-center gap-2.5'>
 							<span className='bg-white size-12 overflow-hidden rounded-full'>
@@ -56,7 +56,7 @@ export async function HeroSection({ code, preview }: { code: string; preview: In
 					</LandingOutlineButton>
 				</div>
 
-				<div className='w-full lg:w-auto lg:shrink'>
+				<div className='w-full xl:w-[553px] xl:shrink-0'>
 					<GiftCard />
 				</div>
 			</div>
