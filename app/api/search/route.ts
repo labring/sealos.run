@@ -4,9 +4,6 @@ import { source } from '@/libs/docs/source';
 
 export const { GET } = createFromSource(source, {
 	localeMap: {
-		en: {
-			language: 'english',
-		},
 		zh: {
 			tokenizer: await createMandarinTokenizer(),
 		},

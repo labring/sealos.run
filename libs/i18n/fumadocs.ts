@@ -8,7 +8,7 @@ export const i18n = defineI18n({
 	defaultLanguage: routing.defaultLocale,
 });
 
-const languageDisplayNames = new Intl.DisplayNames(['en'], {
+const languageDisplayNames = new Intl.DisplayNames(['zh'], {
 	type: 'language',
 });
 

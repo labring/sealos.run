@@ -92,6 +92,10 @@ export const Config = (() => {
 						panel: <ProductsPanel {...productsPanelData} />,
 					},
 					{
+						textI18nKey: t('components.navbar.links.download'),
+						href: '/download',
+					},
+					{
 						textI18nKey: t('components.navbar.links.pricing'),
 						href: '/pricing/payg',
 					},
