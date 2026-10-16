@@ -82,7 +82,7 @@ export function GiftBadgeIcon(props: IconProps) {
 	return (
 		<svg
 			role='graphics-symbol'
-			viewBox='0 0 15 15'
+			viewBox='-1 -1 17 17'
 			fill='none'
 			stroke='currentColor'
 			strokeWidth={1.33}
