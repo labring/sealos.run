@@ -505,12 +505,12 @@
 	font-size: 14px;
 	font-weight: 400;
 }
-.faq summary svg {
+.faq summary img {
 	flex-shrink: 0;
 	margin-left: auto;
 	transform: rotate(-90deg);
 }
-.faq details[open] summary svg {
+.faq details[open] summary img {
 	transform: rotate(0);
 }
 .faq details p {
