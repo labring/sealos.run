@@ -5,7 +5,7 @@ import { getTranslations } from '@/libs/i18n/server';
 import { cn } from '@/libs/utils/styling';
 
 export async function Logo(
-	props: React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement> & {
+	props: Omit<React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>, 'className'> & {
 		withLogotype?: boolean;
 		className?: {
 			wrapper?: string;

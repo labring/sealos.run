@@ -1,0 +1,95 @@
+.hero {
+	position: relative;
+	isolation: isolate;
+}
+
+.hero::before {
+	position: absolute;
+	z-index: -1;
+	inset: 0;
+	content: "";
+	background-image: url("../assets/hero-grid.svg");
+	background-position: left top;
+	background-repeat: no-repeat;
+	background-size: 2575.58px 1170.72px;
+	opacity: 0.7;
+}
+
+.content {
+	position: relative;
+	max-width: 1328px;
+	margin-inline: auto;
+	padding: 64px 24px 80px;
+}
+
+.copy {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 32px;
+}
+
+.title {
+	font-size: clamp(24px, 8px + 6vw, 36px);
+	font-weight: 600;
+	line-height: 1.25;
+	text-wrap: balance;
+}
+
+.subtitle {
+	max-width: 746px;
+	color: #717171;
+	font-size: 18px;
+	line-height: 28px;
+	text-wrap: pretty;
+}
+
+.steps {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	color: #171717;
+	font-size: 18px;
+	line-height: 28px;
+}
+
+.reward {
+	max-width: 532px;
+	margin: 48px auto 0;
+}
+
+@media (min-width: 640px) {
+	.title {
+		font-size: 48px;
+	}
+}
+
+@media (min-width: 1280px) {
+	.content {
+		min-height: 769px;
+		padding-top: 107px;
+		padding-bottom: 196px;
+	}
+
+	.title {
+		max-width: 704px;
+		font-size: 56px;
+		line-height: 68px;
+	}
+
+	.reward {
+		position: absolute;
+		top: 152px;
+		right: 24px;
+		width: 532px;
+		margin: 0;
+	}
+}
+
+@media (max-width: 639px) {
+	.steps {
+		flex-direction: column;
+		font-size: 14px;
+		line-height: 22px;
+	}
+}

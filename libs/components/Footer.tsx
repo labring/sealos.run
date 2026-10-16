@@ -4,6 +4,7 @@ import type React from 'react';
 import { FooterHexagonalPattern } from '@/assets';
 import { Link } from '@/libs/i18n/navigation';
 import { getTranslations } from '@/libs/i18n/server';
+import { cn } from '@/libs/utils/styling';
 import { Logo } from './Logo';
 
 const ICP_FILING = '粤ICP备2023048773号';
@@ -58,7 +59,16 @@ interface FooterConfig {
 	socialLinks: SocialLink[];
 }
 
-export async function Footer({ config }: { config: FooterConfig }) {
+export async function Footer({
+	config,
+	variant = 'default',
+	pattern = FooterHexagonalPattern,
+}: {
+	config: FooterConfig;
+	variant?: 'default' | 'invite';
+	pattern?: typeof FooterHexagonalPattern;
+}) {
+	const isInvite = variant === 'invite';
 	const t = await getTranslations();
 	const requestHeaders = await headers();
 
@@ -69,14 +79,19 @@ export async function Footer({ config }: { config: FooterConfig }) {
 
 	// Match the header brand link's px-2 inset inside its px-4 container gutter.
 	return (
-		<section className='relative container mx-auto pr-4 pb-8 pl-6 text-left'>
+		<section
+			className={cn(
+				'relative mx-auto pb-8 text-left',
+				isInvite ? 'w-full max-w-332 px-6' : 'container pr-4 pl-6',
+			)}
+		>
 			<div className='pointer-events-none absolute right-0 bottom-0 left-0 flex h-96 items-end px-4'>
 				<Image
-					src={FooterHexagonalPattern}
+					src={pattern}
 					alt=''
 					role='presentation'
 					fill
-					className='object-cover object-bottom'
+					className={cn('object-cover object-bottom', isInvite && 'opacity-20')}
 					sizes='100vw'
 					style={{
 						WebkitMaskImage:
@@ -92,22 +107,40 @@ export async function Footer({ config }: { config: FooterConfig }) {
 			<div className='flex flex-col gap-10 lg:flex-row lg:justify-between'>
 				<div className='max-w-56 lg:shrink-0'>
 					<div className='flex items-center gap-2'>
-						<Logo withLogotype />
+						<Logo
+							withLogotype
+							className={isInvite ? { wrapper: 'h-7', image: 'size-7', text: 'font-bold' } : undefined}
+						/>
 					</div>
 					<p className='mt-2 leading-relaxed text-gray-500'>{footerTagline}</p>
 				</div>
-				<div className='grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4 lg:flex lg:gap-16 xl:gap-24'>
+				<div
+					className={cn(
+						'grid grid-cols-2 gap-x-8 gap-y-10 lg:flex',
+						isInvite ? 'sm:grid-cols-3 lg:gap-30' : 'sm:grid-cols-4 lg:gap-16 xl:gap-24',
+					)}
+				>
 					{config.menuItems.map((section) => (
 						<div
 							key={section.titleI18nKey}
 							className='min-w-0'
 						>
-							<h3 className='mb-4 leading-none font-medium uppercase'>{t(section.titleI18nKey)}</h3>
+							<h3
+								className={cn(
+									'font-medium',
+									isInvite ? 'mb-6 leading-6' : 'mb-4 leading-none uppercase',
+								)}
+							>
+								{t(section.titleI18nKey)}
+							</h3>
 							<ul className='space-y-4'>
 								{section.links.map((link) => (
 									<li
 										key={link.textI18nKey}
-										className='text-sm leading-normal font-normal hover:underline'
+										className={cn(
+											'text-sm leading-normal font-normal hover:underline',
+											isInvite && 'text-zinc-500',
+										)}
 									>
 										{isExternalUrl(link.url) ? (
 											<a
@@ -126,7 +159,12 @@ export async function Footer({ config }: { config: FooterConfig }) {
 					))}
 				</div>
 			</div>
-			<div className='mt-24 flex flex-col gap-6 pt-8 text-sm text-gray-500 lg:flex-row lg:items-end lg:justify-between'>
+			<div
+				className={cn(
+					'flex flex-col gap-6 text-sm text-gray-500 lg:flex-row lg:items-end lg:justify-between',
+					isInvite ? 'mt-25.25' : 'mt-24 pt-8',
+				)}
+			>
 				<div className='min-w-0 space-y-4'>
 					<ul className='flex flex-wrap gap-x-4 gap-y-2'>
 						{config.bottomLinks.map((link) => (

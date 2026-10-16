@@ -102,14 +102,19 @@
 			},
 			"hero": {
 				"inviterLine": "邀请你一起体验 Sealos Desktop",
-				"titleLine1": "好友已就位，",
-				"titleLine2": "就等你的新想法。",
-				"subtitle": "接受这份邀请，从你的第一个想法开始。一起探索 Sealos App，开启新的创造体验。",
-				"primaryCta": "立即体验",
+				"titleLine1": "一句话，",
+				"titleLine2": "帮你把项目部署上线！",
+				"subtitle": "Sealos Desktop 将 Agent 深度融入项目部署与管理：从读取你电脑里的本地项目、理解你的需求，到部署上线与后续管理，都可以交给 Agent。",
+				"primaryCta": "接受邀请，开始体验",
 				"invalid": {
 					"not_found": "邀请链接无效或已过期。你仍可以正常注册和下载，但本次注册不会关联邀请奖励。",
 					"disabled": "该邀请链接已被停用。你仍可以正常注册和下载，但本次注册不会关联邀请奖励。",
 					"unavailable": "邀请活动当前不可用。你仍可以正常注册和下载 Sealos。"
+				},
+				"journey": {
+					"verify": "下载并完成实名认证",
+					"reward": "领取 ¥10 首登礼 + ¥5 邀请奖励",
+					"deploy": "用 Agent 部署首个项目"
 				}
 			},
 			"steps": {
@@ -130,11 +135,12 @@
 				}
 			},
 			"download": {
-				"title": "你的下一个业务，一句话上线",
-				"subtitle": "下载 Sealos Desktop，让 Agent 负责上线与运维，你专注业务本身。",
+				"title": "你的下一个项目，一句话上线",
+				"subtitle": "下载 Sealos Desktop，让 Agent 负责上线与运维，你专注项目本身。",
 				"mac": "Mac 版下载",
 				"windows": "Windows 版下载",
-				"unavailable": "下载暂时不可用，请稍后刷新重试。"
+				"unavailable": "下载暂时不可用，请稍后刷新重试。",
+				"previewAlt": "Sealos Desktop 新建项目界面，可通过 Agent、本地项目、代码仓库、模板、数据库或 Docker 部署应用"
 			},
 			"rules": {
 				"title": "活动说明",
@@ -148,11 +154,36 @@
 				]
 			},
 			"giftCard": {
+				"eyebrow": "好友邀请奖励",
+				"title": "为你的项目，\n多留一份余量",
+				"description": "完成认证，Sealos余额 +¥5",
+				"amount": "+¥5",
+				"validity": "认证后到账",
+				"balance": "Sealos 余额"
+			},
+			"firstLoginGift": {
 				"eyebrow": "Sealos 给你的见面礼",
-				"title": "获得邀请礼",
-				"description": "邀请一名好友，被邀请人登录后完成实名认证，双方余额+5元。邀请无上限，多邀多得！",
-				"amount": "¥5",
+				"title": "首次登陆礼",
+				"description": "首次下载登录 Sealos Desktop，并完成实名，赠 ¥10 Sealos 余额。",
 				"validity": "有效期至：永久"
+			},
+			"navbar": {
+				"download": "下载",
+				"marketplace": "云市场"
+			},
+			"footer": {
+				"products": "产品",
+				"fastgpt": "FastGPT",
+				"aiproxy": "AI Proxy",
+				"shortcuts": "快捷入口",
+				"business": "商务咨询",
+				"sales": "售前咨询",
+				"docs": "文档中心",
+				"cases": "案例",
+				"community": "社区",
+				"feedback": "问题反馈",
+				"contact": "联系我们",
+				"blog": "博客"
 			}
 		}
 	},

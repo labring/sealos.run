@@ -102,14 +102,19 @@
 			},
 			"hero": {
 				"inviterLine": "invites you to try Sealos Desktop",
-				"titleLine1": "Your friend is already here —",
-				"titleLine2": "now bring your next idea.",
-				"subtitle": "Accept this invitation and start with your first idea. Explore Sealos apps and a new way to create.",
-				"primaryCta": "Get started",
+				"titleLine1": "One sentence,",
+				"titleLine2": "and your project is live.",
+				"subtitle": "Sealos Desktop brings an Agent into project deployment and management. From reading local projects and understanding your needs to deployment and ongoing operations, let the Agent handle it.",
+				"primaryCta": "Accept invite & get started",
 				"invalid": {
 					"not_found": "This invite link is invalid or expired. You can still sign up and download as usual, but this registration will not be tied to a referral reward.",
 					"disabled": "This invite link has been disabled. You can still sign up and download as usual, but this registration will not be tied to a referral reward.",
 					"unavailable": "The referral activity is currently unavailable. You can still sign up and use Sealos."
+				},
+				"journey": {
+					"verify": "Download & verify your identity",
+					"reward": "Get ¥10 welcome + ¥5 referral credits",
+					"deploy": "Deploy your first project with an Agent"
 				}
 			},
 			"steps": {
@@ -130,11 +135,12 @@
 				}
 			},
 			"download": {
-				"title": "Ship your next business in one sentence",
-				"subtitle": "Download Sealos Desktop and let the Agent handle shipping and ops, so you can focus on the business itself.",
+				"title": "Ship your next project in one sentence",
+				"subtitle": "Download Sealos Desktop and let the Agent handle deployment and operations, so you can focus on your project.",
 				"mac": "Download for Mac",
 				"windows": "Download for Windows",
-				"unavailable": "Downloads are temporarily unavailable. Please refresh and try again later."
+				"unavailable": "Downloads are temporarily unavailable. Please refresh and try again later.",
+				"previewAlt": "Sealos Desktop new project screen with Agent, local project, repository, template, database, and Docker deployment options"
 			},
 			"rules": {
 				"title": "Activity details",
@@ -148,11 +154,36 @@
 				]
 			},
 			"giftCard": {
+				"eyebrow": "Friend referral reward",
+				"title": "A little more room\nfor your project",
+				"description": "Verify your identity to get ¥5 in Sealos credits.",
+				"amount": "+¥5",
+				"validity": "Credited after verification",
+				"balance": "Sealos credits"
+			},
+			"firstLoginGift": {
 				"eyebrow": "A welcome gift from Sealos",
-				"title": "Claim your invite reward",
-				"description": "Invite a friend: once they sign in and complete real-name verification, you both get ¥5 in balance. No cap — invite more, earn more!",
-				"amount": "¥5",
-				"validity": "Valid: forever"
+				"title": "First sign-in gift",
+				"description": "Download Sealos Desktop, sign in and verify your identity to get ¥10 in Sealos credits.",
+				"validity": "Valid forever"
+			},
+			"navbar": {
+				"download": "Download",
+				"marketplace": "Marketplace"
+			},
+			"footer": {
+				"products": "Products",
+				"fastgpt": "FastGPT",
+				"aiproxy": "AI Proxy",
+				"shortcuts": "Quick links",
+				"business": "Business inquiries",
+				"sales": "Talk to sales",
+				"docs": "Documentation",
+				"cases": "Case studies",
+				"community": "Community",
+				"feedback": "Feedback",
+				"contact": "Contact us",
+				"blog": "Blog"
 			}
 		}
 	},

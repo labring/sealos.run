@@ -3,8 +3,6 @@ import { getTranslations } from '@/libs/i18n/server';
 import { DownloadSection } from './sections/DownloadSection';
 import { HeroSection } from './sections/HeroSection';
 import { RulesSection } from './sections/RulesSection';
-import { StepsSection } from './sections/StepsSection';
-import { getDesktopDownloads } from './utils/desktop-downloads';
 import { isPlausibleInviteCode } from './utils/invite.config';
 import { getInvitePreview, type InvitePreview } from './utils/invite-preview';
 
@@ -33,12 +31,9 @@ export default async function InvitePage({ params }: PageProps) {
 
 	// The cloud backend is the single source of truth for code validity; the
 	// format check only avoids a pointless request for obviously foreign paths.
-	const [preview, downloads] = await Promise.all([
-		isPlausibleInviteCode(code)
-			? getInvitePreview(code)
-			: Promise.resolve<InvitePreview>({ status: 'not_found', inviterNickname: null }),
-		getDesktopDownloads(),
-	]);
+	const preview: InvitePreview = isPlausibleInviteCode(code)
+		? await getInvitePreview(code)
+		: { status: 'not_found', inviterNickname: null };
 
 	return (
 		<div className='flex w-full flex-col'>
@@ -46,8 +41,7 @@ export default async function InvitePage({ params }: PageProps) {
 				code={code}
 				preview={preview}
 			/>
-			<StepsSection />
-			<DownloadSection downloads={downloads} />
+			<DownloadSection />
 			<RulesSection />
 		</div>
 	);

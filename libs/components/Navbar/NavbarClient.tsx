@@ -15,9 +15,13 @@ interface NavLink {
 
 interface NavbarClientProps {
 	links: NavLink[];
+	className?: string;
+	headerHeight?: number;
+	desktopBreakpoint?: 'lg' | 'xl';
 }
 
-export function NavbarClient({ links }: NavbarClientProps) {
+export function NavbarClient({ links, className, headerHeight = 64, desktopBreakpoint = 'lg' }: NavbarClientProps) {
+	const desktopVisibility = desktopBreakpoint === 'xl' ? 'xl:block' : 'lg:block';
 	const t = useTranslations();
 	const pathname = usePathname();
 	const [openedPanel, setOpenedPanel] = React.useState('');
@@ -47,7 +51,7 @@ export function NavbarClient({ links }: NavbarClientProps) {
 
 	return (
 		<>
-			<nav className='flex items-center'>
+			<nav className={cn('flex items-center', className)}>
 				<ul className='flex items-center gap-0'>
 					{links.map((item) => {
 						if (item.panel) {
@@ -101,7 +105,11 @@ export function NavbarClient({ links }: NavbarClientProps) {
 									animate={{ opacity: 1 }}
 									exit={{ opacity: 0 }}
 									transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
-									className='fixed inset-x-0 top-16 bottom-0 z-40 hidden bg-black/35 lg:block'
+									style={{ top: headerHeight }}
+									className={cn(
+										'fixed inset-x-0 bottom-0 z-40 hidden bg-black/35',
+										desktopVisibility,
+									)}
 								/>
 							)}
 						</AnimatePresence>
@@ -113,7 +121,11 @@ export function NavbarClient({ links }: NavbarClientProps) {
 									animate={{ height: 'auto' }}
 									exit={{ height: 0 }}
 									transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
-									className='bg-card fixed inset-x-0 top-16 z-50 hidden w-screen overflow-hidden border-t lg:block'
+									style={{ top: headerHeight }}
+									className={cn(
+										'bg-card fixed inset-x-0 z-50 hidden w-screen overflow-hidden border-t',
+										desktopVisibility,
+									)}
 								>
 									<div className='to-card h-90 bg-linear-to-r from-blue-100/30 from-50% to-50%'>
 										{openedItem.panel}

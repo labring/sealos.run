@@ -221,7 +221,12 @@ export function NavbarMobileNav({
 																		: 'text-foreground',
 																)}
 															>
-																<Link href={item.href}>{t(item.textI18nKey)}</Link>
+																<Link
+																	href={item.href}
+																	onClick={() => setOpen(false)}
+																>
+																	{t(item.textI18nKey)}
+																</Link>
 															</NavigationMenuLink>
 														</NavigationMenuItem>
 													</React.Fragment>
