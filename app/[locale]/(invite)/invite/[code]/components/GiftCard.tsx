@@ -21,18 +21,18 @@ function TicketShape({ back = false }: { back?: boolean }) {
 			<defs>
 				<linearGradient
 					id={gradientId}
-					x1='0'
-					y1='0'
-					x2='1'
-					y2='1'
+					x1='1.15'
+					y1='1.03'
+					x2='0.47'
+					y2='-0.03'
 				>
 					<stop
 						offset='0'
-						stopColor='#ffffff'
+						stopColor='#eaf6fe'
 					/>
 					<stop
 						offset='1'
-						stopColor='#f3f8ff'
+						stopColor='#f8f8ff'
 					/>
 				</linearGradient>
 			</defs>
@@ -66,26 +66,25 @@ export async function GiftCard() {
 					<div className={styles['giftLabel']}>
 						<GiftBadgeIcon
 							aria-hidden='true'
-							className='size-4 shrink-0'
+							className='size-5 shrink-0'
 						/>
 						<p>{t('eyebrow')}</p>
 					</div>
-					<div className='space-y-3'>
-						<p className='text-xl leading-snug font-medium sm:text-2xl'>{t('title')}</p>
-						<p className='text-muted-foreground text-xs leading-relaxed sm:text-sm'>{t('description')}</p>
+					<div className='space-y-5'>
+						<p className='text-lg leading-6 font-medium whitespace-pre-line sm:text-2xl sm:leading-7'>
+							{t('title')}
+						</p>
+						<p className='text-xs leading-4.5 sm:text-sm'>{t('description')}</p>
 					</div>
 				</div>
 				<div className={styles['value']}>
-					<GiftBadgeIcon
-						aria-hidden='true'
-						className='mb-4 size-5 text-blue-400'
-					/>
-					<p className='text-5xl leading-none font-semibold tracking-tight sm:text-6xl'>{t('amount')}</p>
-					<p className='mt-3 text-center text-xs text-muted-foreground'>{t('validity')}</p>
-					<div
-						aria-hidden='true'
-						className={styles['barcode']}
-					/>
+					<div className='text-center'>
+						<p className='text-4xl leading-none font-semibold tabular-nums sm:text-5xl sm:leading-14.5'>
+							{t('amount')}
+						</p>
+						<p className='text-xs leading-4'>{t('balance')}</p>
+					</div>
+					<p className='text-center text-xs leading-4'>{t('validity')}</p>
 				</div>
 			</div>
 		</GiftCardMotion>
