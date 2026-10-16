@@ -82,7 +82,11 @@ export function NavbarClient({ links, className, headerHeight = 64, desktopBreak
 							<li key={item.href}>
 								<Link
 									href={item.href}
-									className='hover:bg-accent hover:text-accent-foreground inline-flex h-auto rounded-md bg-transparent px-5 py-2 text-sm font-normal transition-colors'
+									aria-current={pathname === item.href ? 'page' : undefined}
+									className={cn(
+										'hover:bg-accent hover:text-accent-foreground inline-flex h-auto rounded-md bg-transparent px-5 py-2 text-sm font-normal transition-colors',
+										pathname === item.href && 'text-blue-600',
+									)}
 								>
 									{t(item.textI18nKey)}
 								</Link>
