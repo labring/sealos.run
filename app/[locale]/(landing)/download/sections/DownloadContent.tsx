@@ -20,7 +20,15 @@ import {
 import { Icon } from '@/libs/components/ui/icon';
 import { getDesktopDownloads } from '@/libs/utils/desktop-downloads';
 import { cn } from '@/libs/utils/styling';
-import { ctaN8n, ctaNginx, downloadAssets, puzzleLogo, valueBadge, valueCardPattern } from '../assets';
+import {
+	ctaN8n,
+	ctaNginx,
+	downloadAssets,
+	puzzleHoverStates,
+	puzzleLogo,
+	valueBadge,
+	valueCardPattern,
+} from '../assets';
 import { DownloadButtons } from '../components/DownloadButtons';
 import { MarketplaceShowcase } from '../components/MarketplaceShowcase';
 import { WorkflowDiagram } from '../components/WorkflowDiagram';
@@ -106,6 +114,19 @@ export async function DownloadContent() {
 					}
 				/>
 				<div className={styles['scenarios']}>
+					{puzzleHoverStates.map((src, index) => (
+						<Image
+							key={src.src}
+							src={src}
+							alt=''
+							width={894}
+							height={597}
+							loading='eager'
+							className={styles['puzzleHighlight']}
+							data-scenario={index + 1}
+							aria-hidden='true'
+						/>
+					))}
 					<Image
 						src={puzzleLogo}
 						alt=''

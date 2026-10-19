@@ -173,7 +173,7 @@
 }
 .scenario {
 	position: relative;
-	z-index: 1;
+	z-index: 2;
 	display: flex;
 	flex-direction: column;
 	gap: 20px;
@@ -197,10 +197,50 @@
 	justify-content: center;
 	text-align: center;
 }
+.puzzleHighlight {
+	display: none;
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	/* Match the SVG frame's 20px outer corners, including when it scales. */
+	border-radius: calc(100% * 20 / 894.12) / calc(100% * 20 / 597);
+	pointer-events: none;
+}
+@media (hover: hover) {
+	.scenario p {
+		transition: color 200ms ease-out;
+	}
+	.scenario:not(.scenarioSummary):hover p {
+		color: var(--download-ink);
+	}
+}
+@media (min-width: 761px) and (hover: hover) {
+	.puzzleHighlight {
+		display: block;
+		z-index: 1;
+		opacity: 0;
+		transition: opacity 200ms ease-out;
+	}
+	.scenarios:has(.scenario:nth-of-type(1):hover) .puzzleHighlight[data-scenario="1"],
+	.scenarios:has(.scenario:nth-of-type(2):hover) .puzzleHighlight[data-scenario="2"],
+	.scenarios:has(.scenario:nth-of-type(3):hover) .puzzleHighlight[data-scenario="3"],
+	.scenarios:has(.scenario:nth-of-type(4):hover) .puzzleHighlight[data-scenario="4"],
+	.scenarios:has(.scenario:nth-of-type(5):hover) .puzzleHighlight[data-scenario="5"],
+	.scenarios:has(.scenario:nth-of-type(6):hover) .puzzleHighlight[data-scenario="6"] {
+		opacity: 1;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.puzzleHighlight,
+	.scenario p {
+		transition: none;
+	}
+}
 .puzzleLogo {
 	position: absolute;
-	width: 500px;
-	height: 500px;
+	width: calc(100% * 500 / 894.12);
+	height: calc(100% * 500 / 597);
 	left: 50%;
 	top: 50%;
 	transform: translate(-50%, -50%);
