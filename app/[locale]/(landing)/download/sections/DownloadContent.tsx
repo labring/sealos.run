@@ -88,8 +88,8 @@ export async function DownloadContent() {
 						与后续运维的专用 Agent
 					</h1>
 					<p>
-						AI 写完代码如何上线？<strong>Sealos Agent</strong> 来帮你
-						<br className={styles['desktopBreak']} />用<strong>自然语言</strong>描述你的需求，
+						AI 写完代码如何上线？<strong>Sealos Agent</strong> 来帮你用<strong>自然语言</strong>
+						描述你的需求，
 						<strong>代码上线、依赖创建、持续运维</strong>，全部交给 Agent。
 					</p>
 					<DownloadButtons downloads={downloads} />

@@ -61,7 +61,7 @@
 	font-weight: 600;
 }
 .heroContent > p {
-	max-width: 660px;
+	max-width: 638px;
 	margin: 32px auto;
 	font-size: 18px;
 	line-height: 1.7;
@@ -812,9 +812,6 @@
 	.heroContent > p {
 		font-size: 15px;
 		margin-block: 24px;
-	}
-	.desktopBreak {
-		display: none;
 	}
 	.heroPreview {
 		border-radius: 7px;
