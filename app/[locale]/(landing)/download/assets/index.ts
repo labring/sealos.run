@@ -27,3 +27,6 @@ export const downloadAssets = {
 	marketplace: marketplace,
 	topology: topology,
 };
+
+export { default as valueBadge } from './value-badge.svg';
+export { default as valueCardPattern } from './value-card-pattern.svg';

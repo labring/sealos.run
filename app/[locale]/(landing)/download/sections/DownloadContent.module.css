@@ -6,6 +6,10 @@
 	font-size: 16px;
 	line-height: 1.5;
 }
+.page strong {
+	color: var(--download-ink);
+	font-weight: inherit;
+}
 .page * {
 	box-sizing: border-box;
 }
@@ -53,7 +57,7 @@
 .hero h1 {
 	font-size: clamp(34px, 4vw, 56px);
 	line-height: 1.22;
-	letter-spacing: -1.8px;
+	letter-spacing: normal;
 	font-weight: 600;
 }
 .heroContent > p {
@@ -144,15 +148,15 @@
 .sectionTitle h2 {
 	font-size: clamp(30px, 3.34vw, 48px);
 	font-weight: 600;
-	line-height: 1.2;
-	letter-spacing: -1.2px;
+	line-height: 1;
+	letter-spacing: normal;
 	text-wrap: balance;
 }
 .sectionTitle > p {
 	margin-top: 40px;
 	color: #737373;
 	font-size: 16px;
-	line-height: 1.6;
+	line-height: 18px;
 	text-wrap: balance;
 }
 .page h3 {
@@ -163,7 +167,7 @@
 .scenarios {
 	position: relative;
 	display: grid;
-	grid-template-columns: repeat(3, 1fr);
+	grid-template-columns: repeat(3, minmax(0, 1fr));
 	width: min(894px, 100%);
 	background: url("../assets/puzzle.svg") center / 100% 100% no-repeat;
 }
@@ -182,17 +186,16 @@
 	padding-bottom: 50px;
 }
 .scenario p {
-	font-size: 20px;
-	line-height: 1.4;
+	font-size: 18px;
+	line-height: 28px;
+	color: #737373;
 }
 .scenarioNumber {
 	font-size: 20px;
 }
 .scenarioSummary {
-	gap: 14px;
-}
-.scenarioSummary p {
-	font-size: 16px;
+	justify-content: center;
+	text-align: center;
 }
 .puzzleLogo {
 	position: absolute;
@@ -211,6 +214,9 @@
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 	gap: 28px;
 }
+.desktopColumns {
+	gap: 30px;
+}
 .desktopBenefit img {
 	display: block;
 	width: 100%;
@@ -223,8 +229,8 @@
 .desktopBenefit p {
 	margin-top: 12px;
 	color: var(--download-muted);
-	font-size: 18px;
-	line-height: 1.5;
+	font-size: 16px;
+	line-height: 26px;
 }
 .featureTimeline {
 	position: relative;
@@ -356,54 +362,106 @@
 .valueStrip p {
 	color: var(--download-muted);
 }
-.valueStrip + .threeColumns {
-	margin-top: -48px;
+.costCards {
+	width: 100%;
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 20px;
+	margin-top: -40px;
 }
 .valueCard {
 	position: relative;
+	isolation: isolate;
 	display: flex;
 	flex-direction: column;
-	align-items: flex-start;
+	align-items: stretch;
 	gap: 28px;
 	min-height: 533px;
 	padding: 24px 32px;
-	border: 1px solid #e5e5e5;
+	outline: 1px solid var(--border);
+	outline-offset: -1px;
 	border-radius: 20px;
 	background: white;
+	overflow: hidden;
+}
+.valueCardHeader {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
 }
 .valueCard h3 {
-	font-size: 26px;
+	font-size: 20px;
+	line-height: 28px;
 }
 .valueCard p {
 	color: var(--download-muted);
+	line-height: 24px;
+}
+.valueCardCopy > p {
+	margin-top: 8px;
+}
+.valueCardCopy > p + p {
+	margin-top: 24px;
 }
 .valueBadge {
-	align-self: flex-end;
-	background: #171717;
-	color: white;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	height: 33px;
+	padding: 4px 10px;
+	border: 1px solid var(--border);
 	border-radius: 999px;
-	padding: 3px 12px;
-	font-size: 12px;
+	background: var(--download-ink);
+	color: white;
+	white-space: nowrap;
+	font-size: 16px;
+	line-height: 24px;
+}
+.valueCardHeader > img,
+.valueBadge img {
+	flex-shrink: 0;
+}
+.page .valueCardPattern {
+	position: absolute;
+	z-index: -1;
+	top: 379px;
+	left: -152.5px;
+	width: 718px;
+	height: 202px;
+	max-width: none;
+	pointer-events: none;
 }
 .priceComparison {
-	width: 100%;
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
-	font-size: 13px;
+	gap: 28px;
 }
-.priceComparison > div {
+.priceLabel {
 	display: flex;
-	flex-wrap: wrap;
 	justify-content: space-between;
 	gap: 8px;
-	padding: 10px 12px;
-	background: #f4f4f5;
-	border-radius: 8px;
+	margin-bottom: 8px;
+	line-height: 24px;
+	color: var(--download-muted);
 }
-.priceComparison > div:last-child {
-	color: #005bff;
-	background: #eff6ff;
+.priceLabel > span:last-child {
+	color: var(--download-ink);
+}
+.priceTrack {
+	height: 12px;
+	border-radius: 999px;
+	background: #0000000f;
+	overflow: hidden;
+}
+.priceTrack > span {
+	display: block;
+	height: 100%;
+	border-radius: inherit;
+	background: #73737380;
+}
+.priceComparison > div:last-child .priceTrack > span {
+	background: var(--download-ink);
 }
 .story {
 	position: relative;
@@ -527,6 +585,25 @@
 	margin-top: 16px;
 	color: var(--download-muted);
 }
+@media (min-width: 1101px) {
+	.scenariosSection .sectionTitle h2 {
+		line-height: 58px;
+	}
+	.scenarios {
+		height: 597px;
+		grid-template-rows: repeat(2, minmax(0, 1fr));
+	}
+	.scenario {
+		min-height: 0;
+	}
+	.scenario:nth-of-type(2) p,
+	.scenario:nth-of-type(3) p {
+		width: 222px;
+	}
+	.scenarioSummary {
+		padding-block: 23px;
+	}
+}
 @media (max-width: 1100px) {
 	.section {
 		margin-top: 140px;
@@ -548,6 +625,12 @@
 	}
 	.threeColumns {
 		gap: 20px;
+	}
+	.costCards {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	.valueCardHeader {
+		flex-wrap: wrap;
 	}
 	.valueStrip article,
 	.valueCard,
@@ -626,7 +709,7 @@
 		font-size: 16px;
 	}
 	.scenarioSummary p {
-		font-size: 14px;
+		font-size: 16px;
 	}
 	.scenarioNumber {
 		font-size: 16px;
@@ -705,7 +788,8 @@
 	.valueStrip p {
 		font-size: 14px;
 	}
-	.valueStrip + .threeColumns {
+	.costCards {
+		grid-template-columns: 1fr;
 		margin-top: 0;
 		gap: 20px;
 	}

@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
+import { Geist } from 'next/font/google';
 import { DownloadContent } from './sections/DownloadContent';
+
+const geist = Geist({ subsets: ['latin'], display: 'swap' });
 
 const title = '下载 Sealos Desktop — 让 Agent 负责上线与运维';
 const description =
@@ -13,5 +16,9 @@ export const metadata: Metadata = {
 };
 
 export default function DownloadPage() {
-	return <DownloadContent />;
+	return (
+		<div className={geist.className}>
+			<DownloadContent />
+		</div>
+	);
 }

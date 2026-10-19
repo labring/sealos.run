@@ -5,18 +5,18 @@ import {
 	ChevronDownIcon,
 	CubesIcon,
 	FramedClockIcon,
-	FramedCodeIcon,
 	FramedPrivateIcon,
 	MonitorIcon,
 	PricetagIcon,
 	ToolIcon,
+	TrendIcon,
 	TrendingDownIcon,
 } from '@/assets/icons';
 import sealosLogo from '@/assets/sealos.svg';
 import { Icon } from '@/libs/components/ui/icon';
 import { getDesktopDownloads } from '@/libs/utils/desktop-downloads';
 import { cn } from '@/libs/utils/styling';
-import { downloadAssets } from '../assets';
+import { downloadAssets, valueBadge, valueCardPattern } from '../assets';
 import { DownloadButtons } from '../components/DownloadButtons';
 import {
 	desktopBenefits,
@@ -63,9 +63,9 @@ export async function DownloadContent() {
 						与后续运维的专用 Agent
 					</h1>
 					<p>
-						AI 写完代码如何上线？Sealos Agent 来帮你
-						<br className={styles['desktopBreak']} />
-						用自然语言描述你的需求，代码上线、依赖创建、持续运维，全部交给 Agent。
+						AI 写完代码如何上线？<strong>Sealos Agent</strong> 来帮你
+						<br className={styles['desktopBreak']} />用<strong>自然语言</strong>描述你的需求，
+						<strong>代码上线、依赖创建、持续运维</strong>，全部交给 Agent。
 					</p>
 					<DownloadButtons downloads={downloads} />
 				</div>
@@ -79,7 +79,7 @@ export async function DownloadContent() {
 				/>
 			</section>
 
-			<section className={cn(styles['section'], styles['whiteSection'])}>
+			<section className={cn(styles['section'], styles['whiteSection'], styles['scenariosSection'])}>
 				<SectionTitle
 					title={
 						<>
@@ -109,12 +109,8 @@ export async function DownloadContent() {
 					))}
 					<div className={cn(styles['scenario'], styles['scenarioSummary'])}>
 						<p>
-							来用 Sealos Desktop
-							<br />
-							自然语言描述，直接上线，以及后续的一切运维。
-						</p>
-						<p>
-							Agent 会自动创建项目依赖的所有资源——模型的 API
+							来用 Sealos Desktop <strong>自然语言描述，直接上线，以及后续的一切运维。</strong> Agent
+							会自动创建项目依赖的所有资源—模型的 API
 							Key、数据库、缓存、对象存储，帮你一键上线、持续运维。
 						</p>
 					</div>
@@ -125,7 +121,7 @@ export async function DownloadContent() {
 				<SectionTitle title='为什么是桌面端？'>
 					环境安装交给 AI，利用本地 Agent 与云端协作，无缝对接本地代码，以及其他 Agent 开发的代码。
 				</SectionTitle>
-				<div className={styles['threeColumns']}>
+				<div className={cn(styles['threeColumns'], styles['desktopColumns'])}>
 					{desktopBenefits.map((item) => (
 						<article
 							className={styles['desktopBenefit']}
@@ -253,61 +249,121 @@ export async function DownloadContent() {
 						);
 					})}
 				</div>
-				<div className={styles['threeColumns']}>
+				<div className={styles['costCards']}>
 					<article className={styles['valueCard']}>
-						<span className={styles['valueBadge']}>资源成本省 50%+</span>
-						<Icon
-							src={TrendingDownIcon}
-							className='size-8'
-							aria-hidden
-						/>
-						<h3>资源成本</h3>
-						<p>以 4 核 16G 为例，按量计费，比云厂商包月还便宜约 50%。</p>
+						<div className={styles['valueCardHeader']}>
+							<Icon
+								src={TrendIcon}
+								className='size-8'
+								aria-hidden
+							/>
+							<span className={styles['valueBadge']}>
+								<Icon
+									src={valueBadge}
+									className='size-2.5'
+									aria-hidden
+								/>
+								资源成本省 50%+
+							</span>
+						</div>
+						<div className={styles['valueCardCopy']}>
+							<h3>资源成本</h3>
+							<p>
+								以 4 核 16G 为例：某云厂商 A 约 ¥720/月，某云厂商 B 包月 ¥487/月，而 Sealos
+								按量计费仅仅需要 <strong>¥262/月</strong>，按量计费，比云厂商包月还便宜约 50%。
+							</p>
+						</div>
 						<div className={styles['priceComparison']}>
-							<div>
-								<span>某云厂商 A · 包月</span>
-								<strong>¥720 / 月</strong>
-							</div>
-							<div>
-								<span>某云厂商 B · 包月</span>
-								<strong>¥487 / 月</strong>
-							</div>
-							<div>
-								<span>Sealos · 按量计费</span>
-								<strong>¥262 / 月</strong>
-							</div>
+							{[
+								{ label: '某云厂商 A · 包月', price: 720 },
+								{ label: '某云厂商 B · 包月', price: 487 },
+								{ label: 'Sealos · 按量计费', price: 262 },
+							].map(({ label, price }) => (
+								<div key={label}>
+									<div className={styles['priceLabel']}>
+										<span>{label}</span>
+										<span>¥{price} / 月</span>
+									</div>
+									<div
+										className={styles['priceTrack']}
+										aria-hidden='true'
+									>
+										<span style={{ width: `${(price / 720) * 100}%` }} />
+									</div>
+								</div>
+							))}
 						</div>
 						<p>完全容器架构，可选更小规格并设置弹性伸缩，成本再降一半。</p>
-					</article>
-					<article className={styles['valueCard']}>
-						<span className={styles['valueBadge']}>人力成本省 1~3 个岗位</span>
 						<Icon
-							src={FramedCodeIcon}
-							className='size-8'
+							src={valueCardPattern}
+							className={styles['valueCardPattern']}
 							aria-hidden
 						/>
-						<h3>人力成本</h3>
-						<p>把基础设施交给 Sealos，把精力留给业务。</p>
-						<p>
-							从项目依赖、构建发布，到资源管理与持续运维，Agent
-							连接本地工具和云端能力，帮你完成上线过程中的工作。
-						</p>
-						<p>Sealos 团队是你的基础设施团队。</p>
 					</article>
 					<article className={styles['valueCard']}>
-						<span className={styles['valueBadge']}>时间成本分钟级上线</span>
+						<div className={styles['valueCardHeader']}>
+							<Icon
+								src={PricetagIcon}
+								className='size-8'
+								aria-hidden
+							/>
+							<span className={styles['valueBadge']}>
+								<Icon
+									src={valueBadge}
+									className='size-2.5'
+									aria-hidden
+								/>
+								人力成本省 1~3 个岗位
+							</span>
+						</div>
+						<div className={styles['valueCardCopy']}>
+							<h3>人力成本</h3>
+							<p>
+								使用 Sealos 的团队<strong>无需任何运维人员</strong>，只需专注业务开发。Sealos
+								的全部成员，就是你的基础设施团队。
+							</p>
+							<p>
+								上线过程完全自动化，至少为小企业节省 <strong>1~3 名</strong>
+								运维、DBA、架构师等专业岗位，对应<strong>几十万到百万级</strong>的年度支出。
+							</p>
+							<p>
+								Sealos 本身具备横向扩展能力，业务团队即使没有专业能力，也能支撑业务高速发展所需的扩展。
+							</p>
+						</div>
 						<Icon
-							src={FramedClockIcon}
-							className='size-8'
+							src={valueCardPattern}
+							className={styles['valueCardPattern']}
 							aria-hidden
 						/>
-						<h3>时间成本</h3>
-						<p>从源代码到线上，只需一句话。</p>
-						<p>
-							告别来回切换工具、手动配置依赖与排查环境。用自然语言描述需求，让 Agent
-							分析项目、创建依赖并完成部署。
-						</p>
-						<p>你专注业务，Agent 负责上线与运维。</p>
+					</article>
+					<article className={styles['valueCard']}>
+						<div className={styles['valueCardHeader']}>
+							<Icon
+								src={FramedClockIcon}
+								className='size-8'
+								aria-hidden
+							/>
+							<span className={styles['valueBadge']}>
+								<Icon
+									src={valueBadge}
+									className='size-2.5'
+									aria-hidden
+								/>
+								时间成本分钟级上线
+							</span>
+						</div>
+						<div className={styles['valueCardCopy']}>
+							<h3>时间成本</h3>
+							<p>
+								企业业务从源代码到上线，全程压缩到<strong>分钟级</strong>，完全自动化。
+							</p>
+							<p>对比传统数天、数小时的上线周期，为业务迭代赢得最宝贵的时间。</p>
+						</div>
+						<Icon
+							src={valueCardPattern}
+							className={styles['valueCardPattern']}
+							aria-hidden
+						/>
 					</article>
 				</div>
 			</section>

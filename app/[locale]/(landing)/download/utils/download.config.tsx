@@ -10,19 +10,31 @@ export const desktopBenefits = [
 	{
 		image: 'local-development',
 		title: '本地开发预览、云端线上部署',
-		description: '用 AI 在本地写完代码，上线部署的事情交给 Sealos Agent。',
+		description: (
+			<>
+				用 AI 在本地写完代码，<strong>上线部署的事情交给 Sealos Agent。</strong>
+			</>
+		),
 	},
 	{
 		image: 'local-agents',
 		title: '借力你本机的强 Agent',
-		description:
-			'构建发布与后续运维中，Sealos 直接调用你本机已安装的 Codex、Claude Code、Gemini CLI 等泛化 Agent 的能力，极大提升部署的正确性与成功率。',
+		description: (
+			<>
+				构建发布与后续运维中，Sealos 直接调用你本机已安装的 <strong>Codex、Claude Code、Gemini CLI</strong>{' '}
+				等泛化 Agent 的能力，极大提升部署的正确性与成功率。
+			</>
+		),
 	},
 	{
 		image: 'dependencies',
 		title: '解决项目所有依赖',
-		description:
-			'别的 Agent 只帮你写代码，但 Sealos 可以帮你把项目依赖的所有数据库、对象存储、缓存、网络出口、域名、网关等问题全部解决。',
+		description: (
+			<>
+				别的 Agent 只帮你写代码，但 Sealos 可以帮你把项目依赖的
+				<strong>所有数据库、对象存储、缓存、网络出口、域名、网关</strong>等问题全部解决。
+			</>
+		),
 	},
 ] as const;
 
