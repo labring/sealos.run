@@ -23,5 +23,6 @@ export { default as ctaN8n } from './cta-n8n.webp';
 export { default as ctaNginx } from './cta-nginx.webp';
 export { default as debugConnections } from './debug-connections.svg';
 export { marketplaceApps } from './marketplace';
+export { default as puzzleLogo } from './puzzle-logo.svg';
 export { default as valueBadge } from './value-badge.svg';
 export { default as valueCardPattern } from './value-card-pattern.svg';

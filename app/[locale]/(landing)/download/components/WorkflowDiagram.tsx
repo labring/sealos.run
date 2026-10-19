@@ -15,7 +15,7 @@ import styles from './WorkflowDiagram.module.css';
 const deploySteps = [
 	{ title: '分析项目', detail: '识别框架、依赖与运行时', icon: Number01Icon },
 	{ title: '创建依赖', detail: '数据库 / 缓存 / 对象存储 / API Key', icon: Number02Icon },
-	{ title: '构建镜像', detail: '调用本机 Codex / Claude Code 编排', icon: Number03Icon },
+	{ title: '本地构建镜像，无需复杂配置', detail: '', icon: Number03Icon },
 	{ title: '部署上线', detail: '推送至 Sealos Cloud', icon: Number04Icon },
 ] as const;
 
@@ -53,7 +53,7 @@ export function WorkflowDiagram({ kind, label }: { kind: 'deploy-flow' | 'debug-
 									</span>
 									<div>
 										<span>{title}</span>
-										<small>{detail}</small>
+										{detail && <small>{detail}</small>}
 									</div>
 								</div>
 							))}

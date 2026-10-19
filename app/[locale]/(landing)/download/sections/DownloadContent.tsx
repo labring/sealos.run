@@ -17,11 +17,10 @@ import {
 	TrendIcon,
 	TrendingDownIcon,
 } from '@/assets/icons';
-import sealosLogo from '@/assets/sealos.svg';
 import { Icon } from '@/libs/components/ui/icon';
 import { getDesktopDownloads } from '@/libs/utils/desktop-downloads';
 import { cn } from '@/libs/utils/styling';
-import { ctaN8n, ctaNginx, downloadAssets, valueBadge, valueCardPattern } from '../assets';
+import { ctaN8n, ctaNginx, downloadAssets, puzzleLogo, valueBadge, valueCardPattern } from '../assets';
 import { DownloadButtons } from '../components/DownloadButtons';
 import { MarketplaceShowcase } from '../components/MarketplaceShowcase';
 import { WorkflowDiagram } from '../components/WorkflowDiagram';
@@ -108,11 +107,11 @@ export async function DownloadContent() {
 				/>
 				<div className={styles['scenarios']}>
 					<Image
-						src={sealosLogo}
+						src={puzzleLogo}
 						alt=''
 						className={styles['puzzleLogo']}
-						width={460}
-						height={460}
+						width={500}
+						height={500}
 						aria-hidden='true'
 					/>
 					{scenarios.map((text, index) => (
