@@ -105,15 +105,7 @@ export async function DownloadContent() {
 			</section>
 
 			<section className={cn(styles['section'], styles['whiteSection'], styles['scenariosSection'])}>
-				<SectionTitle
-					title={
-						<>
-							这些时刻
-							<br />
-							你需要 Sealos Desktop
-						</>
-					}
-				/>
+				<SectionTitle title='这些时刻你需要 Sealos Agent' />
 				<div className={styles['scenarios']}>
 					<MobileScenarioPuzzle />
 					{puzzleHoverStates.map((src, index) => (
