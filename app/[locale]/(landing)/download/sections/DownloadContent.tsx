@@ -31,6 +31,7 @@ import {
 } from '../assets';
 import { DownloadButtons } from '../components/DownloadButtons';
 import { MarketplaceShowcase } from '../components/MarketplaceShowcase';
+import { MobileScenarioPuzzle } from '../components/MobileScenarioPuzzle';
 import { WorkflowDiagram } from '../components/WorkflowDiagram';
 import {
 	desktopBenefits,
@@ -114,6 +115,7 @@ export async function DownloadContent() {
 					}
 				/>
 				<div className={styles['scenarios']}>
+					<MobileScenarioPuzzle />
 					{puzzleHoverStates.map((src, index) => (
 						<Image
 							key={src.src}
