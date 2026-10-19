@@ -14,6 +14,7 @@ import {
 } from '@/assets/icons';
 import sealosLogo from '@/assets/sealos.svg';
 import { Icon } from '@/libs/components/ui/icon';
+import { getDesktopDownloads } from '@/libs/utils/desktop-downloads';
 import { cn } from '@/libs/utils/styling';
 import { downloadAssets } from '../assets';
 import { DownloadButtons } from '../components/DownloadButtons';
@@ -40,7 +41,8 @@ function SectionTitle({ title, children }: { title: React.ReactNode; children?: 
 	);
 }
 
-export function DownloadContent() {
+export async function DownloadContent() {
+	const downloads = await getDesktopDownloads();
 	const valueIcons = [CheckIcon, TrendingDownIcon, PricetagIcon, FramedClockIcon, FramedPrivateIcon];
 	const specialistIcons = [CubesIcon, ToolIcon, MonitorIcon];
 	return (
@@ -65,7 +67,7 @@ export function DownloadContent() {
 						<br className={styles['desktopBreak']} />
 						用自然语言描述你的需求，代码上线、依赖创建、持续运维，全部交给 Agent。
 					</p>
-					<DownloadButtons />
+					<DownloadButtons downloads={downloads} />
 				</div>
 				<Image
 					className={styles['heroPreview']}
@@ -214,7 +216,7 @@ export function DownloadContent() {
 								<h3>{item.title}</h3>
 								<p>{item.description}</p>
 								{'detail' in item && <p>{item.detail}</p>}
-								{index === 0 && <DownloadButtons />}
+								{index === 0 && <DownloadButtons downloads={downloads} />}
 							</div>
 							<Image
 								src={asset(item.image)}
@@ -339,7 +341,7 @@ export function DownloadContent() {
 				<SectionTitle title='你的下一个业务，一句话上线'>
 					下载 Sealos Desktop，让 Agent 负责上线与运维，你专注业务本身。
 				</SectionTitle>
-				<DownloadButtons />
+				<DownloadButtons downloads={downloads} />
 			</section>
 
 			<section className={cn(styles['section'], styles['container'], styles['faq'])}>

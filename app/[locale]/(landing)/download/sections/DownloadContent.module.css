@@ -21,12 +21,8 @@
 }
 .page a:focus-visible,
 .page summary:focus-visible {
-	outline: 2px solid #005bff;
+	outline: 2px solid var(--ring);
 	outline-offset: 5px;
-	border-radius: 4px;
-}
-.page a:hover {
-	color: #005bff;
 }
 .page img {
 	max-width: 100%;
@@ -79,30 +75,43 @@
 	justify-content: center;
 	gap: 10px;
 }
-.downloadButtons button {
+.page .downloadButtons a {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	gap: 9px;
 	min-height: 44px;
 	padding: 11px 22px;
-	border: 1px solid #e5e5e5;
+	border: 1px solid var(--border);
 	border-radius: 999px;
-	background: #171717;
-	color: #fff;
+	background: var(--primary);
+	color: var(--color-white);
 	font: inherit;
 	font-size: 14px;
 	font-weight: 500;
-	cursor: not-allowed;
+	cursor: pointer;
+	text-decoration: none;
 }
-.downloadButtons button:nth-child(2) {
-	background: #3d3d3d;
+.page .downloadButtons a:hover {
+	background-image: linear-gradient(
+		color-mix(in srgb, var(--color-white) 16%, transparent),
+		color-mix(in srgb, var(--color-white) 16%, transparent)
+	);
+}
+.page .downloadButtons a:focus-visible {
+	outline: 2px solid var(--ring);
+	outline-offset: 3px;
+}
+.page .intelDownload {
+	text-decoration: underline;
+	text-underline-offset: 3px;
 }
 .downloadButtons svg {
 	flex-shrink: 0;
 }
-.comingSoon {
-	color: #71717a;
+.downloadUnavailable,
+.page .intelDownload {
+	color: var(--muted-foreground);
 	font-size: 12px;
 }
 .heroPreview {
