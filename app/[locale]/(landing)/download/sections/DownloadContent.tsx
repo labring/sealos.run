@@ -1,9 +1,9 @@
 import Image from 'next/image';
 import type React from 'react';
 import {
+	AppLaunchpadIcon,
 	CheckIcon,
 	ChevronDownIcon,
-	CubesIcon,
 	FramedClockIcon,
 	FramedPrivateIcon,
 	MonitorIcon,
@@ -21,7 +21,7 @@ import sealosLogo from '@/assets/sealos.svg';
 import { Icon } from '@/libs/components/ui/icon';
 import { getDesktopDownloads } from '@/libs/utils/desktop-downloads';
 import { cn } from '@/libs/utils/styling';
-import { downloadAssets, valueBadge, valueCardPattern } from '../assets';
+import { ctaN8n, ctaNginx, downloadAssets, valueBadge, valueCardPattern } from '../assets';
 import { DownloadButtons } from '../components/DownloadButtons';
 import { MarketplaceShowcase } from '../components/MarketplaceShowcase';
 import { WorkflowDiagram } from '../components/WorkflowDiagram';
@@ -36,6 +36,14 @@ import {
 	workflows,
 } from '../utils/download.config';
 import styles from './DownloadContent.module.css';
+
+const ctaRows = ['top', 'middle', 'bottom'].map((id) => ({
+	id,
+	cards: Array.from({ length: 5 }, (_, column) => ({
+		id: `${id}-${column}`,
+		image: id === 'middle' && column === 1 ? ctaN8n : ctaNginx,
+	})),
+}));
 
 const featureIcons = [Number01Icon, Number02Icon, Number03Icon, Number04Icon, Number05Icon];
 
@@ -53,7 +61,7 @@ function SectionTitle({ title, children }: { title: React.ReactNode; children?: 
 export async function DownloadContent() {
 	const downloads = await getDesktopDownloads();
 	const valueIcons = [CheckIcon, TrendingDownIcon, PricetagIcon, FramedClockIcon, FramedPrivateIcon];
-	const specialistIcons = [CubesIcon, ToolIcon, MonitorIcon];
+	const specialistIcons = [AppLaunchpadIcon, ToolIcon, MonitorIcon];
 	return (
 		<div className={styles['page']}>
 			<section
@@ -206,11 +214,11 @@ export async function DownloadContent() {
 				</div>
 			</section>
 
-			<section className={cn(styles['section'], styles['container'])}>
+			<section className={cn(styles['section'], styles['container'], styles['specialistSection'])}>
 				<SectionTitle title='为什么不直接用通用 Agent？'>
 					Codex、Claude Code、千问办公、豆包工作，它们是优秀的通用 Agent，但 Sealos Desktop 做的是另一件事。
 				</SectionTitle>
-				<div className={styles['threeColumns']}>
+				<div className={cn(styles['threeColumns'], styles['specialistColumns'])}>
 					{specialistBenefits.map((item, index) => {
 						const icon = specialistIcons[index] ?? ToolIcon;
 						return (
@@ -223,8 +231,10 @@ export async function DownloadContent() {
 									className='size-8'
 									aria-hidden
 								/>
-								<h3>{item.title}</h3>
-								<p>{item.description}</p>
+								<div className={styles['specialistCopy']}>
+									<h3>{item.title}</h3>
+									<p>{item.description}</p>
+								</div>
 							</article>
 						);
 					})}
@@ -425,8 +435,28 @@ export async function DownloadContent() {
 			<section className={styles['finalCta']}>
 				<div
 					className={styles['ctaBackdrop']}
-					style={{ backgroundImage: `url("${asset('app-preview').src}")` }}
-					aria-hidden
+					aria-hidden='true'
+				>
+					{ctaRows.map((row) => (
+						<div
+							className={styles['ctaBackdropRow']}
+							key={row.id}
+						>
+							{row.cards.map((card) => (
+								<Image
+									src={card.image}
+									alt=''
+									width={317}
+									height={170}
+									key={card.id}
+								/>
+							))}
+						</div>
+					))}
+				</div>
+				<div
+					className={styles['ctaVeil']}
+					aria-hidden='true'
 				/>
 				<SectionTitle title='你的下一个业务，一句话上线'>
 					下载 Sealos Desktop，让 Agent 负责上线与运维，你专注业务本身。

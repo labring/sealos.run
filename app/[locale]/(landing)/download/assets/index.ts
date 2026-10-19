@@ -1,5 +1,4 @@
 import agents from './agents.webp';
-import appPreview from './app-preview.webp';
 import debug from './debug.webp';
 import dependencies from './dependencies.webp';
 import desktopPreview from './desktop-preview.webp';
@@ -10,7 +9,6 @@ import topology from './topology.webp';
 
 export const downloadAssets = {
 	agents: agents,
-	'app-preview': appPreview,
 	debug: debug,
 	dependencies: dependencies,
 	'desktop-preview': desktopPreview,
@@ -21,6 +19,8 @@ export const downloadAssets = {
 };
 
 export { default as agentConnections } from './agent-connections.svg';
+export { default as ctaN8n } from './cta-n8n.webp';
+export { default as ctaNginx } from './cta-nginx.webp';
 export { default as debugConnections } from './debug-connections.svg';
 export { marketplaceApps } from './marketplace';
 export { default as valueBadge } from './value-badge.svg';
