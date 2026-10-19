@@ -629,44 +629,52 @@
 	background: radial-gradient(ellipse 50% 50% at 50% 50% in oklab, #f4f4f500, #f4f4f5);
 	pointer-events: none;
 }
+.faq {
+	gap: 64px;
+}
 .faqList {
 	width: 100%;
 }
 .faq details {
 	padding: 28px 80px;
-	border-bottom: 1px dashed #93b4f4;
+	border-bottom-style: dashed;
+	border-bottom-color: #005bff;
 }
 .faq summary {
-	display: flex;
-	align-items: center;
+	display: grid;
+	grid-template-columns: 24px minmax(0, 1fr) 28px;
+	align-items: start;
 	gap: 40px;
 	list-style: none;
 	cursor: pointer;
+	color: #000;
 	font-size: 20px;
 	font-weight: 500;
+	line-height: 20px;
 }
 .faq summary::-webkit-details-marker {
 	display: none;
 }
 .faqNumber {
 	width: 24px;
-	flex-shrink: 0;
+	height: 24px;
 	color: #005bff;
-	font-size: 14px;
-	font-weight: 400;
 }
-.faq summary img {
-	flex-shrink: 0;
-	margin-left: auto;
+.faqChevron {
+	width: 28px;
+	height: 28px;
+	color: var(--download-muted);
 	transform: rotate(-90deg);
 }
-.faq details[open] summary img {
+.faq details[open] .faqChevron {
+	color: #005bff;
 	transform: rotate(0);
 }
 .faq details p {
 	padding-left: 64px;
 	margin-top: 16px;
 	color: var(--download-muted);
+	line-height: 24px;
 }
 @media (min-width: 761px) {
 	.feature:last-child p {
@@ -972,6 +980,7 @@
 		padding: 24px 0;
 	}
 	.faq summary {
+		line-height: 24px;
 		font-size: 17px;
 		gap: 16px;
 	}

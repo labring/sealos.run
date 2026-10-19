@@ -470,14 +470,20 @@ export async function DownloadContent() {
 					{faqs.map(([question, answer], index) => (
 						<details
 							key={question}
+							className='border-b-hairline'
 							open={index === 0}
 						>
 							<summary>
-								<span className={styles['faqNumber']}>0{index + 1}</span>
+								<Icon
+									src={featureIcons[index] ?? Number01Icon}
+									className={styles['faqNumber']}
+									aria-hidden
+								/>
 								<span>{question}</span>
 								<Icon
 									src={ChevronDownIcon}
-									className='size-5'
+									strokeWidth={2}
+									className={styles['faqChevron']}
 									aria-hidden
 								/>
 							</summary>
