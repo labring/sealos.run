@@ -324,7 +324,7 @@
 	margin-right: 0;
 	margin-left: 40px;
 }
-.feature > img {
+.feature > .featureMedia {
 	grid-column: 1;
 	grid-row: 2;
 	display: block;
@@ -332,7 +332,7 @@
 	height: auto;
 	border-radius: 16px;
 }
-.feature:nth-child(even) > img {
+.feature:nth-child(even) > .featureMedia {
 	grid-column: 2;
 }
 .specialist {
@@ -811,7 +811,7 @@
 	}
 	.featureCopy,
 	.feature:nth-child(even) .featureCopy,
-	.feature:nth-child(even) > img {
+	.feature:nth-child(even) > .featureMedia {
 		grid-column: 1;
 		text-align: left;
 	}

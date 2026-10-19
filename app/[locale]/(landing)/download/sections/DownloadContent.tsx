@@ -23,6 +23,7 @@ import { getDesktopDownloads } from '@/libs/utils/desktop-downloads';
 import { cn } from '@/libs/utils/styling';
 import { downloadAssets, valueBadge, valueCardPattern } from '../assets';
 import { DownloadButtons } from '../components/DownloadButtons';
+import { MarketplaceShowcase } from '../components/MarketplaceShowcase';
 import { WorkflowDiagram } from '../components/WorkflowDiagram';
 import {
 	desktopBenefits,
@@ -188,13 +189,18 @@ export async function DownloadContent() {
 								</div>
 								<p>{item.description}</p>
 							</div>
-							<Image
-								src={asset(item.image)}
-								alt={`${item.title}功能界面`}
-								width={510}
-								height={287}
-								loading='lazy'
-							/>
+							{item.image === 'marketplace' ? (
+								<MarketplaceShowcase className={styles['featureMedia']} />
+							) : (
+								<Image
+									className={styles['featureMedia']}
+									src={asset(item.image)}
+									alt={`${item.title}功能界面`}
+									width={510}
+									height={287}
+									loading='lazy'
+								/>
+							)}
 						</article>
 					))}
 				</div>

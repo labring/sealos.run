@@ -1,0 +1,52 @@
+[
+	{
+		"slug": "affine",
+		"name": "AFFiNE",
+		"url": "https://raw.githubusercontent.com/toeverything/AFFiNE/canary/packages/frontend/core/public/favicon-144.png"
+	},
+	{
+		"slug": "umami",
+		"name": "Umami",
+		"url": "https://raw.githubusercontent.com/umami-software/umami/master/src/assets/logo.svg"
+	},
+	{
+		"slug": "tianji",
+		"name": "Tianji",
+		"url": "https://tianji.msgbyte.com/img/logo.svg"
+	},
+	{
+		"slug": "overleaf",
+		"name": "Overleaf",
+		"url": "https://avatars.githubusercontent.com/u/6359919?s=48&v=4"
+	},
+	{
+		"slug": "headscale",
+		"name": "Headscale",
+		"url": "https://raw.githubusercontent.com/labring-actions/templates/main/template/headscale/logo.svg"
+	},
+	{
+		"slug": "fastgpt",
+		"name": "FastGPT",
+		"url": "https://raw.githubusercontent.com/labring/FastGPT/main/.github/imgs/logo.svg"
+	},
+	{
+		"slug": "dify",
+		"name": "Dify",
+		"url": "https://avatars.githubusercontent.com/u/127165244?s=200&v=4"
+	},
+	{
+		"slug": "cap",
+		"name": "Cap",
+		"url": "https://avatars.githubusercontent.com/u/151241629?s=48&v=4"
+	},
+	{
+		"slug": "wordpress",
+		"name": "WordPress",
+		"url": "https://raw.githubusercontent.com/WordPress/WordPress/master/wp-admin/images/wordpress-logo.svg"
+	},
+	{
+		"slug": "signoz",
+		"name": "SigNoz",
+		"url": "https://avatars.githubusercontent.com/u/76905799?s=200&v=4"
+	}
+]
