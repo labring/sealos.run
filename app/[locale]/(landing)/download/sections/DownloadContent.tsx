@@ -7,6 +7,11 @@ import {
 	FramedClockIcon,
 	FramedPrivateIcon,
 	MonitorIcon,
+	Number01Icon,
+	Number02Icon,
+	Number03Icon,
+	Number04Icon,
+	Number05Icon,
 	PricetagIcon,
 	ToolIcon,
 	TrendIcon,
@@ -18,6 +23,7 @@ import { getDesktopDownloads } from '@/libs/utils/desktop-downloads';
 import { cn } from '@/libs/utils/styling';
 import { downloadAssets, valueBadge, valueCardPattern } from '../assets';
 import { DownloadButtons } from '../components/DownloadButtons';
+import { WorkflowDiagram } from '../components/WorkflowDiagram';
 import {
 	desktopBenefits,
 	faqs,
@@ -29,6 +35,8 @@ import {
 	workflows,
 } from '../utils/download.config';
 import styles from './DownloadContent.module.css';
+
+const featureIcons = [Number01Icon, Number02Icon, Number03Icon, Number04Icon, Number05Icon];
 
 const asset = (name: keyof typeof downloadAssets) => downloadAssets[name];
 
@@ -155,14 +163,31 @@ export async function DownloadContent() {
 							key={item.title}
 							id={item.image === 'marketplace' ? 'marketplace' : undefined}
 						>
-							<span
-								className={styles['featureIndex']}
+							<div
+								className={styles['featureConnector']}
 								aria-hidden='true'
 							>
-								0{index + 1}
-							</span>
-							<h3>{item.title}</h3>
-							<p>{item.description}</p>
+								<span className={styles['featureDash']} />
+								<span className={styles['featureMarkers']}>
+									{[0, 1, 2].map((marker) => (
+										<Icon
+											key={marker}
+											src={valueBadge}
+										/>
+									))}
+								</span>
+							</div>
+							<div className={styles['featureCopy']}>
+								<div className={styles['featureHeading']}>
+									<h3>{item.title}</h3>
+									<Icon
+										src={featureIcons[index] ?? Number01Icon}
+										className='size-6'
+										aria-hidden
+									/>
+								</div>
+								<p>{item.description}</p>
+							</div>
 							<Image
 								src={asset(item.image)}
 								alt={`${item.title}功能界面`}
@@ -200,7 +225,7 @@ export async function DownloadContent() {
 				</div>
 			</section>
 
-			<section className={cn(styles['section'], styles['whiteSection'])}>
+			<section className={cn(styles['section'], styles['whiteSection'], styles['workflowSection'])}>
 				<SectionTitle title='从源代码到线上，只需一句话' />
 				<div className={styles['workflows']}>
 					{workflows.map((item, index) => (
@@ -214,12 +239,9 @@ export async function DownloadContent() {
 								{'detail' in item && <p>{item.detail}</p>}
 								{index === 0 && <DownloadButtons downloads={downloads} />}
 							</div>
-							<Image
-								src={asset(item.image)}
-								alt={item.alt}
-								width={809}
-								height={514}
-								loading='lazy'
+							<WorkflowDiagram
+								kind={item.image}
+								label={item.alt}
 							/>
 						</article>
 					))}
@@ -378,7 +400,13 @@ export async function DownloadContent() {
 				<ol className={styles['story']}>
 					{milestones.map((item) => (
 						<li key={item.stage}>
-							<span className={styles['stage']}>{item.stage}</span>
+							<span className={styles['stage']}>
+								<Icon
+									src={valueBadge}
+									aria-hidden
+								/>
+								{item.stage}
+							</span>
 							<div>
 								<h3>{item.title}</h3>
 								<p>{item.description}</p>
