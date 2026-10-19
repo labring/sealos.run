@@ -180,11 +180,6 @@
 	min-height: 298px;
 	padding: 35px 50px;
 }
-.scenario:nth-of-type(4),
-.scenario:nth-of-type(5) {
-	justify-content: flex-end;
-	padding-bottom: 50px;
-}
 .scenario p {
 	font-size: 18px;
 	line-height: 28px;
@@ -215,7 +210,7 @@
 	.scenario p {
 		transition: color 200ms ease-out;
 	}
-	.scenario:not(.scenarioSummary):hover p {
+	.scenario:hover p {
 		color: var(--download-ink);
 	}
 }
@@ -871,7 +866,7 @@
 	.scenarios:has(.scenario:nth-of-type(6):active) [data-mobile-scenario="6"] {
 		opacity: 1;
 	}
-	.scenario:not(.scenarioSummary):active p {
+	.scenario:active p {
 		color: var(--download-ink);
 	}
 	.scenario {
@@ -881,7 +876,6 @@
 		gap: 14px;
 	}
 	.scenario:nth-of-type(n + 3) {
-		justify-content: flex-end;
 		padding-top: 100px;
 		padding-bottom: 28px;
 	}
