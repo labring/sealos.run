@@ -35,6 +35,7 @@ import { MarketplaceShowcase } from '../components/MarketplaceShowcase';
 import { MobileScenarioPuzzle } from '../components/MobileScenarioPuzzle';
 import { WorkflowDiagram } from '../components/WorkflowDiagram';
 import {
+	appDownloadsEnabled,
 	desktopBenefits,
 	faqs,
 	features,
@@ -68,7 +69,7 @@ function SectionTitle({ title, children }: { title: React.ReactNode; children?: 
 }
 
 export async function DownloadContent() {
-	const downloads = await getDesktopDownloads();
+	const downloads = appDownloadsEnabled ? await getDesktopDownloads() : {};
 	const valueIcons = [CheckOverFrameIcon, TrendingDownIcon, PricetagIcon, FramedClockIcon, FramedPrivateIcon];
 	const specialistIcons = [AppLaunchpadIcon, ToolIcon, MonitorIcon];
 	return (
@@ -93,7 +94,10 @@ export async function DownloadContent() {
 						描述你的需求，
 						<strong>代码上线、依赖创建、持续运维</strong>，全部交给 Agent。
 					</p>
-					<DownloadButtons downloads={downloads} />
+					<DownloadButtons
+						downloads={downloads}
+						enabled={appDownloadsEnabled}
+					/>
 				</div>
 				<Image
 					className={styles['heroPreview']}
@@ -269,7 +273,12 @@ export async function DownloadContent() {
 								<h3>{item.title}</h3>
 								<p>{item.description}</p>
 								{'detail' in item && <p>{item.detail}</p>}
-								{index === 0 && <DownloadButtons downloads={downloads} />}
+								{index === 0 && (
+									<DownloadButtons
+										downloads={downloads}
+										enabled={appDownloadsEnabled}
+									/>
+								)}
 							</div>
 							<WorkflowDiagram
 								kind={item.image}
@@ -477,7 +486,10 @@ export async function DownloadContent() {
 				<SectionTitle title='你的下一个业务，一句话上线'>
 					下载 Sealos Desktop，让 Agent 负责上线与运维，你专注业务本身。
 				</SectionTitle>
-				<DownloadButtons downloads={downloads} />
+				<DownloadButtons
+					downloads={downloads}
+					enabled={appDownloadsEnabled}
+				/>
 			</section>
 
 			<section className={cn(styles['section'], styles['container'], styles['faq'])}>

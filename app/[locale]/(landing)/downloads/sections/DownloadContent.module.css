@@ -99,7 +99,7 @@
 	cursor: pointer;
 	text-decoration: none;
 }
-.page .downloadButtons :is(a, button):hover {
+.page .downloadButtons :is(a, button):not(:disabled):hover {
 	background-image: linear-gradient(
 		color-mix(in srgb, var(--color-white) 16%, transparent),
 		color-mix(in srgb, var(--color-white) 16%, transparent)
@@ -1103,4 +1103,25 @@
 	.scenario p {
 		transition: color 200ms ease-out;
 	}
+}
+
+.disabledDownload {
+	cursor: not-allowed;
+	border-radius: 999px;
+}
+.page .downloadButtons button:disabled {
+	opacity: 0.5;
+	pointer-events: none;
+	cursor: not-allowed;
+}
+.downloadTooltip {
+	z-index: 60;
+	max-width: calc(100vw - 24px);
+	padding: 8px 12px;
+	border-radius: 8px;
+	background: #fff;
+	color: #171717;
+	box-shadow: 0 4px 16px rgb(0 0 0 / 12%);
+	font-size: 13px;
+	line-height: 1.5;
 }
