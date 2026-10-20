@@ -149,17 +149,18 @@
 				"firstLogin": {
 					"title": "¥10 first-login gift",
 					"items": [
-						"The activity is available on the Sealos China site only; accounts registered via API do not join the referral rewards.",
-						"The ¥10 Desktop first sign-in reward covers new and existing users who have not claimed it, once per account."
+						"Eligibility: Users who have not received the Sealos Desktop first-login gift.",
+						"How to qualify: Complete identity verification on the Sealos web console, then download and sign in to Sealos Desktop.",
+						"Claim limit: Once per account."
 					]
 				},
 				"invitation": {
 					"title": "¥5 invitation reward",
 					"items": [
-						"Referral rewards apply to newly invited users only: ¥5 for the invitee and ¥5 for the inviter.",
-						"Rewards are cloud credits (gift-code balance), redeemed automatically once conditions are met — no manual application.",
-						"The referral is locked in only when the account is first created; existing accounts cannot be bound retroactively.",
-						"Inviters are not required to complete real-name verification."
+						"Invitee: Must be a new Sealos user.",
+						"How to participate: Register on the Sealos web console through the personal invite link and complete identity verification.",
+						"How to qualify: Download and sign in to Sealos Desktop. Both the inviter and invitee receive ¥5 in Sealos balance.",
+						"Rewards: There is no limit on the number of invites. Rewards are credited automatically after eligibility checks."
 					]
 				}
 			},
