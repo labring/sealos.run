@@ -54,3 +54,15 @@
 		border-left: 0;
 	}
 }
+
+.supplements {
+	margin-top: 40px;
+	border-left: 2px solid #a3a3a3;
+	padding-left: 12px;
+	font-size: 12px;
+	line-height: 16px;
+}
+
+.supplements p + p {
+	margin-top: 4px;
+}

@@ -162,7 +162,14 @@
 						"How to qualify: Download and sign in to Sealos Desktop. Both the inviter and invitee receive ¥5 in Sealos balance.",
 						"Rewards: There is no limit on the number of invites. Rewards are credited automatically after eligibility checks."
 					]
-				}
+				},
+				"supplementTitle": "Additional rules:",
+				"supplements": [
+					"This promotion is available only on Sealos China. Accounts registered through the API are excluded. Referral attribution is established at initial registration and cannot be added to an existing account.",
+					"Invites involving the same phone number, device or payment account, as well as abnormal bulk registrations, do not count as valid referrals. Rewards are credited automatically after eligibility checks.",
+					"Only one account per verified identity may receive the first-login and invitee rewards. Personal or business identity verification is accepted; the inviter does not need to complete identity verification."
+				],
+				"disclaimer": "Sealos reserves the right of final interpretation of this promotion."
 			},
 			"giftCard": {
 				"eyebrow": "Friend referral reward",

@@ -5,6 +5,7 @@ export async function RulesSection() {
 	const t = await getTranslations('pages.invite.rules');
 	const firstLoginItems = t.raw('firstLogin.items') as string[];
 	const inviteItems = t.raw('invitation.items') as string[];
+	const supplements = t.raw('supplements') as string[];
 
 	return (
 		<section
@@ -34,6 +35,13 @@ export async function RulesSection() {
 						))}
 					</ul>
 				</article>
+			</div>
+			<div className={styles['supplements']}>
+				<p>{t('supplementTitle')}</p>
+				{supplements.map((item) => (
+					<p key={item}>{item}</p>
+				))}
+				<p>{t('disclaimer')}</p>
 			</div>
 		</section>
 	);
