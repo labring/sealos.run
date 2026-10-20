@@ -4,7 +4,7 @@ import { LandingOutlineButton } from '@/libs/components/LandingOutlineButton';
 import { Icon } from '@/libs/components/ui/icon';
 import { getTranslations } from '@/libs/i18n/server';
 import { avatarDefault, inviteRocket } from '../assets';
-import { GiftBadgeIcon, InviteUsersIcon } from '../components/DesignIcons';
+import { GiftBadgeIcon, InviteDownloadIcon, InviteUsersIcon } from '../components/DesignIcons';
 import { FirstLoginGift } from '../components/FirstLoginGift';
 import { GiftCard } from '../components/GiftCard';
 import type { InvitePreview } from '../utils/invite-preview';
@@ -21,6 +21,10 @@ export async function HeroSection({ preview }: { preview: InvitePreview }) {
 					className='size-5 shrink-0'
 				/>
 			),
+		},
+		{
+			key: 'download',
+			icon: <InviteDownloadIcon className='size-5 shrink-0' />,
 		},
 		{
 			key: 'reward',

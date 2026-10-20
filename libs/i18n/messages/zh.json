@@ -112,9 +112,10 @@
 					"unavailable": "邀请活动当前不可用。你仍可以正常注册和下载 Sealos。"
 				},
 				"journey": {
-					"verify": "下载并完成实名认证",
+					"verify": "注册 Web 端并实名",
 					"reward": "领取 ¥10 首登礼 + ¥5 邀请奖励",
-					"deploy": "用 Agent 部署首个项目"
+					"deploy": "用 Agent 部署首个项目",
+					"download": "下载登录 Sealos Desktop"
 				}
 			},
 			"steps": {

@@ -112,9 +112,10 @@
 					"unavailable": "The referral activity is currently unavailable. You can still sign up and use Sealos."
 				},
 				"journey": {
-					"verify": "Download & verify your identity",
+					"verify": "Register and verify your identity on the web",
 					"reward": "Get ¥10 welcome + ¥5 referral credits",
-					"deploy": "Deploy your first project with an Agent"
+					"deploy": "Deploy your first project with an Agent",
+					"download": "Download and sign in to Sealos Desktop"
 				}
 			},
 			"steps": {
