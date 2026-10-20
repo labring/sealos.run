@@ -43,7 +43,7 @@ const appBoxIcons = [
 	{
 		id: 'agents',
 		src: HeroAgentBoxImage,
-		href: '/download',
+		href: '/downloads',
 		x: 767.6,
 		y: 213.38,
 	},

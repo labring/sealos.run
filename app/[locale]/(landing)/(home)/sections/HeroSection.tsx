@@ -57,7 +57,7 @@ export function HeroSection() {
 
 				<div className='relative flex flex-wrap items-center gap-5'>
 					<LandingOutlineButton
-						href='/download'
+						href='/downloads'
 						size='lg'
 					>
 						立即下载

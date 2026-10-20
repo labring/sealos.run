@@ -93,7 +93,7 @@ export const Config = (() => {
 					},
 					{
 						textI18nKey: t('components.navbar.links.download'),
-						href: '/download',
+						href: '/downloads',
 					},
 					{
 						textI18nKey: t('components.navbar.links.pricing'),

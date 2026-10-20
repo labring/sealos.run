@@ -11,8 +11,8 @@ const description =
 export const metadata: Metadata = {
 	title,
 	description,
-	alternates: { canonical: '/download' },
-	openGraph: { title, description, url: 'https://sealos.run/download', locale: 'zh_CN', type: 'website' },
+	alternates: { canonical: '/downloads' },
+	openGraph: { title, description, url: 'https://sealos.run/downloads', locale: 'zh_CN', type: 'website' },
 };
 
 export default function DownloadPage() {
