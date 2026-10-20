@@ -219,8 +219,9 @@ export async function DownloadContent() {
 									className={styles['featureMedia']}
 									src={asset(item.image)}
 									alt={`${item.title}功能界面`}
-									width={510}
-									height={287}
+									width={asset(item.image).width}
+									height={asset(item.image).height}
+									unoptimized={item.image !== 'launch'}
 									loading='lazy'
 								/>
 							)}
