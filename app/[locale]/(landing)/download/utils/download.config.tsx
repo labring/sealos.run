@@ -18,11 +18,10 @@ export const desktopBenefits = [
 	},
 	{
 		image: 'local-agents',
-		title: '借力你本机的强 Agent',
+		title: '原生内置 Agent，开箱即用的交付力',
 		description: (
 			<>
-				构建发布与后续运维中，Sealos 直接调用你本机已安装的 <strong>Codex、Claude Code、Gemini CLI</strong>{' '}
-				等泛化 Agent 的能力，极大提升部署的正确性与成功率。
+				全程深度护航，大幅提升应用部署的<strong>准确率</strong>与<strong>成功率</strong>。
 			</>
 		),
 	},
@@ -93,9 +92,9 @@ export const specialistBenefits = [
 			'一个专注于你的业务上线与后续运维的专用 Agent。在上线和运维这件事上，我们做了大量细节处理，确保效率、稳定性和使用体验。',
 	},
 	{
-		title: '站在巨人的肩膀上',
+		title: '原生自研，更懂生产环境',
 		description:
-			'你不用担心效果，底层 Agent 能力优先复用你本机已安装的 Claude Code、Codex、Gemini CLI。我们更关心的，是让 Agent 更懂 Sealos、更懂上线运维。',
+			'线上运维容不得半点试错。我们自研专属Agent，深度融合 Sealos 底层架构与云原生运维规则，比通用泛化模型更精准、更懂实际运行环境。',
 	},
 	{
 		title: '只做上线与运维',
@@ -109,7 +108,7 @@ export const workflows = [
 		image: 'deploy-flow',
 		title: '上线你的业务系统',
 		description:
-			'本地代码、代码仓库、复杂业务系统，Agent 借助你本机的 Agent 能力完成分析、构建镜像、推送到线上，返回一个可访问的链接。',
+			'无论是本地代码、Git 仓库，还是复杂的微服务系统，Sealos Agent 都能自主完成分析、构建镜像并一键推送到线上，直接交付可访问的公网链接。',
 		detail: '业务系统依赖再多，Agent 也能逐一分析，并在云端自动解决全部依赖。',
 		alt: '分析项目、创建依赖、构建镜像、部署上线，返回应用访问链接。',
 	},
@@ -142,7 +141,7 @@ export const milestones = [
 		stage: '起点',
 		title: '做一个云操作系统',
 		description:
-			'你不用担心效果，底层 Agent 能力优先复用你本机已安装的 Claude Code、Codex、Gemini CLI。我们更关心的，是让 Agent 更懂 Sealos、更懂上线运维。',
+			'我们自研专属Agent，深度融合 Sealos 底层架构与云原生运维规则，比通用泛化模型更精准、更懂实际运行环境。',
 	},
 	{
 		stage: '探索',
