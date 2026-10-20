@@ -15,19 +15,45 @@ import styles from '../sections/DownloadContent.module.css';
 export function DownloadButtons({ downloads }: { downloads: DesktopDownloads }) {
 	const macUrl = downloads.macArm64 ?? downloads.macX64;
 	const keyboardInteraction = React.useRef(false);
+	const [macMenuOpen, setMacMenuOpen] = React.useState(false);
+	const closeTimer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+	const cancelClose = () => clearTimeout(closeTimer.current);
+	const scheduleClose = (event: React.PointerEvent) => {
+		if (event.pointerType !== 'mouse' || keyboardInteraction.current) return;
+		cancelClose();
+		closeTimer.current = setTimeout(() => setMacMenuOpen(false), 250);
+	};
+	React.useEffect(() => () => clearTimeout(closeTimer.current), []);
 	return (
 		<div className={styles['downloadControls']}>
 			<div className={styles['downloadButtons']}>
 				{macUrl && (
-					<DropdownMenu>
+					<DropdownMenu
+						open={macMenuOpen}
+						onOpenChange={setMacMenuOpen}
+						modal={false}
+					>
 						<DropdownMenuTrigger asChild>
 							<button
 								type='button'
 								aria-label='Mac 版下载，选择芯片'
-								onPointerDown={() => {
+								onPointerEnter={(event) => {
+									if (event.pointerType !== 'mouse') return;
+									cancelClose();
 									keyboardInteraction.current = false;
+									setMacMenuOpen(true);
+								}}
+								onPointerLeave={scheduleClose}
+								onPointerDown={(event) => {
+									keyboardInteraction.current = false;
+									if (event.pointerType === 'mouse') {
+										event.preventDefault();
+										cancelClose();
+										setMacMenuOpen(true);
+									}
 								}}
 								onKeyDown={() => {
+									cancelClose();
 									keyboardInteraction.current = true;
 								}}
 							>
@@ -51,10 +77,15 @@ export function DownloadButtons({ downloads }: { downloads: DesktopDownloads }) 
 							align='start'
 							sideOffset={8}
 							className={styles['macDownloadMenu']}
+							onPointerEnter={cancelClose}
+							onPointerMove={cancelClose}
+							onPointerLeave={scheduleClose}
 							onPointerDownCapture={() => {
+								cancelClose();
 								keyboardInteraction.current = false;
 							}}
 							onKeyDownCapture={() => {
+								cancelClose();
 								keyboardInteraction.current = true;
 							}}
 							onCloseAutoFocus={(event) => {
