@@ -42,27 +42,47 @@ export const features = [
 	{
 		image: 'launch',
 		title: '轻松上线',
-		description: '从代码到上线，Agent 自动分析，一键生成访问链接',
+		description: (
+			<>
+				从代码到上线，<strong>Agent 自动分析</strong>，一键生成访问链接
+			</>
+		),
 	},
 	{
 		image: 'debug',
 		title: '持续运维与 Debug',
-		description: 'Agent 智能排查故障，提供解决方案并自动执行安全操作。',
+		description: (
+			<>
+				Agent 智能排查故障，提供解决方案并<strong>自动执行安全操作</strong>。
+			</>
+		),
 	},
 	{
 		image: 'agents',
 		title: '调用本地 Agent 能力',
-		description: '灵活调用主流 AI 工具，内置 Agent 开箱即用',
+		description: (
+			<>
+				灵活调用<strong>主流 AI 工具</strong>，内置 Agent 开箱即用
+			</>
+		),
 	},
 	{
 		image: 'topology',
 		title: '资源拓扑',
-		description: '一张拓扑图掌握项目架构与资源关系。',
+		description: (
+			<>
+				<strong>一张拓扑图掌握</strong>项目架构与资源关系。
+			</>
+		),
 	},
 	{
 		image: 'marketplace',
 		title: '应用商店',
-		description: '数百款模板即装即用，覆盖 GitHub 9000+ 个开源项目的部署需求。',
+		description: (
+			<>
+				数百款模板即装即用，覆盖 GitHub <strong>9000+</strong> 个开源项目的部署需求。
+			</>
+		),
 	},
 ] as const;
 
