@@ -21,8 +21,6 @@ const config: NextConfig = {
 	},
 	async redirects() {
 		return [
-			{ source: '/download', destination: '/downloads', permanent: true },
-			{ source: '/zh/download', destination: '/downloads', permanent: true },
 			{
 				source: '/docs/overview/intro',
 				destination: '/docs/guides/devbox',
