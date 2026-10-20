@@ -1,4 +1,15 @@
+html:has(.section) {
+	scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	html:has(.section) {
+		scroll-behavior: auto;
+	}
+}
+
 .section {
+	scroll-margin-top: 70px;
 	position: relative;
 	isolation: isolate;
 	overflow: clip;

@@ -1,6 +1,8 @@
 import Image from 'next/image';
+import { Link } from '@/libs/i18n/navigation';
 import { getTranslations } from '@/libs/i18n/server';
 import { appShotA, appShotB, desktopPreview } from '../assets';
+import { consoleInviteUrl } from '../utils/invite.config';
 import styles from './DownloadSection.module.css';
 
 // Seven rows of the original Paper assets fill the blurred backdrop.
@@ -12,7 +14,7 @@ const SHOT_ROWS = Array.from({ length: 7 }, (_, row) => ({
 	})),
 }));
 
-export async function DownloadSection() {
+export async function DownloadSection({ code }: { code: string }) {
 	const t = await getTranslations('pages.invite.download');
 
 	return (
@@ -51,6 +53,12 @@ export async function DownloadSection() {
 						{t('title')}
 					</h2>
 					<p className='text-lg leading-7 text-pretty lg:leading-4.5'>{t('subtitle')}</p>
+					<Link
+						href={consoleInviteUrl(code)}
+						className='mx-auto underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-4'
+					>
+						{t('register')}
+					</Link>
 				</div>
 				<Image
 					src={desktopPreview}

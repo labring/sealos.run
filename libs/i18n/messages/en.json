@@ -140,7 +140,8 @@
 				"mac": "Download for Mac",
 				"windows": "Download for Windows",
 				"unavailable": "Downloads are temporarily unavailable. Please refresh and try again later.",
-				"previewAlt": "Sealos Desktop new project screen with Agent, local project, repository, template, database, and Docker deployment options"
+				"previewAlt": "Sealos Desktop new project screen with Agent, local project, repository, template, database, and Docker deployment options",
+				"register": "Register and verify your identity on the web"
 			},
 			"rules": {
 				"title": "Activity details",

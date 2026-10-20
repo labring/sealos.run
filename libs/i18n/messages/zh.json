@@ -140,7 +140,8 @@
 				"mac": "Mac 版下载",
 				"windows": "Windows 版下载",
 				"unavailable": "下载暂时不可用，请稍后刷新重试。",
-				"previewAlt": "Sealos Desktop 新建项目界面，可通过 Agent、本地项目、代码仓库、模板、数据库或 Docker 部署应用"
+				"previewAlt": "Sealos Desktop 新建项目界面，可通过 Agent、本地项目、代码仓库、模板、数据库或 Docker 部署应用",
+				"register": "前往 Web 端注册并实名认证"
 			},
 			"rules": {
 				"title": "活动说明",
