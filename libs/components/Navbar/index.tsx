@@ -13,11 +13,43 @@ import { NavbarMobileNav } from './NavbarMobileNav';
 
 const SEALOS_GITHUB_REPO = 'labring/sealos';
 
+async function getSealosStarsCount() {
+	try {
+		const response = await fetch(`https://api.github.com/repos/${SEALOS_GITHUB_REPO}`, {
+			next: { revalidate: 86400 },
+			signal: AbortSignal.timeout(3000),
+		});
+		if (response.ok) {
+			const data: unknown = await response.json();
+			if (
+				data &&
+				typeof data === 'object' &&
+				'stargazers_count' in data &&
+				typeof data.stargazers_count === 'number' &&
+				Number.isFinite(data.stargazers_count) &&
+				data.stargazers_count >= 0
+			) {
+				return data.stargazers_count;
+			}
+		}
+	} catch {
+		// Keep the verified count visible when GitHub is unavailable or rate limited.
+	}
+	return getGitHubRepositoryStats(SEALOS_GITHUB_REPO)?.starsCount ?? 18373; // Verified 2026-10-20.
+}
+
 export async function Navbar() {
 	const t = await getTranslations();
 	const stats = getGitHubRepositoryStats(SEALOS_GITHUB_REPO);
 	const githubUrl = stats?.htmlUrl ?? `https://github.com/${SEALOS_GITHUB_REPO}`;
-	const starsText = stats?.starsText ?? 'GitHub';
+	const starsCount = await getSealosStarsCount();
+	const starsText = new Intl.NumberFormat('en-US', {
+		notation: 'compact',
+		minimumFractionDigits: 1,
+		maximumFractionDigits: 1,
+	})
+		.format(starsCount)
+		.replace(/([KMB])$/, ' $1');
 
 	return (
 		<NavbarContainer>
@@ -39,18 +71,18 @@ export async function Navbar() {
 					<Button
 						asChild
 						variant='ghost'
-						className='h-10 gap-2 px-2'
+						className='h-10 gap-1 px-2'
 					>
 						<a
 							href={githubUrl}
 							target='_blank'
 							rel='noreferrer'
-							aria-label={`在 GitHub 查看 ${SEALOS_GITHUB_REPO}，当前 Star ${starsText}`}
+							aria-label={`在 GitHub 查看 ${SEALOS_GITHUB_REPO}，当前 Star ${starsCount}`}
 						>
 							<span className='text-sm leading-none'>{starsText}</span>
 							<SimpleIcon
 								d={siGithub.path}
-								className='size-5'
+								className='size-6'
 							/>
 						</a>
 					</Button>
