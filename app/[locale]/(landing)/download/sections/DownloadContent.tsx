@@ -2,7 +2,7 @@ import Image from 'next/image';
 import type React from 'react';
 import {
 	AppLaunchpadIcon,
-	CheckIcon,
+	CheckOverFrameIcon,
 	ChevronDownIcon,
 	FramedClockIcon,
 	FramedPrivateIcon,
@@ -68,7 +68,7 @@ function SectionTitle({ title, children }: { title: React.ReactNode; children?: 
 
 export async function DownloadContent() {
 	const downloads = await getDesktopDownloads();
-	const valueIcons = [CheckIcon, TrendingDownIcon, PricetagIcon, FramedClockIcon, FramedPrivateIcon];
+	const valueIcons = [CheckOverFrameIcon, TrendingDownIcon, PricetagIcon, FramedClockIcon, FramedPrivateIcon];
 	const specialistIcons = [AppLaunchpadIcon, ToolIcon, MonitorIcon];
 	return (
 		<div className={styles['page']}>
@@ -287,7 +287,7 @@ export async function DownloadContent() {
 				</SectionTitle>
 				<div className={styles['valueStrip']}>
 					{values.map(([title, description], index) => {
-						const icon = valueIcons[index] ?? CheckIcon;
+						const icon = valueIcons[index] ?? CheckOverFrameIcon;
 						return (
 							<article key={title}>
 								<Icon
