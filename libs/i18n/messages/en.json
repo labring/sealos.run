@@ -146,14 +146,22 @@
 			},
 			"rules": {
 				"title": "Activity details",
-				"items": [
-					"The activity is available on the Sealos China site only; accounts registered via API do not join the referral rewards.",
-					"Referral rewards apply to newly invited users only: ¥5 for the invitee and ¥5 for the inviter.",
-					"The ¥10 Desktop first sign-in reward covers new and existing users who have not claimed it, once per account.",
-					"Rewards are cloud credits (gift-code balance), redeemed automatically once conditions are met — no manual application.",
-					"The referral is locked in only when the account is first created; existing accounts cannot be bound retroactively.",
-					"Inviters are not required to complete real-name verification."
-				]
+				"firstLogin": {
+					"title": "¥10 first-login gift",
+					"items": [
+						"The activity is available on the Sealos China site only; accounts registered via API do not join the referral rewards.",
+						"The ¥10 Desktop first sign-in reward covers new and existing users who have not claimed it, once per account."
+					]
+				},
+				"invitation": {
+					"title": "¥5 invitation reward",
+					"items": [
+						"Referral rewards apply to newly invited users only: ¥5 for the invitee and ¥5 for the inviter.",
+						"Rewards are cloud credits (gift-code balance), redeemed automatically once conditions are met — no manual application.",
+						"The referral is locked in only when the account is first created; existing accounts cannot be bound retroactively.",
+						"Inviters are not required to complete real-name verification."
+					]
+				}
 			},
 			"giftCard": {
 				"eyebrow": "Friend referral reward",
