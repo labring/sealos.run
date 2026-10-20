@@ -79,7 +79,7 @@
 	justify-content: center;
 	gap: 10px;
 }
-.page .downloadButtons a {
+.page .downloadButtons :is(a, button) {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -96,25 +96,46 @@
 	cursor: pointer;
 	text-decoration: none;
 }
-.page .downloadButtons a:hover {
+.page .downloadButtons :is(a, button):hover {
 	background-image: linear-gradient(
 		color-mix(in srgb, var(--color-white) 16%, transparent),
 		color-mix(in srgb, var(--color-white) 16%, transparent)
 	);
 }
-.page .downloadButtons a:focus-visible {
+.page .downloadButtons :is(a, button):focus-visible {
 	outline: 2px solid var(--ring);
 	outline-offset: 3px;
-}
-.page .intelDownload {
-	text-decoration: underline;
-	text-underline-offset: 3px;
 }
 .downloadButtons svg {
 	flex-shrink: 0;
 }
-.downloadUnavailable,
-.page .intelDownload {
+.downloadUnavailable {
+	color: var(--muted-foreground);
+	font-size: 12px;
+}
+.macDownloadMenu {
+	min-width: var(--radix-dropdown-menu-trigger-width);
+	padding: 6px;
+	border-color: var(--border);
+	border-radius: 16px;
+	background: var(--popover);
+	color: var(--popover-foreground);
+}
+.macDownloadItem {
+	justify-content: space-between;
+	gap: 16px;
+	padding: 12px 16px;
+	border-radius: 10px;
+	font-size: 14px;
+	font-weight: 500;
+	text-decoration: none;
+	cursor: pointer;
+}
+.macDownloadItem[data-highlighted] {
+	background: var(--accent);
+	color: var(--popover-foreground);
+}
+.macDownloadItem span {
 	color: var(--muted-foreground);
 	font-size: 12px;
 }
