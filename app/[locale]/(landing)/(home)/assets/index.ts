@@ -1,5 +1,6 @@
 export * from './arch-images';
 export * from './features-appicons';
+export { default as HeroAgentBoxImage } from './hero-agent-box.svg';
 export { default as HeroBgImage } from './hero-bg.svg';
 export { default as HighIsolationImage } from './high-isolation.svg';
 export { default as HighPerfImage } from './high-perf.svg';
