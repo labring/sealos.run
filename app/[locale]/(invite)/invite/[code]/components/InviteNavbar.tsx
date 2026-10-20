@@ -11,7 +11,7 @@ export async function InviteNavbar() {
 	const t = await getTranslations();
 	const links = [
 		...Config.components.navbar.links.filter((link) => link.panel),
-		{ textI18nKey: 'pages.invite.navbar.download', href: '#download' },
+		{ textI18nKey: 'pages.invite.navbar.download', href: '/download' },
 		{ textI18nKey: 'components.navbar.links.solutions', href: '/solutions' },
 		{ textI18nKey: 'components.navbar.links.pricing', href: '/pricing/payg' },
 		{ textI18nKey: 'components.navbar.links.docs', href: '/docs' },
