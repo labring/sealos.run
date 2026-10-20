@@ -29,6 +29,7 @@ import {
 	valueBadge,
 	valueCardPattern,
 } from '../assets';
+import { DesktopDemo } from '../components/DesktopDemo';
 import { DownloadButtons } from '../components/DownloadButtons';
 import { FeatureItem } from '../components/FeatureItem';
 import { MarketplaceShowcase } from '../components/MarketplaceShowcase';
@@ -99,14 +100,7 @@ export async function DownloadContent() {
 						enabled={appDownloadsEnabled}
 					/>
 				</div>
-				<Image
-					className={styles['heroPreview']}
-					src={asset('desktop-preview')}
-					alt='Sealos Desktop 项目首页，可从本地目录、GitHub 仓库、应用模板或镜像创建项目'
-					width={1100}
-					height={695}
-					priority
-				/>
+				<DesktopDemo />
 			</section>
 
 			<section className={cn(styles['section'], styles['whiteSection'], styles['scenariosSection'])}>

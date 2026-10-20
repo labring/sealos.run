@@ -142,13 +142,6 @@
 	color: var(--muted-foreground);
 	font-size: 12px;
 }
-.heroPreview {
-	position: relative;
-	width: min(1100px, 100%);
-	height: auto;
-	border-radius: 14px;
-	box-shadow: 0 4px 25px #00000030;
-}
 .section {
 	margin-top: 242px;
 	display: flex;
@@ -841,9 +834,6 @@
 	.heroContent > p {
 		font-size: 15px;
 		margin-block: 24px;
-	}
-	.heroPreview {
-		border-radius: 7px;
 	}
 	.section {
 		margin-top: 88px;
