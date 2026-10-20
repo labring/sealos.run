@@ -38,7 +38,7 @@ export default async function InvitePage({ params }: PageProps) {
 	return (
 		<div className='flex w-full flex-col'>
 			<HeroSection preview={preview} />
-			<DownloadSection code={code} />
+			<DownloadSection />
 			<RulesSection />
 		</div>
 	);
