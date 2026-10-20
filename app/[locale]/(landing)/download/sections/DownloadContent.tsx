@@ -164,6 +164,7 @@ export async function DownloadContent() {
 								loading='lazy'
 								width={406}
 								height={234}
+								unoptimized
 							/>
 							<h3>{item.title}</h3>
 							<p>{item.description}</p>
