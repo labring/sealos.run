@@ -30,6 +30,7 @@ import {
 	valueCardPattern,
 } from '../assets';
 import { DownloadButtons } from '../components/DownloadButtons';
+import { FeatureItem } from '../components/FeatureItem';
 import { MarketplaceShowcase } from '../components/MarketplaceShowcase';
 import { MobileScenarioPuzzle } from '../components/MobileScenarioPuzzle';
 import { WorkflowDiagram } from '../components/WorkflowDiagram';
@@ -182,8 +183,7 @@ export async function DownloadContent() {
 				</SectionTitle>
 				<div className={styles['featureTimeline']}>
 					{features.map((item, index) => (
-						<article
-							className={styles['feature']}
+						<FeatureItem
 							key={item.title}
 							id={item.image === 'marketplace' ? 'marketplace' : undefined}
 						>
@@ -224,7 +224,7 @@ export async function DownloadContent() {
 									loading='lazy'
 								/>
 							)}
-						</article>
+						</FeatureItem>
 					))}
 				</div>
 			</section>

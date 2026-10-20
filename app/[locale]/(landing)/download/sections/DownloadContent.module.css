@@ -333,17 +333,26 @@
 	width: 68px;
 	height: 1px;
 	flex-shrink: 0;
-	background: repeating-linear-gradient(90deg, var(--download-ink) 0 3px, transparent 3px 6px);
+	color: var(--download-muted);
+	background: repeating-linear-gradient(90deg, currentColor 0 3px, transparent 3px 6px);
+	transition: color 200ms ease;
 }
 .featureMarkers {
 	display: flex;
 	flex-direction: column;
 	gap: 2px;
 	color: #f4f4f4;
+	transition: color 200ms ease;
 }
-.feature:first-child .featureMarkers,
-.feature:hover .featureMarkers {
+.feature[data-active="true"] .featureMarkers,
+.feature[data-active="true"] .featureDash {
 	color: var(--download-ink);
+}
+@media (prefers-reduced-motion: reduce) {
+	.featureMarkers,
+	.featureDash {
+		transition: none;
+	}
 }
 .feature:nth-child(even) .featureConnector {
 	grid-column: 1;
