@@ -954,3 +954,10 @@ button.primaryAction:hover {
 		font-size: 10px;
 	}
 }
+
+.conversationLoading {
+	display: block;
+	padding: 32px;
+	color: #717171;
+	font-size: 13px;
+}

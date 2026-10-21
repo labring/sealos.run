@@ -1,14 +1,18 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import React from 'react';
 import { Icon } from '@/libs/components/ui/icon';
 import { cn } from '@/libs/utils/styling';
 import { demoIcons, eaglercraftServer } from '../assets/demo';
 import { type DemoConversationId, demoConversations } from '../utils/demo-conversations';
-import { DemoConversation } from './DemoConversation';
 import styles from './DesktopDemo.module.css';
 import { DemoGateway, DemoNewTask, DemoProjects, DemoStorage } from './DesktopDemoPages';
+
+const DemoConversation = dynamic(() => import('./DemoConversation').then((module) => module.DemoConversation), {
+	loading: () => <output className={styles['conversationLoading']}>正在加载对话…</output>,
+});
 
 const menus = [
 	{ id: 'task', label: '新建任务', icon: demoIcons.plus },
@@ -21,6 +25,7 @@ type DemoPage = (typeof menus)[number]['id'] | DemoConversationId;
 // Workspace pages and conversations use a fixed snapshot of the supplied App examples.
 export function DesktopDemo() {
 	const [page, setPage] = React.useState<DemoPage>('task');
+	const [replay, setReplay] = React.useState(0);
 	const id = React.useId();
 	const newTaskButton = React.useRef<HTMLButtonElement>(null);
 	return (
@@ -101,7 +106,10 @@ export function DesktopDemo() {
 									aria-pressed={page === conversation}
 									aria-controls={`${id}-panel`}
 									title={item.title}
-									onClick={() => setPage(conversation)}
+									onClick={() => {
+										setPage(conversation);
+										setReplay((value) => value + 1);
+									}}
 								>
 									<i />
 									<span>{item.title}</span>
@@ -140,7 +148,12 @@ export function DesktopDemo() {
 				)}
 				{page === 'storage' && <DemoStorage />}
 				{page === 'gateway' && <DemoGateway />}
-				{(page === 'nginx' || page === 'eaglercraft') && <DemoConversation conversation={page} />}
+				{(page === 'nginx' || page === 'eaglercraft') && (
+					<DemoConversation
+						key={`${page}-${replay}`}
+						conversation={page}
+					/>
+				)}
 			</section>
 		</section>
 	);
