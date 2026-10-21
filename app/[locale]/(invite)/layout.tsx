@@ -1,8 +1,8 @@
 import { Geist } from 'next/font/google';
 import { Footer, type MenuItem } from '@/libs/components/Footer';
+import { Navbar } from '@/libs/components/Navbar';
 import { Config } from '@/libs/config';
 import { footerPattern } from './invite/[code]/assets';
-import { InviteNavbar } from './invite/[code]/components/InviteNavbar';
 
 const geist = Geist({ subsets: ['latin'], display: 'swap' });
 
@@ -36,18 +36,20 @@ const menuItems = [
 
 export default function InviteLayout({ children }: { children: React.ReactNode }) {
 	return (
-		<div className={geist.className}>
-			<header className='sticky top-0 z-50 border-b border-zinc-200 bg-background'>
-				<InviteNavbar />
+		<>
+			<header className='sticky top-0 z-50'>
+				<Navbar />
 			</header>
-			<main className='relative'>{children}</main>
-			<footer className='pt-16 sm:pt-24 md:pt-36'>
-				<Footer
-					config={{ ...Config.components.footer, menuItems }}
-					variant='invite'
-					pattern={footerPattern}
-				/>
-			</footer>
-		</div>
+			<div className={geist.className}>
+				<main className='relative'>{children}</main>
+				<footer className='pt-16 sm:pt-24 md:pt-36'>
+					<Footer
+						config={{ ...Config.components.footer, menuItems }}
+						variant='invite'
+						pattern={footerPattern}
+					/>
+				</footer>
+			</div>
+		</>
 	);
 }
