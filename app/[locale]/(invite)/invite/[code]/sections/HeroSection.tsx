@@ -94,7 +94,7 @@ export async function HeroSection({ preview }: { preview: InvitePreview }) {
 						))}
 					</ol>
 					{invalidMessage && (
-						<output className='block max-w-xl rounded-lg border-hairline border-solid border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive'>
+						<output className='block max-w-xl rounded-lg border-hairline border-solid border-destructive/30 bg-[#FCE8E8] px-4 py-3 text-sm text-destructive'>
 							{invalidMessage}
 						</output>
 					)}
