@@ -81,7 +81,6 @@ export function DownloadButtons({ downloads, enabled }: { downloads: DesktopDown
 						))}
 					</div>
 				</Tooltip.Provider>
-				<p className={styles['downloadUnavailable']}>10 月 24 日开放下载</p>
 			</div>
 		);
 	}
