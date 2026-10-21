@@ -396,6 +396,10 @@
 	height: auto;
 	border-radius: 16px;
 }
+.feature > img.featureMedia {
+	outline: 1px solid #e5e5e5;
+	outline-offset: -1px;
+}
 .feature:nth-child(even) > .featureMedia {
 	grid-column: 2;
 }
