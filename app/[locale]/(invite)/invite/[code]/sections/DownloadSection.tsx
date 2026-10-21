@@ -1,6 +1,7 @@
 import Image from 'next/image';
+import { DesktopDemo } from '@/app/[locale]/(landing)/downloads/components/DesktopDemo';
 import { getTranslations } from '@/libs/i18n/server';
-import { appShotA, appShotB, desktopPreview } from '../assets';
+import { appShotA, appShotB } from '../assets';
 import styles from './DownloadSection.module.css';
 
 // Seven rows of the original Paper assets fill the blurred backdrop.
@@ -52,12 +53,7 @@ export async function DownloadSection() {
 					</h2>
 					<p className='text-lg leading-7 text-pretty lg:leading-4.5'>{t('subtitle')}</p>
 				</div>
-				<Image
-					src={desktopPreview}
-					alt={t('previewAlt')}
-					sizes='(max-width: 1148px) calc(100vw - 48px), 1100px'
-					className={styles['preview']}
-				/>
+				<DesktopDemo />
 			</div>
 		</section>
 	);
