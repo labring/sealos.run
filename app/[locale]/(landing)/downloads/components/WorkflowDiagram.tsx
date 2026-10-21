@@ -61,7 +61,7 @@ export function WorkflowDiagram({ kind, label }: { kind: 'deploy-flow' | 'debug-
 								<span className={styles['number']}>
 									<Icon src={CheckOverFrameIcon} />
 								</span>
-								<div>已上线 https://your-app.cloud.sealos.cn</div>
+								<div>已上线 https://your-app.sealos.site</div>
 							</div>
 						</div>
 					</>
