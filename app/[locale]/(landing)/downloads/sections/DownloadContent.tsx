@@ -149,7 +149,7 @@ export async function DownloadContent() {
 
 			<section className={cn(styles['section'], styles['container'])}>
 				<SectionTitle title='为什么是桌面端？'>
-					环境安装交给 AI，利用本地 Agent 与云端协作，无缝对接本地代码，以及其他 Agent 开发的代码。
+					环境安装交给 AI，让内置 Agent 与云端协作，无缝承接本地代码以及其他 Agent 写出的项目。
 				</SectionTitle>
 				<div className={cn(styles['threeColumns'], styles['desktopColumns'])}>
 					{desktopBenefits.map((item) => (

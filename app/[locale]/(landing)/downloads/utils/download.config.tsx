@@ -24,7 +24,8 @@ export const desktopBenefits = [
 		title: '原生内置 Agent，开箱即用的交付力',
 		description: (
 			<>
-				全程深度护航，大幅提升应用部署的<strong>准确率</strong>与<strong>成功率</strong>。
+				全程深度护航，大幅提升应用部署的<strong>准确率</strong>与<strong>成功率</strong>。 Sealos Agent
+				未来还将支持与 Codex、Claude Code 等本地 Agents 无缝协同，做你现有 AI 工具的最佳交付搭档。
 			</>
 		),
 	},
@@ -126,7 +127,7 @@ export const workflows = [
 		image: 'agent-flow',
 		title: '运行你自己的 Agent',
 		description:
-			'把 Sealos 当成 Agent 的运行平台。Agent 与普通应用在 Sealos 中统一抽象，Agent 的特殊性在于消耗 AI Token，Sealos Desktop 直接帮你创建 Token 并挂载到业务系统中。',
+			'把 Sealos 当成 Agent 的运行平台。针对 Agent 需要调用大模型的特性，Sealos Desktop 直接为你创建 API 访问密钥并自动挂载到应用中。',
 		alt: '为 Agent 创建 AI Token，将其挂载到应用环境变量，并在云端运行。',
 	},
 ] as const;
