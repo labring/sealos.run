@@ -82,7 +82,7 @@ export async function Navbar() {
 							<span className='text-sm leading-none'>{starsText}</span>
 							<SimpleIcon
 								d={siGithub.path}
-								className='size-6'
+								className='size-5'
 							/>
 						</a>
 					</Button>
