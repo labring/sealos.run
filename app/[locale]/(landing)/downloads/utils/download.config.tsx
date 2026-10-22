@@ -1,5 +1,5 @@
 // Set to true and redeploy once app downloads are ready on October 24.
-export const appDownloadsEnabled = false;
+export const appDownloadsEnabled = true;
 
 export const scenarios = [
 	'当你用 Vibe Coding 写完一段代码，想让它跑到线上的时候。',
