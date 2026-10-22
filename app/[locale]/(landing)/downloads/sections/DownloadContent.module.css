@@ -430,12 +430,13 @@
 }
 .workflowSection {
 	gap: 175px;
+	padding-inline: 0;
 }
 .workflows {
 	display: flex;
 	flex-direction: column;
 	gap: 175px;
-	width: calc(100% + 160px);
+	width: 100%;
 	max-width: 1440px;
 }
 .workflow {
@@ -788,9 +789,6 @@
 	}
 	.featureDash {
 		width: 24px;
-	}
-	.workflows {
-		width: calc(100% + 80px);
 	}
 	.workflow {
 		padding-left: 40px;
