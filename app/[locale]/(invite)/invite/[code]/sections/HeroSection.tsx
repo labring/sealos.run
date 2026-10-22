@@ -7,10 +7,11 @@ import { avatarDefault, inviteRocket } from '../assets';
 import { GiftBadgeIcon, InviteDownloadIcon, InviteUsersIcon } from '../components/DesignIcons';
 import { FirstLoginGift } from '../components/FirstLoginGift';
 import { GiftCard } from '../components/GiftCard';
+import { consoleInviteUrl } from '../utils/invite.config';
 import type { InvitePreview } from '../utils/invite-preview';
 import styles from './HeroSection.module.css';
 
-export async function HeroSection({ preview }: { preview: InvitePreview }) {
+export async function HeroSection({ code, preview }: { code: string; preview: InvitePreview }) {
 	const t = await getTranslations('pages.invite.hero');
 	const steps = [
 		{
@@ -99,7 +100,7 @@ export async function HeroSection({ preview }: { preview: InvitePreview }) {
 						</output>
 					)}
 					<LandingOutlineButton
-						href='#download'
+						href={consoleInviteUrl(code)}
 						size='lg'
 						className='w-90 max-w-full gap-0 p-1.5'
 						iconContainerClassName='size-11'
