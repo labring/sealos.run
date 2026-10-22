@@ -4,14 +4,13 @@ import { LandingOutlineButton } from '@/libs/components/LandingOutlineButton';
 import { Icon } from '@/libs/components/ui/icon';
 import { getTranslations } from '@/libs/i18n/server';
 import { avatarDefault, inviteRocket } from '../assets';
-import { GiftBadgeIcon, InviteUsersIcon } from '../components/DesignIcons';
+import { GiftBadgeIcon, InviteDownloadIcon, InviteUsersIcon } from '../components/DesignIcons';
 import { FirstLoginGift } from '../components/FirstLoginGift';
 import { GiftCard } from '../components/GiftCard';
-import { consoleInviteUrl } from '../utils/invite.config';
 import type { InvitePreview } from '../utils/invite-preview';
 import styles from './HeroSection.module.css';
 
-export async function HeroSection({ code, preview }: { code: string; preview: InvitePreview }) {
+export async function HeroSection({ preview }: { preview: InvitePreview }) {
 	const t = await getTranslations('pages.invite.hero');
 	const steps = [
 		{
@@ -22,6 +21,10 @@ export async function HeroSection({ code, preview }: { code: string; preview: In
 					className='size-5 shrink-0'
 				/>
 			),
+		},
+		{
+			key: 'download',
+			icon: <InviteDownloadIcon className='size-5 shrink-0' />,
 		},
 		{
 			key: 'reward',
@@ -91,12 +94,12 @@ export async function HeroSection({ code, preview }: { code: string; preview: In
 						))}
 					</ol>
 					{invalidMessage && (
-						<output className='block max-w-xl rounded-lg border-hairline border-solid border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive'>
+						<output className='block max-w-xl rounded-lg border-hairline border-solid border-destructive/30 bg-[#FCE8E8] px-4 py-3 text-sm text-destructive'>
 							{invalidMessage}
 						</output>
 					)}
 					<LandingOutlineButton
-						href={consoleInviteUrl(code)}
+						href='#download'
 						size='lg'
 						className='w-90 max-w-full gap-0 p-1.5'
 						iconContainerClassName='size-11'

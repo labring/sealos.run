@@ -1,0 +1,147 @@
+.diagram {
+	container-type: inline-size;
+	position: relative;
+	width: 100%;
+	aspect-ratio: 809 / 514;
+	border-radius: 20px 0 0 20px;
+	background: linear-gradient(90deg, #f4f4f4, #fff);
+}
+.debug-flow {
+	border-radius: 0 20px 20px 0;
+	background: linear-gradient(270deg, #f4f4f4, #fff);
+}
+.canvas {
+	position: absolute;
+	inset: 0;
+	font-size: calc(100cqw / 40.45);
+	line-height: 1.4;
+	color: #171717;
+}
+.canvas img {
+	display: block;
+	width: 1.4em;
+	height: 1.4em;
+}
+.canvas .connections {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+}
+.number {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 3.15em;
+	height: 1.65em;
+	border-radius: 999px;
+	background: #fafafa;
+	color: #71717a;
+}
+.deployLine {
+	position: absolute;
+	left: 26.7614%;
+	top: 14.1597%;
+	width: 1px;
+	height: 71.0117%;
+	background: linear-gradient(#fafafa, #005bff, #fafafa);
+	mask-image: repeating-linear-gradient(#000 0 4px, transparent 4px 8px);
+}
+.deploySteps {
+	position: absolute;
+	left: 23.1768%;
+	top: 16.9261%;
+	width: 72%;
+	height: 63.8132%;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+.deployStep {
+	display: flex;
+	align-items: center;
+	gap: 0.4em;
+	white-space: nowrap;
+}
+.deployStep small {
+	margin-left: 0.4em;
+	font-size: 0.8em;
+	color: #71717a;
+}
+.execution {
+	font-weight: 500;
+}
+.debugStep {
+	position: absolute;
+	top: 23.5409%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.7em;
+	transform: translateX(-50%);
+	white-space: nowrap;
+}
+.bottomStep {
+	top: 61.6732%;
+	flex-direction: column-reverse;
+}
+.debugContext {
+	position: absolute;
+	left: 49.1347%;
+	top: 43.3852%;
+	transform: translateX(-50%);
+	font-size: 0.8em;
+	color: #71717a;
+	white-space: nowrap;
+}
+.debugContext > div + div {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5em;
+	margin-top: 0.6875em;
+	color: #171717;
+}
+.agentSteps {
+	position: absolute;
+	left: 2.843%;
+	top: 21.0117%;
+	width: 94.4376%;
+	display: grid;
+	grid-template-columns: 133fr 203fr 202fr;
+	gap: 14.7906%;
+}
+.agentSteps > div,
+.tokenService {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 4.3em;
+	border: 1px solid #e5e5e5;
+	border-radius: 0.6em;
+	background: #fff;
+	text-align: center;
+	white-space: nowrap;
+}
+.agentSteps > div + div {
+	font-weight: 500;
+}
+.tokenService {
+	position: absolute;
+	left: 31.3968%;
+	top: 64.2023%;
+	width: 28.801%;
+	height: 3.8em;
+}
+.tokenCaption {
+	position: absolute;
+	left: 75.7726%;
+	top: 69.2607%;
+	background: #fdfdfd;
+	font-size: 0.8em;
+	color: #71717a;
+	white-space: nowrap;
+}

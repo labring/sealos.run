@@ -3,13 +3,12 @@ import {
 	AiproxyBoxImage,
 	AppstoreBoxImage,
 	DatabaseBoxImage,
-	DevboxBoxImage,
 	K8sBoxImage,
 	LaunchpadBoxImage,
 	OssBoxImage,
 } from '@/assets/app-boxes';
 import { Link } from '@/libs/i18n/navigation';
-import { HeroBgImage } from '../assets';
+import { HeroAgentBoxImage, HeroBgImage } from '../assets';
 
 const appBoxIcons = [
 	{ id: 'oss', src: OssBoxImage, href: '/products/oss', x: 952.06, y: 319.58 },
@@ -42,9 +41,9 @@ const appBoxIcons = [
 		y: 107.58,
 	},
 	{
-		id: 'devbox',
-		src: DevboxBoxImage,
-		href: '/products/devbox',
+		id: 'agents',
+		src: HeroAgentBoxImage,
+		href: '/downloads',
 		x: 767.6,
 		y: 213.38,
 	},
@@ -93,8 +92,20 @@ export function HeroBg() {
 						transition: opacity 0.3s ease;
 						cursor: pointer;
 					}
-					.app-box-icon:hover {
+					.app-box:hover .app-box-icon,
+					.app-box:focus-within .app-box-icon {
 						opacity: 1;
+					}
+					.agent-label {
+						transition: opacity 0.3s ease;
+						pointer-events: none;
+					}
+					.app-box:hover .agent-label,
+					.app-box:focus-within .agent-label {
+						opacity: 0;
+					}
+					@media (prefers-reduced-motion: reduce) {
+						.app-box-icon, .agent-label { transition: none; }
 					}
 					.app-box-icon img {
 						width: 100%;
@@ -123,24 +134,49 @@ export function HeroBg() {
 				</foreignObject>
 				{/* Interactive Icons */}
 				{appBoxIcons.map((icon) => (
-					<foreignObject
+					<g
 						key={icon.id}
-						x={icon.x}
-						y={icon.y}
-						width='123.35'
-						height='142.68'
-						className='app-box-icon'
+						className='app-box'
 					>
-						<Link
-							href={icon.href}
-							aria-label={icon.id}
+						{icon.id === 'agents' && (
+							<text
+								className='agent-label'
+								fill='#005BFF'
+								fontSize='12.43'
+								textAnchor='middle'
+							>
+								<tspan
+									x='829.2'
+									y='279.6'
+								>
+									Sealos
+								</tspan>
+								<tspan
+									x='829.2'
+									dy='17.75'
+								>
+									Agents
+								</tspan>
+							</text>
+						)}
+						<foreignObject
+							x={icon.x}
+							y={icon.y}
+							width='123.35'
+							height={icon.id === 'agents' ? '143.65' : '142.68'}
+							className='app-box-icon'
 						>
-							<Image
-								src={icon.src}
-								alt={icon.id}
-							/>
-						</Link>
-					</foreignObject>
+							<Link
+								href={icon.href}
+								aria-label={icon.id === 'agents' ? 'Sealos Agents' : icon.id}
+							>
+								<Image
+									src={icon.src}
+									alt=''
+								/>
+							</Link>
+						</foreignObject>
+					</g>
 				))}
 			</svg>
 		</div>

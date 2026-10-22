@@ -1,20 +1,48 @@
 import { getTranslations } from '@/libs/i18n/server';
+import styles from './RulesSection.module.css';
 
-// Keep the activity terms accessible without adding a section absent from the design.
 export async function RulesSection() {
 	const t = await getTranslations('pages.invite.rules');
-	const items = t.raw('items') as string[];
+	const firstLoginItems = t.raw('firstLogin.items') as string[];
+	const inviteItems = t.raw('invitation.items') as string[];
+	const supplements = t.raw('supplements') as string[];
 
 	return (
-		<details className='mx-auto w-full max-w-332 px-6 py-4 text-sm text-muted-foreground'>
-			<summary className='mx-auto w-fit cursor-pointer rounded-sm underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-4'>
+		<section
+			className={styles['section']}
+			aria-labelledby='invite-rules-title'
+		>
+			<h2
+				id='invite-rules-title'
+				className={styles['title']}
+			>
 				{t('title')}
-			</summary>
-			<ul className='mx-auto mt-6 grid max-w-3xl list-disc gap-x-8 gap-y-2 pl-5 sm:grid-cols-2'>
-				{items.map((item) => (
-					<li key={item}>{item}</li>
+			</h2>
+			<div className={styles['rewards']}>
+				<article>
+					<h3>{t('firstLogin.title')}</h3>
+					<ul>
+						{firstLoginItems.map((item) => (
+							<li key={item}>{item}</li>
+						))}
+					</ul>
+				</article>
+				<article>
+					<h3>{t('invitation.title')}</h3>
+					<ul>
+						{inviteItems.map((item) => (
+							<li key={item}>{item}</li>
+						))}
+					</ul>
+				</article>
+			</div>
+			<div className={styles['supplements']}>
+				<p>{t('supplementTitle')}</p>
+				{supplements.map((item) => (
+					<p key={item}>{item}</p>
 				))}
-			</ul>
-		</details>
+				<p>{t('disclaimer')}</p>
+			</div>
+		</section>
 	);
 }

@@ -1,12 +1,8 @@
 import type { StaticImageData } from 'next/image';
-import { siGithub } from 'simple-icons';
 import { AlibabaCloudIcon, GoogleCloudIcon, TencentCloudIcon, VolcanoEngineIcon } from '@/assets/app-icons';
 import { LandingOutlineButton } from '@/libs/components/LandingOutlineButton';
-import { Button } from '@/libs/components/ui/button';
 import { Icon } from '@/libs/components/ui/icon';
-import { SimpleIcon } from '@/libs/components/ui/simple-icon';
 import { Config } from '@/libs/config';
-import { getGitHubRepositoryStats } from '@/libs/github-metadata/utils';
 import { HeroBg } from '../components/HeroBg';
 
 const cloudProviders: Array<{ name: string; icon: StaticImageData }> = [
@@ -28,14 +24,8 @@ const cloudProviders: Array<{ name: string; icon: StaticImageData }> = [
 	},
 ];
 
-const SEALOS_GITHUB_REPO = 'labring/sealos';
-const SEALOS_GITHUB_URL = `https://github.com/${SEALOS_GITHUB_REPO}`;
-
 export function HeroSection() {
 	const { signinLink } = Config.components.navbar;
-	const sealosGitHubStats = getGitHubRepositoryStats(SEALOS_GITHUB_REPO);
-	const sealosGitHubUrl = sealosGitHubStats?.htmlUrl ?? SEALOS_GITHUB_URL;
-	const sealosStarsText = sealosGitHubStats?.starsText ?? 'GitHub';
 
 	return (
 		<div className='relative flex flex-col justify-between'>
@@ -65,25 +55,13 @@ export function HeroSection() {
 					</h1>
 				</div>
 
-				<div className='relative flex flex-row-reverse items-center justify-end lg:flex-row lg:justify-start'>
-					<Button
-						asChild
-						variant='ghost'
-						className='h-14 px-6!'
+				<div className='relative flex flex-wrap items-center gap-5'>
+					<LandingOutlineButton
+						href='/downloads'
+						size='lg'
 					>
-						<a
-							href={sealosGitHubUrl}
-							target='_blank'
-							rel='noreferrer'
-							aria-label={`在 GitHub 查看 ${SEALOS_GITHUB_REPO}，当前 Star ${sealosStarsText}`}
-						>
-							<span className='text-sm leading-none'>{sealosStarsText}</span>
-							<SimpleIcon
-								d={siGithub.path}
-								className='size-6'
-							/>
-						</a>
-					</Button>
+						立即下载
+					</LandingOutlineButton>
 					<LandingOutlineButton
 						href={signinLink}
 						size='lg'

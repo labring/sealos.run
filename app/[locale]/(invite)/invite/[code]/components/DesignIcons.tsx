@@ -142,3 +142,20 @@ export function InviteUsersIcon(props: IconProps) {
 		</svg>
 	);
 }
+
+export function InviteDownloadIcon(props: IconProps) {
+	return (
+		<svg
+			role='graphics-symbol'
+			viewBox='0 0 20 20'
+			fill='none'
+			stroke='currentColor'
+			strokeWidth='1.33'
+			strokeLinecap='round'
+			strokeLinejoin='round'
+			{...props}
+		>
+			<path d='M17.5 12.5v3.333c0 .921-.746 1.667-1.667 1.667H4.167A1.667 1.667 0 0 1 2.5 15.833V12.5M5.833 8.333 10 12.5l4.167-4.167M10 12.5v-10' />
+		</svg>
+	);
+}

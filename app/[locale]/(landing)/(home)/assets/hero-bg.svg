@@ -99,15 +99,6 @@
   >
     <tspan x="802.6" y="501.6">集群管理</tspan>
   </text>
-  <text
-    xml:space="preserve"
-    fill="#005BFF"
-    font-size="12.4"
-    letter-spacing="0em"
-    style="white-space: pre"
-  >
-    <tspan x="808.6" y="289.6">DevBox</tspan>
-  </text>
   <path
     stroke="#005BFF"
     stroke-opacity=".3"

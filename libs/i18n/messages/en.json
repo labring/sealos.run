@@ -112,9 +112,10 @@
 					"unavailable": "The referral activity is currently unavailable. You can still sign up and use Sealos."
 				},
 				"journey": {
-					"verify": "Download & verify your identity",
+					"verify": "Register and verify your identity on the web",
 					"reward": "Get ¥10 welcome + ¥5 referral credits",
-					"deploy": "Deploy your first project with an Agent"
+					"deploy": "Deploy your first project with an Agent",
+					"download": "Download and sign in to Sealos Desktop"
 				}
 			},
 			"steps": {
@@ -144,14 +145,30 @@
 			},
 			"rules": {
 				"title": "Activity details",
-				"items": [
-					"The activity is available on the Sealos China site only; accounts registered via API do not join the referral rewards.",
-					"Referral rewards apply to newly invited users only: ¥5 for the invitee and ¥5 for the inviter.",
-					"The ¥10 Desktop first sign-in reward covers new and existing users who have not claimed it, once per account.",
-					"Rewards are cloud credits (gift-code balance), redeemed automatically once conditions are met — no manual application.",
-					"The referral is locked in only when the account is first created; existing accounts cannot be bound retroactively.",
-					"Inviters are not required to complete real-name verification."
-				]
+				"firstLogin": {
+					"title": "¥10 first-login gift",
+					"items": [
+						"Eligibility: Users who have not received the Sealos Desktop first-login gift.",
+						"How to qualify: Complete identity verification on the Sealos web console, then download and sign in to Sealos Desktop.",
+						"Claim limit: Once per account."
+					]
+				},
+				"invitation": {
+					"title": "¥5 invitation reward",
+					"items": [
+						"Invitee: Must be a new Sealos user.",
+						"How to participate: Register on the Sealos web console through the personal invite link and complete identity verification.",
+						"How to qualify: Download and sign in to Sealos Desktop. Both the inviter and invitee receive ¥5 in Sealos balance.",
+						"Rewards: There is no limit on the number of invites. Rewards are credited automatically after eligibility checks."
+					]
+				},
+				"supplementTitle": "Additional rules:",
+				"supplements": [
+					"This promotion is available only on Sealos China. Accounts registered through the API are excluded. Referral attribution is established at initial registration and cannot be added to an existing account.",
+					"Invites involving the same phone number, device or payment account, as well as abnormal bulk registrations, do not count as valid referrals. Rewards are credited automatically after eligibility checks.",
+					"Only one account per verified identity may receive the first-login and invitee rewards. Personal or business identity verification is accepted; the inviter does not need to complete identity verification."
+				],
+				"disclaimer": "Sealos reserves the right of final interpretation of this promotion."
 			},
 			"giftCard": {
 				"eyebrow": "Friend referral reward",
