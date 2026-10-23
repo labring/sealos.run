@@ -100,7 +100,7 @@ export async function DownloadContent() {
 						enabled={appDownloadsEnabled}
 					/>
 				</div>
-				<DesktopDemo />
+				<DesktopDemo autoPlay />
 			</section>
 
 			<section className={cn(styles['section'], styles['whiteSection'], styles['scenariosSection'])}>

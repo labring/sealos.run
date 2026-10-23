@@ -1,11 +1,65 @@
 import { type DemoConversationId, demoConversations } from './demo-conversations';
 
-type ReplayPart = { type: 'markdown'; text: string } | { type: 'deployment' };
+type ReplayPart =
+	| { type: 'markdown'; text: string }
+	| { type: 'deployment' }
+	| { type: 'activity'; title: string; steps: string[] };
 type ReplayTurn = { prompt: string; parameters?: boolean; work: string; time: string; parts: ReplayPart[] };
 
 const nginx = demoConversations.nginx;
 const eaglercraft = demoConversations.eaglercraft;
 const turns = {
+	teable: [
+		{
+			prompt: demoConversations.teable.prompt,
+			work: '已完成',
+			time: '13:55',
+			parts: [
+				{
+					type: 'markdown',
+					text: '项目当前为空。现在分析本地代码结构。\n\n这是 Teable 的 monorepo（pnpm workspace）。我并行看一下它的构建相关文件。',
+				},
+				{
+					type: 'activity',
+					title: '查阅项目',
+					steps: [
+						'package.json · pnpm-workspace.yaml',
+						'dockers/teable/Dockerfile',
+						'standalone compose · PostgreSQL + Redis',
+					],
+				},
+				{
+					type: 'markdown',
+					text: '官方自带生产级多阶段 Dockerfile 与 standalone compose。现在开始构建，以仓库根为构建上下文，排除本地 .env 等敏感文件。',
+				},
+				{
+					type: 'activity',
+					title: '构建镜像',
+					steps: [
+						'拉取基础镜像',
+						'安装 pnpm 依赖 · pnpm fetch',
+						'生成 Prisma 客户端',
+						'编译 Teable 前后端',
+						'整理生产运行目录',
+						'导出镜像 · linux/amd64',
+					],
+				},
+				{ type: 'markdown', text: '构建成功（linux/amd64，上下文 69.4 MiB）。现在推送到工作空间镜像仓库。' },
+				{ type: 'activity', title: '推送镜像', steps: ['上传镜像层 · 20 / 27', '镜像推送完成'] },
+				{ type: 'markdown', text: '模板已写好（.sealos/template/index.yaml）。现在部署到绑定的 Sealos 项目。' },
+				{
+					type: 'activity',
+					title: '确认部署',
+					steps: ['Teable · 1 CPU / 2 GiB', 'PostgreSQL + Redis · 附件持久卷', '演示自动确认，开始部署'],
+				},
+				{ type: 'deployment' },
+				{
+					type: 'markdown',
+					text: '部署完成并已验证。\n\n**Teable 已上线**\n\n- 工作负载：`teable-qmygpgcc-teable`，1/1 就绪，0 次重启\n- PostgreSQL、Redis 启动完成，数据库迁移成功\n- `/health`：`status: ok`，数据库连接正常\n- 登录页、注册页和静态资源均返回 200\n- 附件保存在持久卷中，重启不丢失。',
+				},
+			],
+		},
+	],
 	nginx: [
 		{
 			prompt: nginx.prompt,
@@ -72,6 +126,14 @@ const turns = {
 } satisfies Record<DemoConversationId, ReplayTurn[]>;
 
 export const deploymentSteps = {
+	teable: [
+		'模板 teable 已受理',
+		'平台资源已创建',
+		'数据库 PostgreSQL 启动完成',
+		'数据库 Redis 启动完成',
+		'服务 teable-qmygpgcc-teable 启动完成',
+		'公网地址可访问',
+	],
 	nginx: ['服务 nginx 已创建', '公网地址可访问'],
 	eaglercraft: [
 		'模板 eaglercraft-server 已受理',
@@ -83,6 +145,7 @@ export const deploymentSteps = {
 
 export const characterInterval = 18;
 export const deploymentStepInterval = 650;
+export const activityStepInterval = 900;
 
 function scheduleTurns(conversation: DemoConversationId, source: ReplayTurn[]) {
 	let cursor = 0;
@@ -95,7 +158,9 @@ function scheduleTurns(conversation: DemoConversationId, source: ReplayTurn[]) {
 			cursor +=
 				part.type === 'markdown'
 					? Array.from(part.text).length * characterInterval
-					: deploymentSteps[conversation].length * deploymentStepInterval;
+					: part.type === 'activity'
+						? part.steps.length * activityStepInterval
+						: deploymentSteps[conversation].length * deploymentStepInterval;
 			return { ...part, start, end: cursor };
 		});
 		const end = cursor;
@@ -105,6 +170,13 @@ function scheduleTurns(conversation: DemoConversationId, source: ReplayTurn[]) {
 	return { turns: scheduled, duration: Math.max(0, cursor - 650) };
 }
 export const demoReplays = {
+	teable: scheduleTurns('teable', turns.teable),
 	nginx: scheduleTurns('nginx', turns.nginx),
 	eaglercraft: scheduleTurns('eaglercraft', turns.eaglercraft),
 };
+
+export const teableIntroduction = { open: 1800, selected: 4200, end: 6800 };
+
+export const teableApproval = demoReplays.teable.turns
+	.flatMap((turn) => turn.parts)
+	.find((part) => part.type === 'activity' && part.title === '确认部署');

@@ -11,6 +11,7 @@ import hand from './hand.svg';
 import list from './list.svg';
 import more from './more.svg';
 import plus from './plus.svg';
+import pointer from './pointer.svg';
 import projects from './projects.svg';
 import sealos from './sealos.svg';
 import search from './search.svg';
@@ -22,6 +23,7 @@ export const demoIcons = {
 	globe,
 	list,
 	plus,
+	pointer,
 	projects,
 	storage,
 	gateway,

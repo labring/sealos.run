@@ -961,3 +961,170 @@ button.primaryAction:hover {
 	color: #717171;
 	font-size: 13px;
 }
+
+.introPage {
+	height: 100%;
+	overflow: auto;
+	padding: 0 28px 28px;
+}
+.playbackControls {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+	margin-left: auto;
+	color: #717171;
+	font-size: 11px;
+	white-space: nowrap;
+}
+.playbackControls button {
+	padding: 3px 7px;
+	border: 1px solid #e8e8e8;
+	border-radius: 6px;
+	background: white;
+	color: #404040;
+}
+.playbackControls button:hover {
+	background: #f5f5f5;
+}
+.introControls {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	z-index: 2;
+}
+.method[data-active="true"] {
+	border-color: #a0a0a0;
+	background: #f5f5f5;
+}
+.localDeploy {
+	display: block;
+	width: 100%;
+	margin-block: 10px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: #171717;
+	font-weight: 500;
+}
+.localDeploy::after {
+	position: absolute;
+	inset: 0;
+	content: "";
+}
+.method:has(.localDeploy) {
+	position: relative;
+}
+.method:has(.localDeploy:hover) {
+	background: #f5f5f5;
+}
+.directoryPreview {
+	position: absolute;
+	inset: 50% auto auto 50%;
+	z-index: 3;
+	width: min(340px, 90%);
+	transform: translate(-50%, -50%);
+	padding: 18px;
+	border: 1px solid #d8d8d8;
+	border-radius: 12px;
+	background: white;
+	box-shadow: 0 8px 30px #00000024;
+}
+.directoryPreview header,
+.directoryPreview > div,
+.directoryPreview footer {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.directoryPreview img {
+	width: 18px;
+	height: 18px;
+}
+.demo .directoryPreview > p {
+	margin: 20px 0 8px;
+	color: #717171;
+	font-size: 11px;
+}
+.directoryPreview > div {
+	padding: 10px;
+	border-radius: 6px;
+	background: #f0f0f0;
+}
+.directoryPreview > div img:last-child {
+	margin-left: auto;
+}
+.directoryPreview footer {
+	justify-content: space-between;
+	margin-top: 20px;
+	font-size: 11px;
+}
+.directoryPreview footer > button {
+	padding: 5px 10px;
+	border: 0;
+	border-radius: 6px;
+	background: #171717;
+	color: white;
+}
+@media (width < 640px) {
+	.sidebarProjects {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+	.introPage {
+		padding: 0 16px 20px;
+	}
+	.playbackControls {
+		gap: 4px;
+		font-size: 10px;
+	}
+	.playbackControls > span {
+		display: none;
+	}
+}
+
+.composerToolbar button.send {
+	border: 0;
+	background: #171717;
+}
+
+.playbackSurface {
+	position: relative;
+	height: 100%;
+	min-height: 0;
+	overflow: hidden;
+}
+.playbackCursor {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 5;
+	width: 28px;
+	height: 28px;
+	pointer-events: none;
+	filter: drop-shadow(0 2px 2px #00000026);
+}
+.cursorShape {
+	display: block;
+	width: 28px;
+	height: 28px;
+	transform-origin: 5px 5px;
+}
+.demo .playbackCursor img {
+	width: 28px;
+	height: 28px;
+}
+.clickRing {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 30px;
+	height: 30px;
+	border: 1.5px solid #717171;
+	border-radius: 50%;
+}
+.directoryPreview > div[data-selected="false"] {
+	background: transparent;
+}
+.directoryPreview > div[data-selected="false"] > img:last-child {
+	visibility: hidden;
+}

@@ -77,14 +77,26 @@ function PageHeader({ title, summary, action }: { title: string; summary: string
 	);
 }
 
-export function DemoNewTask() {
+export function DemoNewTask({
+	localStage,
+	onLocalDeploy,
+	onSubmit,
+}: {
+	localStage?: 'choose' | 'selected';
+	onLocalDeploy?: () => void;
+	onSubmit?: () => void;
+}) {
 	return (
 		<>
 			<div className={styles['newTask']}>
 				<h3>部署新的应用</h3>
 				<p>描述你的想法，或选择下面的创建方式。</p>
 				<div className={styles['composer']}>
-					<p>描述你想部署的应用…</p>
+					<p>
+						{localStage === 'selected'
+							? '帮我把这个目录（你的工作区）里的源码部署到 Sealos 上'
+							: '描述你想部署的应用…'}
+					</p>
 					<div className={styles['composerToolbar']}>
 						<span className={styles['addContext']}>
 							<Icon
@@ -97,7 +109,7 @@ export function DemoNewTask() {
 								src={demoIcons.folder}
 								alt=''
 							/>
-							选择项目
+							{localStage === 'selected' ? 'teable' : '选择项目'}
 							<Icon
 								src={demoIcons.chevron}
 								alt=''
@@ -132,18 +144,34 @@ export function DemoNewTask() {
 								alt=''
 							/>
 						</span>
-						<span className={styles['send']}>
-							<Icon
-								src={demoIcons.arrow}
-								alt=''
-							/>
-						</span>
+						{localStage === 'selected' ? (
+							<button
+								type='button'
+								className={styles['send']}
+								onClick={onSubmit}
+								aria-label='开始 Teable 部署演示'
+								data-demo-target='send'
+							>
+								<Icon
+									src={demoIcons.arrow}
+									alt=''
+								/>
+							</button>
+						) : (
+							<span className={styles['send']}>
+								<Icon
+									src={demoIcons.arrow}
+									alt=''
+								/>
+							</span>
+						)}
 					</div>
 				</div>
 				<div className={styles['methods']}>
 					{methods.map((item) => (
 						<div
 							key={item.name}
+							data-active={item.name === '本地代码上线' && !!localStage}
 							className={styles['method']}
 						>
 							{item.image ? (
@@ -161,7 +189,19 @@ export function DemoNewTask() {
 									/>
 								)
 							)}
-							<strong>{item.name}</strong>
+							{item.name === '本地代码上线' ? (
+								<button
+									type='button'
+									className={styles['localDeploy']}
+									data-demo-target='local'
+									onClick={onLocalDeploy}
+								>
+									本地代码上线
+									<span className={styles['srOnly']}>演示</span>
+								</button>
+							) : (
+								<strong>{item.name}</strong>
+							)}
 							<p>{item.description}</p>
 						</div>
 					))}
@@ -211,7 +251,7 @@ export function DemoProjects({ onNewProject }: { onNewProject: () => void }) {
 		<>
 			<PageHeader
 				title='项目'
-				summary='2 个项目 · 2 个服务运行中'
+				summary='3 个项目 · 5 个服务运行中'
 				action={
 					<button
 						type='button'
@@ -247,6 +287,7 @@ export function DemoProjects({ onNewProject }: { onNewProject: () => void }) {
 			</div>
 			<div className={styles['projectGrid']}>
 				{[
+					{ name: 'teable', image: methodDatabase, initial: true, time: '刚刚' },
 					{ name: 'Nginx Web Server', image: nginx, initial: true, time: '4分钟前' },
 					{ name: 'eaglercraft-server-tvbxdlaa', image: eaglercraftServer, time: '7分钟前' },
 				].map((item) => (
@@ -256,7 +297,7 @@ export function DemoProjects({ onNewProject }: { onNewProject: () => void }) {
 					>
 						<header>
 							{item.initial ? (
-								<span className={styles['initial']}>N</span>
+								<span className={styles['initial']}>{item.name === 'teable' ? 'T' : 'N'}</span>
 							) : (
 								<Image
 									src={item.image}

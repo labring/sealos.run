@@ -432,3 +432,109 @@
 	background: #f5f5f5;
 	color: #717171;
 }
+
+.activity {
+	overflow: hidden;
+	margin-block: 16px;
+	border: 1px solid #e8e8e8;
+	border-radius: 12px;
+	background: white;
+}
+.activity header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px;
+}
+.activity header span {
+	margin-left: auto;
+	color: #717171;
+	font-size: 11px;
+}
+.workspace .activity p {
+	margin: 0;
+	padding: 10px 12px;
+	border-top: 1px solid #eeeeee;
+	color: #717171;
+	font-size: 11px;
+}
+.activity progress {
+	display: block;
+	width: 100%;
+	height: 3px;
+	border: 0;
+	accent-color: #404040;
+}
+.activity progress::-webkit-progress-bar {
+	background: #eeeeee;
+}
+.activity progress::-webkit-progress-value {
+	background: #404040;
+}
+.emptyCanvas {
+	color: #909090;
+	font-size: 12px;
+}
+.teableGraph {
+	width: 100%;
+	max-width: 400px;
+}
+.teableGraph > .service {
+	margin-inline: auto;
+}
+.teableIcon {
+	display: grid;
+	width: 24px;
+	height: 24px;
+	flex-shrink: 0;
+	place-items: center;
+	border-radius: 6px;
+	background: #404040;
+	color: white;
+}
+.dependencies {
+	position: relative;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+	margin-top: 40px;
+}
+.dependencies::before {
+	position: absolute;
+	inset: -40px 25% auto;
+	height: 40px;
+	border-inline: 1px dashed #b0b0b0;
+	border-top: 1px dashed #b0b0b0;
+	content: "";
+}
+.dependencies .service {
+	width: 100%;
+}
+.dependencies .service > header {
+	padding: 12px 10px 0;
+	gap: 6px;
+}
+.status[data-pending="true"] i {
+	background: #a0a0a0;
+	box-shadow: 0 0 0 3px #eeeeee;
+}
+.chatHeader:has(button) {
+	gap: 8px;
+}
+.chatHeader:has(button) > img {
+	display: none;
+}
+
+.approve {
+	margin: 0 12px 12px;
+	padding: 6px 14px;
+	border: 0;
+	border-radius: 6px;
+	background: #171717;
+	color: white;
+}
+.approve:disabled {
+	background: #f5f5f5;
+	color: #717171;
+	cursor: default;
+}
