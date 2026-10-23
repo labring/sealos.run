@@ -9,7 +9,13 @@ import { useStickToBottom } from 'use-stick-to-bottom';
 import { Icon } from '@/libs/components/ui/icon';
 import { demoIcons, eaglercraftServer, nginx } from '../assets/demo';
 import { type DemoConversationId, demoConversations } from '../utils/demo-conversations';
-import { characterInterval, demoReplays, deploymentStepInterval, deploymentSteps } from '../utils/demo-replay';
+import {
+	activityStepInterval,
+	characterInterval,
+	demoReplays,
+	deploymentStepInterval,
+	deploymentSteps,
+} from '../utils/demo-replay';
 import styles from './DemoConversation.module.css';
 
 function PublicLink({ href }: { href: string }) {
@@ -60,7 +66,6 @@ function MessageFooter({ time }: { time: string }) {
 }
 function DeploymentCard({ conversation, progress }: { conversation: DemoConversationId; progress: number }) {
 	const item = demoConversations[conversation];
-	const minecraft = conversation === 'eaglercraft';
 	const steps = deploymentSteps[conversation];
 	const total = steps.length;
 	const complete = progress >= total;
@@ -78,25 +83,13 @@ function DeploymentCard({ conversation, progress }: { conversation: DemoConversa
 					/>
 				</span>
 				<div>
-					<p>
-						{minecraft
-							? '模板部署 · eaglercraft-server-tvbxdlaa'
-							: '部署 project-facd43c0473641c0a3d942277c83737b'}
-					</p>
-					<strong>
-						{complete
-							? minecraft
-								? 'eaglercraft-server 部署完成'
-								: '部署完成'
-							: minecraft
-								? 'eaglercraft-server 部署中'
-								: '正在部署'}
-					</strong>
+					<p>{item.deployment.label}</p>
+					<strong>{complete ? item.deployment.complete : item.deployment.pending}</strong>
 				</div>
 				<span>
 					{Math.min(progress, total)} / {total}
 					<br />
-					{complete ? (minecraft ? '3 分 27 秒' : '13 秒') : '部署中'}
+					{complete ? item.deployment.time : '部署中'}
 				</span>
 			</header>
 			<ol>
@@ -138,12 +131,22 @@ const markdownComponents = {
 };
 const markdownPlugins = { cjk };
 
-export function DemoConversation({ conversation }: { conversation: DemoConversationId }) {
+export function DemoConversation({
+	conversation,
+	elapsed: playbackElapsed,
+	controls,
+	onApprove,
+}: {
+	conversation: DemoConversationId;
+	elapsed?: number;
+	controls?: React.ReactNode;
+	onApprove?: () => void;
+}) {
 	const item = demoConversations[conversation];
 	const timeline = demoReplays[conversation];
 	const reducedMotion = useReducedMotion();
 	const [elapsed, setElapsed] = React.useState(0);
-	const visibleElapsed = reducedMotion ? timeline.duration : elapsed;
+	const visibleElapsed = reducedMotion ? timeline.duration : (playbackElapsed ?? elapsed);
 	const playing = visibleElapsed < timeline.duration;
 	const { scrollRef, contentRef, isAtBottom, scrollToBottom } = useStickToBottom({
 		initial: 'instant',
@@ -151,7 +154,7 @@ export function DemoConversation({ conversation }: { conversation: DemoConversat
 	});
 	// The sidebar remounts this view on every conversation click; unmounting cancels its playback.
 	React.useEffect(() => {
-		if (reducedMotion) return;
+		if (reducedMotion || playbackElapsed !== undefined) return;
 		const started = performance.now();
 		const timer = window.setInterval(() => {
 			const next = Math.min(performance.now() - started, timeline.duration);
@@ -159,12 +162,18 @@ export function DemoConversation({ conversation }: { conversation: DemoConversat
 			if (next >= timeline.duration) window.clearInterval(timer);
 		}, 40);
 		return () => window.clearInterval(timer);
-	}, [timeline.duration, reducedMotion]);
+	}, [timeline.duration, reducedMotion, playbackElapsed]);
+	const deployment = timeline.turns.flatMap((turn) => turn.parts).find((part) => part.type === 'deployment');
+	const deploymentProgress = deployment
+		? Math.max(0, Math.floor((visibleElapsed - deployment.start) / deploymentStepInterval))
+		: 0;
+	const teable = conversation === 'teable';
 	return (
 		<div className={styles['workspace']}>
 			<div className={styles['chat']}>
 				<header className={styles['chatHeader']}>
 					<span title={item.title}>{item.title}</span>
+					{controls}
 					<Icon
 						src={demoIcons.chevron}
 						alt=''
@@ -213,6 +222,60 @@ export function DemoConversation({ conversation }: { conversation: DemoConversat
 																	)}
 																/>
 															);
+														if (part.type === 'activity') {
+															const step = Math.min(
+																part.steps.length - 1,
+																Math.floor(
+																	(visibleElapsed - part.start) /
+																		activityStepInterval,
+																),
+															);
+															return (
+																<section
+																	key={part.start}
+																	className={styles['activity']}
+																	aria-label={part.title}
+																>
+																	<header>
+																		<Icon
+																			src={
+																				streaming
+																					? demoIcons.more
+																					: demoIcons.check
+																			}
+																			alt=''
+																		/>
+																		<strong>
+																			{part.title}
+																			{!streaming && '完成'}
+																		</strong>
+																		<span>
+																			{Math.min(step + 1, part.steps.length)} /{' '}
+																			{part.steps.length}
+																		</span>
+																	</header>
+																	<p>{part.steps[step]}</p>
+																	{part.title === '确认部署' && (
+																		<button
+																			type='button'
+																			className={styles['approve']}
+																			data-demo-target='approve'
+																			onClick={onApprove}
+																			disabled={!streaming}
+																		>
+																			{streaming ? '允许部署' : '已允许'}
+																		</button>
+																	)}
+																	<progress
+																		value={
+																			streaming ? step + 0.5 : part.steps.length
+																		}
+																		max={part.steps.length}
+																		aria-label={`${part.title}进度`}
+																	/>
+																</section>
+															);
+														}
 														const text = streaming
 															? Array.from(part.text)
 																	.slice(
@@ -259,7 +322,7 @@ export function DemoConversation({ conversation }: { conversation: DemoConversat
 					)}
 				</div>
 				<div className={styles['composer']}>
-					<p>提出后续修改要求</p>
+					<p>{playing ? '继续输入以排队后续修改' : '提出后续修改要求'}</p>
 					<div>
 						<span>
 							<Icon
@@ -313,31 +376,94 @@ export function DemoConversation({ conversation }: { conversation: DemoConversat
 					/>
 				</header>
 				<div className={styles['canvas']}>
-					<article className={styles['service']}>
-						<header>
-							<Image
-								src={conversation === 'nginx' ? nginx : eaglercraftServer}
-								alt=''
-								width={24}
-								height={24}
-							/>
-							<div>
-								<strong>{item.service}</strong>
-								<p title={item.image}>{item.image}</p>
+					{teable ? (
+						deploymentProgress < 2 ? (
+							<p className={styles['emptyCanvas']}>{playing ? '准备部署 · 暂无服务' : '暂无服务'}</p>
+						) : (
+							<div className={styles['teableGraph']}>
+								<article className={styles['service']}>
+									<header>
+										<span className={styles['teableIcon']}>T</span>
+										<div>
+											<strong>{item.service}</strong>
+											<p>teable:20261023-053035</p>
+										</div>
+									</header>
+									<p
+										className={styles['status']}
+										data-pending={deploymentProgress < 5}
+									>
+										<i />
+										{deploymentProgress >= 5 ? '运行中 · 1/1 就绪' : '部署中'}
+									</p>
+									{deploymentProgress >= 6 && (
+										<footer>
+											<Icon
+												src={demoIcons.globe}
+												alt=''
+											/>
+											<PublicLink href={item.url} />
+										</footer>
+									)}
+								</article>
+								<div className={styles['dependencies']}>
+									{['PostgreSQL', 'Redis'].map((name, index) => (
+										<article
+											className={styles['service']}
+											key={name}
+										>
+											<header>
+												<Icon
+													src={demoIcons.storage}
+													alt=''
+												/>
+												<div>
+													<strong>{name}</strong>
+													<p>{index === 0 ? 'postgresql · teable' : 'redis'}</p>
+												</div>
+											</header>
+											<p
+												className={styles['status']}
+												data-pending={deploymentProgress < index + 3}
+											>
+												<i />
+												{deploymentProgress >= index + 3 ? '运行中' : '创建中'}
+											</p>
+										</article>
+									))}
+								</div>
 							</div>
-						</header>
-						<p className={styles['status']}>
-							<i />
-							运行中
-						</p>
-						<footer>
-							<Icon
-								src={demoIcons.globe}
-								alt=''
-							/>
-							<PublicLink href={item.url} />
-						</footer>
-					</article>
+						)
+					) : (
+						<>
+							{' '}
+							<article className={styles['service']}>
+								<header>
+									<Image
+										src={conversation === 'nginx' ? nginx : eaglercraftServer}
+										alt=''
+										width={24}
+										height={24}
+									/>
+									<div>
+										<strong>{item.service}</strong>
+										<p title={item.image}>{item.image}</p>
+									</div>
+								</header>
+								<p className={styles['status']}>
+									<i />
+									运行中
+								</p>
+								<footer>
+									<Icon
+										src={demoIcons.globe}
+										alt=''
+									/>
+									<PublicLink href={item.url} />
+								</footer>
+							</article>
+						</>
+					)}
 					<span className={styles['addService']}>
 						<Icon
 							src={demoIcons.plus}

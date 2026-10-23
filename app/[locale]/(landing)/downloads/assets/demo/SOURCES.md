@@ -8,3 +8,5 @@
 - Creation-method marks: `sealox/packages/ui/src/assets/sealos/new-task/` (GitHub, template, database, Docker).
 - Template logos: the public `https://template.bja.sealos.run/api/listTemplate` catalog. Original URLs follow `https://raw.githubusercontent.com/labring-actions/templates/kb-0.9/template/{name}/logo.{png,svg}` for `7daystodie`, `ace-step`, `affine`, `agora`, `airbyte`, `eaglercraft-server`.
 - Raster logos are lossless WebP, rendered at up to 96px for the small UI sizes. No credentials or live account calls are bundled. The original RCON password in the conversation is masked.
+
+- `pointer.svg`: Lucide `mouse-pointer-2` (https://lucide.dev/icons/mouse-pointer-2), adapted with white fill and a 1.6px dark stroke. Source: https://github.com/lucide-icons/lucide/blob/main/icons/mouse-pointer-2.svg. ISC license in `LUCIDE-LICENSE.txt`.
