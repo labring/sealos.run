@@ -1,7 +1,7 @@
-const DESKTOP_DOWNLOAD_FEED_BASE_URL = 'https://sealox.oss-cn-hangzhou.aliyuncs.com';
+const DESKTOP_DOWNLOAD_FEED_BASE_URL = 'https://sealox.oss-cn-hangzhou.aliyuncs.com/app/';
 
 const desktopDownloadManifestUrl = (manifest: 'latest-mac.yml' | 'latest.yml') =>
-	`${DESKTOP_DOWNLOAD_FEED_BASE_URL}/${manifest}`;
+	new URL(manifest, DESKTOP_DOWNLOAD_FEED_BASE_URL).toString();
 
 const desktopDownloadAssetUrl = (relativeUrl: string) =>
 	new URL(encodeURI(relativeUrl), DESKTOP_DOWNLOAD_FEED_BASE_URL).toString();
