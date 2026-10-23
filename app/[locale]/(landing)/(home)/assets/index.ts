@@ -1,4 +1,5 @@
 export * from './arch-images';
+export { default as DesktopHomeImage } from './desktop-home.webp';
 export * from './features-appicons';
 export { default as HeroAgentBoxImage } from './hero-agent-box.svg';
 export { default as HeroBgImage } from './hero-bg.svg';

@@ -1,0 +1,115 @@
+.overlay {
+	background: #7373734d;
+	backdrop-filter: blur(7.05px);
+}
+
+.content {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	z-index: 50;
+	width: min(592px, calc(100% - 32px));
+	max-height: calc(100dvh - 32px);
+	overflow: auto;
+	transform: translate(-50%, -50%);
+	border: 1px solid #e5e5e5;
+	border-radius: 20px;
+	background: #fff;
+	color: #000;
+	box-shadow:
+		0 20px 25px -5px #0000001a,
+		0 10px 10px -5px #0000000a;
+	outline: none;
+}
+
+.visual {
+	position: relative;
+	aspect-ratio: 592 / 299;
+	overflow: hidden;
+	background: #1b1b1b;
+}
+
+.preview {
+	position: absolute;
+	top: 15.38%;
+	left: 8.78%;
+	width: 82.44%;
+	height: auto;
+	border-radius: 8px;
+}
+
+.badge {
+	position: absolute;
+	top: 16%;
+	left: 4.05%;
+	transform: rotate(-22.6deg);
+	color: #005bff;
+	font-size: clamp(24px, 5vw, 36px);
+	font-weight: 700;
+	line-height: 40px;
+	text-shadow: -1px -1px 0 #fff;
+}
+
+.close {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	display: grid;
+	width: 36px;
+	height: 36px;
+	place-items: center;
+	border-radius: 50%;
+	color: #a3a3a3;
+	cursor: pointer;
+}
+
+.close:hover,
+.close:focus-visible {
+	background: #333;
+	color: #fff;
+}
+
+.close:focus-visible {
+	outline: 2px solid #005bff;
+}
+
+.copy {
+	padding: 28px 32px;
+}
+
+.title {
+	font-size: 24px;
+	font-weight: 600;
+	line-height: 1.65;
+}
+
+.reward {
+	margin-top: 18px;
+	color: #005bff;
+	font-size: 16px;
+	line-height: 24px;
+}
+
+.reward strong {
+	font-size: 24px;
+	font-weight: 600;
+}
+
+.download {
+	--brand: #005bff;
+	width: 202px;
+	margin-top: 24px;
+	padding: 6px;
+	background: #fafafa;
+}
+
+@media (max-width: 480px) {
+	.copy {
+		padding: 24px;
+	}
+
+	.title {
+		font-size: 18px;
+		line-height: 1.5;
+	}
+}
