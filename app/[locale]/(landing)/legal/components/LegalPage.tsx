@@ -13,6 +13,18 @@ export function LegalPage({ content }: { content: LegalPageContent }) {
 				</div>
 
 				<div className='space-y-10'>
+					{content.intro && (
+						<div className='space-y-4'>
+							{content.intro.map((paragraph) => (
+								<p
+									key={paragraph}
+									className='text-muted-foreground text-base leading-8'
+								>
+									{paragraph}
+								</p>
+							))}
+						</div>
+					)}
 					{content.sections.map((section) => (
 						<section
 							key={section.title}
