@@ -1,5 +1,24 @@
 import { Link } from '@/libs/i18n/navigation';
+import { cn } from '@/libs/utils/styling';
 import type { LegalPageContent } from '../utils/legal-pages';
+
+const CLAUSE_PATTERN = /^(\d+(?:\.\d+)+)\s+([\s\S]+)$/;
+
+function Clause({ paragraph }: { paragraph: string }) {
+	const match = paragraph.match(CLAUSE_PATTERN);
+	if (match) {
+		const [, number = '', text = ''] = match;
+		const isSubClause = number.split('.').length > 2;
+		return (
+			<p className={cn('text-muted-foreground text-base leading-8', isSubClause && 'pl-6')}>
+				<span className='text-foreground mr-2 font-medium'>{number}</span>
+				{text}
+			</p>
+		);
+	}
+	const isEnumItem = paragraph.startsWith('（');
+	return <p className={cn('text-muted-foreground text-base leading-8', isEnumItem && 'pl-6')}>{paragraph}</p>;
+}
 
 export function LegalPage({ content }: { content: LegalPageContent }) {
 	return (
@@ -13,6 +32,16 @@ export function LegalPage({ content }: { content: LegalPageContent }) {
 				</div>
 
 				<div className='space-y-10'>
+					{content.intro && (
+						<div className='space-y-4'>
+							{content.intro.map((paragraph) => (
+								<Clause
+									key={paragraph}
+									paragraph={paragraph}
+								/>
+							))}
+						</div>
+					)}
 					{content.sections.map((section) => (
 						<section
 							key={section.title}
@@ -20,12 +49,10 @@ export function LegalPage({ content }: { content: LegalPageContent }) {
 						>
 							<h2 className='text-2xl leading-snug font-semibold'>{section.title}</h2>
 							{section.paragraphs?.map((paragraph) => (
-								<p
+								<Clause
 									key={paragraph}
-									className='text-muted-foreground text-base leading-8'
-								>
-									{paragraph}
-								</p>
+									paragraph={paragraph}
+								/>
 							))}
 							{section.items && (
 								<ul className='text-muted-foreground list-disc space-y-3 pl-6 text-base leading-8'>
