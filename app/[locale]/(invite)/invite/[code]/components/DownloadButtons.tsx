@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
+import { AcquisitionChoice } from '@/libs/components/AcquisitionChoice';
 import { useTranslations } from '@/libs/i18n/client';
+import { Link } from '@/libs/i18n/navigation';
 import type { DesktopDownloadKey, DesktopDownloads } from '../utils/desktop-downloads';
 import { AppleIcon, WindowsIcon } from './DesignIcons';
 
@@ -31,6 +33,7 @@ export function DownloadButtons({ downloads }: { downloads: DesktopDownloads }) 
 
 	return (
 		<div className='flex flex-wrap items-center justify-center gap-2.5'>
+			<AcquisitionChoice />
 			{buttons.map(({ label, href, Icon }) => (
 				<a
 					key={label}
@@ -42,6 +45,12 @@ export function DownloadButtons({ downloads }: { downloads: DesktopDownloads }) 
 					{label}
 				</a>
 			))}
+			<Link
+				href='/app-attribution'
+				className='text-sm underline'
+			>
+				安装完成，打开 Sealos 并继续
+			</Link>
 		</div>
 	);
 }

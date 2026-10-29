@@ -2,6 +2,7 @@ import { RootProvider } from 'fumadocs-ui/provider/next';
 import { Inter } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import type React from 'react';
+import { AcquisitionObserver } from '@/libs/components/AcquisitionObserver';
 import { BaiduAnalytics } from '@/libs/components/BaiduAnalytics';
 import { RybbitAnalytics } from '@/libs/components/RybbitAnalytics';
 import { i18nUIProvider } from '@/libs/i18n/fumadocs';
@@ -148,6 +149,7 @@ export default async function RootLayout({ children, params }: Props) {
 			</head>
 			<body className='bg-background flex min-h-screen flex-col overflow-x-hidden'>
 				<NextIntlClientProvider>
+					<AcquisitionObserver />
 					<BaiduAnalytics />
 					<RybbitAnalytics />
 					<RootProvider
