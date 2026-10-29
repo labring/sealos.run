@@ -3,7 +3,6 @@
 import { Tooltip } from 'radix-ui';
 import React from 'react';
 import { ChevronDownIcon } from '@/assets/icons';
-import { AcquisitionChoice } from '@/libs/components/AcquisitionChoice';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -88,7 +87,6 @@ export function DownloadButtons({ downloads, enabled }: { downloads: DesktopDown
 
 	return (
 		<div className={styles['downloadControls']}>
-			<AcquisitionChoice />
 			<div className={styles['downloadButtons']}>
 				{macUrl && (
 					<DropdownMenu

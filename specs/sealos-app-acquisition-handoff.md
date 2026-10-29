@@ -8,7 +8,7 @@ sealos.run 匿名访问 → 用户同意分析 → 写入共享 Cookie → 直�
 
 ## 官网契约
 
-- analytics_storage 默认为 unspecified。只有明确 granted 才生成或复用随机 UUID visitor_id，并持久化首次同意后的 source。现有下载页和邀请页的 checkbox 只改变分析权限，不授予广告权限。
+- analytics_storage 默认为 unspecified。只有明确 granted 才生成或复用随机 UUID visitor_id，并持久化首次同意后的 source。各页面不新增独立关联提示或复选框；通过已有统计许可信号及已保存的选择读取权限，不将移除提示视为默认同意。没有 granted 信号时不建立访客关联。
 - sealos_acquisition_v1 是无 padding 的 UTF-8 JSON Base64URL。只写 version=1、realm=china、visitor_id、四项 consent，以及可选 source；不写账号 token、userUid、平台别名或 sea_attr。旧 Cookie 带有多余字段时，只复用有效访客和来源，不重新保存额外字段。
 - 只允许 HTTPS sealos.run / www.sealos.run 写入：Domain=sealos.run; Path=/; Secure; SameSite=Lax; Max-Age=2592000。控制台和租户子域不写这个 Cookie。解码内容最多 1800 UTF-8 字节；超出预算时省略 source，保留核心标识和同意状态。
 - 有效共享 Cookie 优先决定当前访客和首触；仅当本地 visitor_id 相同才允许用本地首触补全。没有有效共享 Cookie 时仍可复用本地访客；这不是跨源撤回同步。
@@ -26,7 +26,8 @@ sealos.run 匿名访问 → 用户同意分析 → 写入共享 Cookie → 直�
 | source | 仍能将访客关联到账号，但缺少营销来源 | 可选，保留最小首触信息 |
 | landing_page、referrer、timestamp | 仅 helper 自校验/复用，生产事件无独立消费；删除后首触标签与关联不变 | 不采集、不保存 |
 | 平台别名、sea_attr | 不影响国内访客与账号关联；当前国内消费链路未使用 | 国内不采集、不存储 |
-| consent checkbox / Observer / SDK-ready | 分别失去同意入口、Cookie/事件生产者、迟到 SDK 的事件发送 | 保留 |
+| 独立关联提示及复选框 | 现有统计许可读取和 Cookie/事件链路不依赖这个 UI | 删除，不默认授予权限 |
+| Observer / SDK-ready | 分别失去 Cookie/事件生产者、迟到 SDK 的事件发送 | 保留 |
 
 完整匹配需要同一浏览器 profile、Cookie 留存、用户同意，以及配套控制台/App 接入；不同浏览器、清 Cookie 或拒绝时归因未知，不做指纹或推测，不阻塞下载或登录。root/www 的 localStorage 各自独立，现有撤回同步仅保证同源标签；跨源或跨设备需要共享 consent 管理。匿名历史不承诺自动回写到账号。
 
@@ -40,4 +41,4 @@ App 的 SEALOS_PRODUCT_ANALYTICS_UPSTREAM_BASE_URL / SEALOS_PRODUCT_ANALYTICS_SI
 
 ## 验证入口
 
-node scripts/test-acquisition-handoff.mjs 覆盖同意/撤回、跨标签、域名与大小边界、旧 Cookie 兼容、实际控制组件/Observer 和下载直链消融。pnpm typecheck、pnpm lint:check、pnpm format:check、pnpm build 覆盖仓库集成。跨仓核对必须使用真实 writer 输出和现有控制台 parser，确认可选字段缺失不会阻断核心关联；不把一次性测试快照写进仓库。
+node scripts/test-acquisition-handoff.mjs 覆盖同意/撤回、跨标签、域名与大小边界、旧 Cookie 兼容、实际 Observer 和下载直链消融。pnpm typecheck、pnpm lint:check、pnpm format:check、pnpm build 覆盖仓库集成。跨仓核对必须使用真实 writer 输出和现有控制台 parser，确认可选字段缺失不会阻断核心关联；不把一次性测试快照写进仓库。

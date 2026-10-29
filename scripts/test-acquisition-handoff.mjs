@@ -189,66 +189,6 @@ test('a bounded queue rotation with unchanged length cannot hide a new denial', 
 	assert.equal(api.readAcquisitionConsent(runtime).analytics_storage, 'denied');
 });
 
-// Execute the real control with browser and React boundaries supplied by the test.
-// Assertions cover outbound requests, navigation and consent rather than JSX structure.
-const choiceSource = await readFile('libs/components/AcquisitionChoice.tsx', 'utf8');
-function choiceHarness() {
-	const { runtime, values } = browser();
-	const states = [];
-	let cursor = 0;
-	const react = {
-		useState(initial) {
-			const index = cursor++;
-			if (!(index in states)) states[index] = initial;
-			return [
-				states[index],
-				(next) => {
-					states[index] = next;
-				},
-			];
-		},
-		useEffect() {},
-	};
-	const exports = {};
-	const componentApi = {
-		...api,
-		createBrowserAcquisitionRuntime: () => runtime,
-	};
-	const jsx = (type, props) => ({ type, props });
-	const componentCode = ts.transpileModule(choiceSource, {
-		compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
-	}).outputText;
-	vm.runInNewContext(componentCode, {
-		exports,
-		require: (name) =>
-			name === 'react' ? react : name === 'react/jsx-runtime' ? { jsx, jsxs: jsx } : componentApi,
-		window: { dispatchEvent() {} },
-		Event,
-	});
-	const find = (node, type) => {
-		if (!node || typeof node !== 'object') return;
-		if (node.type === type) return node;
-		for (const child of [node.props?.children].flat(Infinity)) {
-			const result = find(child, type);
-			if (result) return result;
-		}
-	};
-	const render = () => {
-		cursor = 0;
-		return exports.AcquisitionChoice();
-	};
-	return { runtime, values, control: (type) => find(render(), type) };
-}
-
-test('only an explicit checkbox change updates analytics permission', () => {
-	const h = choiceHarness();
-	h.control('input').props.onChange({ currentTarget: { checked: true } });
-	assert.equal(api.readAcquisitionConsent(h.runtime).analytics_storage, 'granted');
-	h.control('input').props.onChange({ currentTarget: { checked: false } });
-	assert.equal(api.readAcquisitionContext(h.runtime).visitor_id, undefined);
-	assert.equal(api.readAcquisitionConsent(h.runtime).analytics_storage, 'denied');
-});
-
 function payload(cookies) {
 	const value = cookies.at(-1).split(';')[0].split('=')[1];
 	return JSON.parse(Buffer.from(value, 'base64url').toString('utf8'));
@@ -537,12 +477,7 @@ test('download pages remain ordinary installer anchors when acquisition UI and h
 		const stub = new Proxy(
 			{},
 			{
-				get: (_target, key) =>
-					key === 'useTranslations'
-						? () => (key) => key
-						: key === 'AcquisitionChoice'
-							? () => null
-							: String(key),
+				get: (_target, key) => (key === 'useTranslations' ? () => (key) => key : String(key)),
 			},
 		);
 		vm.runInNewContext(
