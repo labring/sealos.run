@@ -24,6 +24,12 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXT_PRIVATE_STANDALONE=true
 
+# Next.js public analytics configuration is embedded into the browser bundle.
+ARG NEXT_PUBLIC_RYBBIT_HOST
+ARG NEXT_PUBLIC_RYBBIT_SITE_ID
+ENV NEXT_PUBLIC_RYBBIT_HOST=${NEXT_PUBLIC_RYBBIT_HOST}
+ENV NEXT_PUBLIC_RYBBIT_SITE_ID=${NEXT_PUBLIC_RYBBIT_SITE_ID}
+
 RUN \
   if [ -f yarn.lock ]; then yarn run build; \
   elif [ -f package-lock.json ]; then npm run build; \

@@ -66,6 +66,8 @@ export function AcquisitionObserver() {
 				return;
 			}
 			if (state.observedVisitor !== context.visitor_id) {
+				// Queued events from an older journey must not inherit the new SDK identity.
+				pending.length = 0;
 				state.observedVisitor = context.visitor_id;
 				emit('acquisition_visit');
 			}

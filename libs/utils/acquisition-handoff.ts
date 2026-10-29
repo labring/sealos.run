@@ -290,16 +290,22 @@ export function readAcquisitionContext(runtime: AcquisitionRuntime): Acquisition
 	}
 	try {
 		const shared = sharedContext(runtime);
-		let visitor = runtime.storage.getItem(VISITOR_KEY);
-		if (!visitor || !UUID.test(visitor)) {
-			visitor = typeof shared?.['visitor_id'] === 'string' ? shared['visitor_id'] : runtime.randomId();
-			if (!UUID.test(visitor)) return context;
-			runtime.storage.setItem(VISITOR_KEY, visitor);
-		}
+		const localVisitor = runtime.storage.getItem(VISITOR_KEY);
+		const visitor =
+			typeof shared?.['visitor_id'] === 'string'
+				? shared['visitor_id']
+				: localVisitor && UUID.test(localVisitor)
+					? localVisitor
+					: runtime.randomId();
+		if (!UUID.test(visitor)) return context;
+		if (visitor !== localVisitor) runtime.storage.setItem(VISITOR_KEY, visitor);
 		context.visitor_id = visitor;
 		const previous = object(readJson(runtime, SOURCE_KEY));
+		// The shared Cookie names the current journey across root/www origins.
 		context.source =
-			storedSource(previous?.['first_touch']) || storedSource(shared?.['source']) || captureSource(runtime);
+			storedSource(shared?.['source']) ||
+			(visitor === localVisitor ? storedSource(previous?.['first_touch']) : undefined) ||
+			captureSource(runtime);
 		runtime.storage.setItem(SOURCE_KEY, JSON.stringify({ version: 1, first_touch: context.source }));
 	} catch {
 		/* Without durable storage, do not invent a persistent visitor. */

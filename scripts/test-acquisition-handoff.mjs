@@ -586,9 +586,10 @@ test('legacy first-touch URL and timestamp fields are discarded in both Cookie a
 			referrer: 'https://search.example/private?secret=true',
 			timestamp: '2026-10-29T00:00:00Z',
 		};
-		if (location === 'localStorage')
+		if (location === 'localStorage') {
+			values.set('sealos_acquisition_visitor_v1', runtime.randomId());
 			values.set('sealos_acquisition_source_v1', JSON.stringify({ version: 1, first_touch: source }));
-		else
+		} else
 			runtime.cookie = `sealos_acquisition_v1=${encode({ version: 1, realm: 'china', visitor_id: runtime.randomId(), consent: { analytics_storage: 'granted' }, source })}`;
 		api.readAcquisitionContext(runtime);
 		const expected = { source: 'google', medium: 'cpc', campaign: 'legacy-launch' };
@@ -607,4 +608,93 @@ test('referrer hostname may derive source transiently without persisting a URL o
 	assert.deepEqual(payload(cookies).source, { source: 'search.example' });
 	assert.deepEqual(JSON.parse(values.get('sealos_acquisition_source_v1')).first_touch, { source: 'search.example' });
 	assert.equal(JSON.stringify(payload(cookies)).includes('secret'), false);
+});
+
+test('current shared journey replaces an older origin-local visitor and first source', () => {
+	const { runtime, values, cookies } = browser();
+	granted(runtime);
+	const old = api.readAcquisitionContext(runtime);
+	const visitor = '27c53b12-9f46-44dd-b1aa-c6fef8dca455';
+	const source = { source: 'fresh-www', medium: 'organic', campaign: 'new-consented-journey' };
+	runtime.cookie = `sealos_acquisition_v1=${encode({ version: 1, realm: 'china', visitor_id: visitor, consent: { analytics_storage: 'granted' }, source })}`;
+	const current = api.readAcquisitionContext(runtime);
+	assert.notEqual(old.visitor_id, visitor);
+	assert.equal(current.visitor_id, visitor);
+	assert.deepEqual(current.source, source);
+	assert.equal(values.get('sealos_acquisition_visitor_v1'), visitor);
+	assert.deepEqual(JSON.parse(values.get('sealos_acquisition_source_v1')).first_touch, source);
+	assert.equal(payload(cookies).visitor_id, visitor);
+});
+test('a shared visitor without source cannot inherit a different local visitor campaign', () => {
+	const { runtime } = browser();
+	granted(runtime);
+	api.readAcquisitionContext(runtime);
+	const visitor = '27c53b12-9f46-44dd-b1aa-c6fef8dca455';
+	runtime.cookie = `sealos_acquisition_v1=${encode({ version: 1, realm: 'china', visitor_id: visitor, consent: { analytics_storage: 'granted' } })}`;
+	runtime.href = 'https://sealos.run/downloads?utm_source=current-origin';
+	const current = api.readAcquisitionContext(runtime);
+	assert.equal(current.visitor_id, visitor);
+	assert.equal(current.source.source, 'current-origin');
+	assert.equal(current.source.campaign, undefined);
+});
+test('local first touch remains available for the same shared visitor or when no shared Cookie exists', () => {
+	for (const shared of [true, false]) {
+		const { runtime } = browser();
+		granted(runtime);
+		const first = api.readAcquisitionContext(runtime);
+		if (shared)
+			runtime.cookie = `sealos_acquisition_v1=${encode({ version: 1, realm: 'china', visitor_id: first.visitor_id, consent: { analytics_storage: 'granted' } })}`;
+		runtime.href = 'https://sealos.run/downloads?utm_source=later';
+		const current = api.readAcquisitionContext(runtime);
+		assert.equal(current.visitor_id, first.visitor_id);
+		assert.deepEqual(current.source, first.source);
+	}
+});
+
+test('SDK-late queue cannot send an old journey A after identifying shared journey B', () => {
+	const h = observerHarness();
+	h.consent(true);
+	h.download();
+	assert.equal(h.calls.length, 0);
+	const visitor = '27c53b12-9f46-44dd-b1aa-c6fef8dca455';
+	h.runtime.cookie = `sealos_acquisition_v1=${encode({ version: 1, realm: 'china', visitor_id: visitor, consent: { analytics_storage: 'granted' }, source: { source: 'fresh-www' } })}`;
+	h.ready();
+	assert.deepEqual(
+		h.calls.map((entry) => entry.name),
+		['identify', 'acquisition_visit'],
+	);
+	assert.equal(h.calls[0].id, visitor);
+	assert.equal(h.calls[1].properties.visitor_id, visitor);
+	assert.equal(h.calls[1].properties.source, 'fresh-www');
+	h.cleanup();
+});
+
+test('Rybbit component requires both public build settings and signals readiness on the configured script', async () => {
+	const componentCode = ts.transpileModule(await readFile('libs/components/RybbitAnalytics.tsx', 'utf8'), {
+		compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
+	}).outputText;
+	for (const [host, siteId] of [
+		[undefined, '1'],
+		['https://analytics.example', undefined],
+		['https://analytics.example/', '1'],
+	]) {
+		const exports = {};
+		const signals = [];
+		const jsx = (type, props) => ({ type, props });
+		vm.runInNewContext(componentCode, {
+			exports,
+			require: (name) => (name === 'react/jsx-runtime' ? { jsx } : 'NextScript'),
+			process: { env: { NEXT_PUBLIC_RYBBIT_HOST: host, NEXT_PUBLIC_RYBBIT_SITE_ID: siteId } },
+			window: { dispatchEvent: (event) => signals.push(event.type) },
+			Event,
+		});
+		const rendered = exports.RybbitAnalytics();
+		if (!host || !siteId) assert.equal(rendered, null);
+		else {
+			assert.equal(rendered.props.src, 'https://analytics.example/api/script.js');
+			assert.equal(rendered.props['data-site-id'], siteId);
+			rendered.props.onReady();
+			assert.deepEqual(signals, ['sealos:analytics-ready']);
+		}
+	}
 });
