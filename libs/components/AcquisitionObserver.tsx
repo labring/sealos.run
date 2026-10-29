@@ -20,6 +20,8 @@ export function AcquisitionObserver() {
 			dataLayer?: unknown[];
 			rybbit?: {
 				identify?: (id: string) => void;
+				getUserId?: () => string | null;
+				clearUserId?: () => void;
 				event?: (name: string, properties: Record<string, string>) => void;
 			};
 		};
@@ -54,6 +56,10 @@ export function AcquisitionObserver() {
 		const visit = () => {
 			const context = readAcquisitionContext(createBrowserAcquisitionRuntime());
 			if (!context.visitor_id) {
+				const client = runtimeWindow.rybbit;
+				if (state.identifiedVisitor && (!client?.getUserId || client.getUserId() === state.identifiedVisitor)) {
+					client?.clearUserId?.();
+				}
 				state.observedVisitor = undefined;
 				state.identifiedVisitor = undefined;
 				pending.length = 0;

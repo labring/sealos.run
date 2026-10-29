@@ -416,6 +416,7 @@ function observerHarness() {
 	const target = new EventTarget();
 	const document = new EventTarget();
 	const calls = [];
+	let identified;
 	let cleanup;
 	const react = {
 		useRef: (current) => ({ current }),
@@ -460,7 +461,15 @@ function observerHarness() {
 		},
 		ready: () => {
 			target.rybbit = {
-				identify: (id) => calls.push({ name: 'identify', id }),
+				identify: (id) => {
+					identified = id;
+					calls.push({ name: 'identify', id });
+				},
+				getUserId: () => identified || null,
+				clearUserId: () => {
+					identified = undefined;
+					calls.push({ name: 'clearUserId' });
+				},
 				event: (name, properties) => calls.push({ name, properties }),
 			};
 			target.dispatchEvent(new Event('sealos:analytics-ready'));
@@ -542,4 +551,18 @@ test('Rybbit aliases share the backend 128 character limit', () => {
 		api.readAcquisitionContext(runtime);
 		assert.equal(payload(cookies).platform_ids.rybbit_user_id, length === 128 ? 'a'.repeat(length) : undefined);
 	}
+});
+
+test('withdrawal after Rybbit identify clears the SDK persistent identity and stops subsequent events', () => {
+	const h = observerHarness();
+	h.consent(true);
+	h.ready();
+	h.consent(false);
+	h.download();
+	assert.deepEqual(
+		h.calls.map((entry) => entry.name),
+		['identify', 'acquisition_visit', 'clearUserId'],
+	);
+	assert.match(h.cookies.at(-1), /Max-Age=0$/);
+	h.cleanup();
 });

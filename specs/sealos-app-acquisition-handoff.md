@@ -12,7 +12,7 @@ The domestic website continues using its existing Rybbit destination. Downloads 
 - analytics_storage defaults unspecified. The optional unchecked checkbox changes analytics permission only, never advertising permission. Rejection/withdrawal clears newly-owned visitor/source localStorage and the shared Cookie. Cross-tab stored denial wins over historical grants; source writes cannot trigger storage loops.
 - Capture only source/medium/campaign from bounded campaign labels. Reject emails, phone-like values, control characters and URLs as labels. Landing/referrer omit credentials, search and fragment. First source survives later navigation. Source overflows are omitted, never break download/login.
 - Browser GA client ID and Rybbit user ID (maximum 128 characters) are optional aliases, not App installation identities. sea_attr is preserved byte-for-byte only with ad_storage, ad_user_data and ad_personalization granted and a supported version; maximum 512 encoded characters; omit if it would exceed the Cookie budget. Existing overseas URL decoration is unaffected.
-- Existing consented website events carry visitor_id, surface=website and source. SDK loading late may queue up to 32 events; withdrawal clears pending events.
+- Existing consented website events carry visitor_id, surface=website and source. SDK loading late may queue up to 32 events; withdrawal clears pending events and clears the SDK identity set by this observer.
 
 ## Limits and dependencies
 
