@@ -1,25 +1,35 @@
-# App acquisition through the existing browser login
+# 国内官网与 App 的 Cookie 关联
 
-## Outcome
+## 最小链路
 
-The domestic website continues using its existing Rybbit destination. Downloads remain direct installer links. After download, the App opens its ordinary console OAuth login in the system browser. The console reads the website Cookie and combines the browser-observed visitor with the authenticated global userUid. No acquisition database, redemption API, extra website route or acquisition deep link is needed.
+sealos.run 匿名访问 → 用户同意分析 → 写入共享 Cookie → 直接下载安装包 → App 在系统浏览器打开现有控制台 OAuth → 控制台将访客与经过认证的 userUid 关联 → Web / App 使用现有 Rybbit 目的地。
 
-## Website contract
+官网只负责访客标识、来源和下载事件。控制台发送 web_visitor_linked，App 发送 visitor_linked；登录后的账号标识均为同一个全局 userUid。App 的 installation_id 独立生成，不能用官网访客 ID 替代。Cookie 仅是浏览器观察到的营销上下文，不能用于认证、奖励或账单。
 
-- Only after analytics_storage is granted, reuse/create a random UUID visitor_id, remember the first consented source and emit acquisition_visit / download_click to existing Rybbit. identify(visitor_id) applies only while allowed. Existing anonymous history is not promised to merge automatically.
-- Cookie sealos_acquisition_v1 is UTF-8 JSON encoded as unpadded Base64URL: version=1, realm=china, visitor_id, all four consent fields; optional source, platform_ids, sea_attr. Its decoded payload is at most 1800 UTF-8 bytes. No userUid, login token or authorization secret is included.
-- Write only on HTTPS sealos.run / www.sealos.run, Domain=sealos.run; Path=/; Secure; SameSite=Lax; Max-Age=2592000. Never write from console or tenant subdomains. Root/www can reuse an existing valid shared visitor and first source.
-- analytics_storage defaults unspecified. The optional unchecked checkbox changes analytics permission only, never advertising permission. Rejection/withdrawal clears newly-owned visitor/source localStorage and the shared Cookie. Cross-tab stored denial wins over historical grants; source writes cannot trigger storage loops.
-- Capture only source/medium/campaign from bounded campaign labels. Reject emails, phone-like values, control characters and URLs as labels. Landing/referrer omit credentials, search and fragment. First source survives later navigation. Source overflows are omitted, never break download/login.
-- Browser GA client ID and Rybbit user ID (maximum 128 characters) are optional aliases, not App installation identities. sea_attr is preserved byte-for-byte only with ad_storage, ad_user_data and ad_personalization granted and a supported version; maximum 512 encoded characters; omit if it would exceed the Cookie budget. Existing overseas URL decoration is unaffected.
-- Existing consented website events carry visitor_id, surface=website and source. SDK loading late may queue up to 32 events; withdrawal clears pending events and clears the SDK identity set by this observer.
+## 官网契约
 
-## Limits and dependencies
+- analytics_storage 默认为 unspecified。只有明确 granted 才生成或复用随机 UUID visitor_id，并持久化首次同意后的 source。现有下载页和邀请页的 checkbox 只改变分析权限，不授予广告权限。
+- sealos_acquisition_v1 是无 padding 的 UTF-8 JSON Base64URL。只写 version=1、realm=china、visitor_id、四项 consent，以及可选 source；不写账号 token、userUid、平台别名或 sea_attr。旧 Cookie 带有多余字段时，只复用有效访客和来源，不重新保存额外字段。
+- 只允许 HTTPS sealos.run / www.sealos.run 写入：Domain=sealos.run; Path=/; Secure; SameSite=Lax; Max-Age=2592000。控制台和租户子域不写这个 Cookie。解码内容最多 1800 UTF-8 字节；超出预算时省略 source，保留核心标识和同意状态。
+- source 保留首触，标签最多 100 字符，拒绝 email、电话式长数字、控制字符和 URL；landing/referrer 最多 250 字符，移除 query/fragment，拒绝 credentials。来源缺失时仍可关联，来源统计显示 direct 或未知。
+- 官网通过已有 Rybbit 发送 acquisition_visit / download_click，带 visitor_id、surface=website、source。identify(visitor_id) 只在同意后调用；SDK 迟到时最多排队 32 个事件。Observer 同时负责及时更新 Cookie，SDK-ready 事件负责恢复发送。
+- 拒绝或撤回会清理本功能新增的访客/来源 localStorage、共享 Cookie、排队事件及 Observer 设置的 Rybbit 身份。同源跨标签撤回优先于历史 grant，访客/来源写入不会触发 storage 循环。首次打开 www 但尚未选择时，不删除另一个官方源留下的有效 Cookie。
 
-The console must implement the same Cookie schema and emit visitor_linked with a verified userUid during the existing OAuth login. The App keeps its own stable installation identity and uses that same userUid after login. Cookie data supplies marketing context only, never proof of identity.
+## 消融依据与边界
 
-Matching requires the same browser profile, surviving Cookie and consent. A different browser, cleared Cookie or denied permission yields unknown attribution; do not fingerprint or block login. Root and www have separate consent localStorage: withdrawal is synchronized across tabs of the same origin, while cross-origin consent changes require a shared consent manager.
+| 项目 | 移除后的影响 | 保留结论 |
+| --- | --- | --- |
+| 中转页、issue/redeem 请求、归因 deep link | 原安装包直链与 Cookie 独立工作 | 官网不实现这些路径 |
+| Cookie | 官网与控制台无法交接访客，普通下载和登录仍可工作 | 关联必需 |
+| visitor_id | 后端拒绝归因元数据，避免猜测匹配 | 关联必需 |
+| source | 仍能将访客关联到账号，但缺少营销来源 | 可选，保留最小首触信息 |
+| 平台别名、sea_attr | 不影响国内访客与账号关联；当前国内消费链路未使用 | 国内不采集、不存储 |
+| consent checkbox / Observer / SDK-ready | 分别失去同意入口、Cookie/事件生产者、迟到 SDK 的事件发送 | 保留 |
 
-## Verification
+完整匹配需要同一浏览器 profile、Cookie 留存、用户同意，以及配套控制台/App 接入；不同浏览器、清 Cookie 或拒绝时归因未知，不做指纹或推测，不阻塞下载或登录。root/www 的 localStorage 各自独立，现有撤回同步仅保证同源标签；跨源或跨设备需要共享 consent 管理。匿名历史不承诺自动回写到账号。
 
-Behavior tests cover unknown/denied consent, withdrawal and cross-tab stale grants, UTF-8/size bounds, official-host scope, first touch, source redaction, advertising gates, browser aliases, actual checkbox behavior, and direct download preservation. Typecheck, focused lint/format and production build verify integration. No new /app-attribution page or acquisition issue/redeem endpoint is introduced.
+官网无需新数据库、登录网页、归因服务或额外安装按钮。国内清理不改变海外现有 sea_attr URL 协议。生产验收仍需实际官网 → 安装包 → 系统浏览器 OAuth → App 的双端事件与 Rybbit 报表核对，单元测试或 Cookie 存在不代表完整转化链已验收。
+
+## 验证入口
+
+node scripts/test-acquisition-handoff.mjs 覆盖同意/撤回、跨标签、域名与大小边界、旧 Cookie 兼容、实际控制组件/Observer 和下载直链消融。pnpm typecheck、pnpm lint:check、pnpm format:check、pnpm build 覆盖仓库集成。跨仓核对必须使用真实 writer 输出和现有控制台 parser，确认可选字段缺失不会阻断核心关联；不把一次性测试快照写进仓库。

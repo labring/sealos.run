@@ -56,10 +56,8 @@ test('no identity or source before consent; declined consent deletes stored link
 	assert.equal(values.has('sealos_acquisition_visitor_v1'), false);
 });
 
-test('consented visit survives navigation and preserves first source, platform alias and raw sea_attr', () => {
+test('consented visit survives navigation and preserves the first source', () => {
 	const { runtime } = browser();
-	const encoded = encode({ version: 2, first_touch: { source: 'campaign', campaign: 'launch' } });
-	runtime.rawAttribution = () => encoded;
 	granted(runtime);
 	runtime.consentUpdates.push([
 		'consent',
@@ -67,8 +65,6 @@ test('consented visit survives navigation and preserves first source, platform a
 		{ ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' },
 	]);
 	const first = api.readAcquisitionContext(runtime);
-	assert.equal(first.platform_ids.ga_client_id, '12345.67890');
-	assert.equal(first.sea_attr, encoded);
 	assert.equal(first.source.landing_page, 'https://sealos.run/downloads');
 	assert.equal(first.source.referrer, 'https://search.test/results');
 	assert.equal(JSON.stringify(first).includes('secret'), false);
@@ -79,15 +75,6 @@ test('consented visit survives navigation and preserves first source, platform a
 	assert.equal(after.consent.ad_user_data, 'granted');
 });
 
-test('ad identifiers are not forwarded on analytics-only permission', () => {
-	const { runtime } = browser();
-	granted(runtime);
-	runtime.rawAttribution = () =>
-		encode({ version: 3, first_touch: { source: 'google', click_value: 'private-gclid' } });
-	assert.equal(api.readAcquisitionContext(runtime).sea_attr, undefined);
-	assert.equal(api.readAcquisitionContext(runtime).source.source, 'campaign');
-});
-
 test('real consent updates override stored choices; consent defaults do not invent permission', () => {
 	const { runtime } = browser();
 	runtime.consentUpdates.push({ 0: 'consent', 1: 'default', 2: { analytics_storage: 'denied' } });
@@ -96,48 +83,6 @@ test('real consent updates override stored choices; consent defaults do not inve
 	runtime.consentUpdates.push({ 0: 'consent', 1: 'update', 2: { analytics_storage: 'denied' } });
 	assert.equal(api.readAcquisitionContext(runtime).visitor_id, undefined);
 	assert.equal(api.readAcquisitionConsent(runtime).analytics_storage, 'denied');
-});
-
-test('actual GTM click_id_value respects advertising permission without rewriting raw attribution', () => {
-	const { runtime } = browser();
-	granted(runtime);
-	const raw = encode({
-		version: 3,
-		first_touch: { source: 'google', click_id_type: 'gclid', click_id_value: 'private-current-field' },
-	});
-	runtime.rawAttribution = () => raw;
-	assert.equal(api.readAcquisitionContext(runtime).sea_attr, undefined);
-	assert.equal(runtime.rawAttribution(), raw);
-	runtime.consentUpdates.push({
-		event: 'sealos_consent_update',
-		ad_storage: 'granted',
-		ad_user_data: 'granted',
-		ad_personalization: 'granted',
-	});
-	assert.equal(api.readAcquisitionContext(runtime).sea_attr, raw);
-	runtime.consentUpdates.push({ event: 'sealos_consent_update', ad_storage: 'denied' });
-	assert.equal(api.readAcquisitionContext(runtime).sea_attr, undefined);
-	assert.equal(runtime.rawAttribution(), raw);
-});
-
-test('known enhanced conversion fields require advertising permission', () => {
-	for (const key of ['hashed_user_data', 'email_sha256', 'phone_sha256']) {
-		const { runtime } = browser();
-		granted(runtime);
-		const raw = encode({ version: 3, first_touch: { source: 'google', extra: { [key]: 'synthetic-hash-only' } } });
-		runtime.rawAttribution = () => raw;
-		assert.equal(api.readAcquisitionContext(runtime).sea_attr, undefined, key);
-		runtime.consentUpdates.push({
-			event: 'sealos_consent_update',
-			ad_storage: 'granted',
-			ad_user_data: 'granted',
-			ad_personalization: 'granted',
-		});
-		assert.equal(api.readAcquisitionContext(runtime).sea_attr, raw, key);
-		runtime.consentUpdates.push({ event: 'sealos_consent_update', ad_user_data: 'denied' });
-		assert.equal(api.readAcquisitionContext(runtime).sea_attr, undefined, key);
-		assert.equal(runtime.rawAttribution(), raw, key);
-	}
 });
 
 test('cross-tab denial wins over stale grants even before the granting tab rereads its choice', () => {
@@ -168,21 +113,20 @@ test('cross-tab revocation also invalidates cached advertising permission', () =
 	const { runtime: tabB } = browser();
 	tabB.storage = tabA.storage;
 	granted(tabA);
-	const raw = encode({ version: 3, first_touch: { source: 'google', click_id_value: 'synthetic-click' } });
-	tabA.rawAttribution = () => raw;
 	tabA.consentUpdates.push([
 		'consent',
 		'update',
 		{ ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' },
 	]);
-	assert.equal(api.readAcquisitionContext(tabA).sea_attr, raw);
+	assert.equal(api.readAcquisitionContext(tabA).consent.ad_storage, 'granted');
 	api.setAcquisitionAnalyticsConsent(tabB, false);
-	assert.equal(api.readAcquisitionContext(tabA).sea_attr, undefined);
+	assert.equal(api.readAcquisitionContext(tabA).consent.ad_storage, 'unspecified');
 	tabA.consentUpdates.push(['consent', 'update', { analytics_storage: 'granted' }]);
 	const renewed = api.readAcquisitionContext(tabA);
 	assert.equal(renewed.consent.analytics_storage, 'granted');
 	assert.equal(renewed.consent.ad_user_data, 'unspecified');
-	assert.equal(renewed.sea_attr, undefined);
+	assert.equal(renewed.consent.ad_storage, 'unspecified');
+	assert.equal(renewed.consent.ad_personalization, 'unspecified');
 });
 
 test('consent subscriptions ignore source and visitor storage writes and detach cleanly', () => {
@@ -252,8 +196,6 @@ test('a bounded queue rotation with unchanged length cannot hide a new denial', 
 const choiceSource = await readFile('libs/components/AcquisitionChoice.tsx', 'utf8');
 function choiceHarness() {
 	const { runtime, values } = browser();
-	const navigations = [];
-	const requests = [];
 	const states = [];
 	let cursor = 0;
 	const react = {
@@ -282,7 +224,7 @@ function choiceHarness() {
 		exports,
 		require: (name) =>
 			name === 'react' ? react : name === 'react/jsx-runtime' ? { jsx, jsxs: jsx } : componentApi,
-		window: { location: { assign: (url) => navigations.push(url) }, dispatchEvent() {} },
+		window: { dispatchEvent() {} },
 		Event,
 	});
 	const find = (node, type) => {
@@ -297,7 +239,7 @@ function choiceHarness() {
 		cursor = 0;
 		return exports.AcquisitionChoice();
 	};
-	return { runtime, values, navigations, requests, control: (type) => find(render(), type) };
+	return { runtime, values, control: (type) => find(render(), type) };
 }
 
 test('only an explicit checkbox change updates analytics permission', () => {
@@ -307,7 +249,6 @@ test('only an explicit checkbox change updates analytics permission', () => {
 	h.control('input').props.onChange({ currentTarget: { checked: false } });
 	assert.equal(api.readAcquisitionContext(h.runtime).visitor_id, undefined);
 	assert.equal(api.readAcquisitionConsent(h.runtime).analytics_storage, 'denied');
-	assert.equal(h.navigations.length, 0);
 });
 
 function payload(cookies) {
@@ -326,7 +267,8 @@ test('official root/www Cookie shares a bounded UTF-8 visitor snapshot for conso
 	assert.equal(saved.realm, 'china');
 	assert.equal(saved.visitor_id, context.visitor_id);
 	assert.equal(saved.source.source, '搜索');
-	assert.equal(saved.platform_ids.ga_client_id, '12345.67890');
+	assert.equal(saved.platform_ids, undefined);
+	assert.equal(saved.sea_attr, undefined);
 	assert.equal('user_id' in saved, false);
 	const { runtime: other, cookies: more } = browser();
 	granted(other);
@@ -361,23 +303,6 @@ test('withdrawal clears shared Cookie, new identity and source without retaining
 	assert.match(cookies.at(-1), /^sealos_acquisition_v1=;.*Max-Age=0$/);
 	assert.equal(values.has('sealos_acquisition_visitor_v1'), false);
 	assert.equal(values.has('sealos_acquisition_source_v1'), false);
-});
-test('oversized raw attribution is omitted without mutation and first touch stays within Cookie budget', () => {
-	const { runtime, cookies } = browser();
-	granted(runtime);
-	runtime.consentUpdates.push([
-		'consent',
-		'update',
-		{ ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' },
-	]);
-	const raw = encode({ version: 3, first_touch: { source: 'google', campaign: '中'.repeat(2000) } });
-	runtime.rawAttribution = () => raw;
-	api.readAcquisitionContext(runtime);
-	assert.equal(payload(cookies).sea_attr, undefined);
-	assert.ok(Buffer.byteLength(JSON.stringify(payload(cookies))) <= 1800);
-	assert.equal(runtime.rawAttribution(), raw);
-	runtime.href = 'https://sealos.run/next?utm_source=later';
-	assert.equal(api.readAcquisitionContext(runtime).source.source, 'campaign');
 });
 test('campaign PII and URL secrets are omitted from the shared snapshot', () => {
 	for (const campaign of ['someone@example.com', '13800138000', 'https://attacker.test/token', 'secret%0Avalue']) {
@@ -508,51 +433,6 @@ test('revocation before SDK readiness discards both queued visit and download ev
 	h.cleanup();
 });
 
-test('sea_attr at 512 characters is retained exactly; next valid Base64URL length above 512 is omitted', () => {
-	for (const size of [512, 514]) {
-		const { runtime, cookies } = browser();
-		granted(runtime);
-		runtime.consentUpdates.push([
-			'consent',
-			'update',
-			{ ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' },
-		]);
-		let value;
-		for (let length = 1; length < 600; length++) {
-			const raw = encode({ version: 3, padding: 'a'.repeat(length) });
-			if (raw.length === size) {
-				value = raw;
-				break;
-			}
-		}
-		assert.equal(value.length, size);
-		runtime.rawAttribution = () => value;
-		api.readAcquisitionContext(runtime);
-		assert.equal(payload(cookies).sea_attr, size === 512 ? value : undefined);
-	}
-});
-test('advertising personalization denial omits even otherwise allowed raw attribution', () => {
-	const { runtime, cookies } = browser();
-	granted(runtime);
-	runtime.consentUpdates.push([
-		'consent',
-		'update',
-		{ ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'denied' },
-	]);
-	runtime.rawAttribution = () => encode({ version: 3, first_touch: { source: 'google' } });
-	api.readAcquisitionContext(runtime);
-	assert.equal(payload(cookies).sea_attr, undefined);
-});
-test('Rybbit aliases share the backend 128 character limit', () => {
-	for (const length of [128, 129]) {
-		const { runtime, cookies } = browser();
-		granted(runtime);
-		runtime.rybbitUserId = () => 'a'.repeat(length);
-		api.readAcquisitionContext(runtime);
-		assert.equal(payload(cookies).platform_ids.rybbit_user_id, length === 128 ? 'a'.repeat(length) : undefined);
-	}
-});
-
 test('withdrawal after Rybbit identify clears the SDK persistent identity and stops subsequent events', () => {
 	const h = observerHarness();
 	h.consent(true);
@@ -565,4 +445,131 @@ test('withdrawal after Rybbit identify clears the SDK persistent identity and st
 	);
 	assert.match(h.cookies.at(-1), /Max-Age=0$/);
 	h.cleanup();
+});
+
+test('domestic Cookie excludes legacy platform aliases and raw attribution even with ad permission', () => {
+	const { runtime, cookies } = browser();
+	granted(runtime);
+	runtime.consentUpdates.push([
+		'consent',
+		'update',
+		{ ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' },
+	]);
+	let reads = 0;
+	Object.defineProperties(runtime, {
+		rawAttribution: {
+			get() {
+				reads++;
+				throw new Error('no domestic producer');
+			},
+		},
+		rybbitUserId: {
+			get() {
+				reads++;
+				throw new Error('alias is not used by matching');
+			},
+		},
+	});
+	api.readAcquisitionContext(runtime);
+	assert.equal(reads, 0);
+	assert.equal(payload(cookies).platform_ids, undefined);
+	assert.equal(payload(cookies).sea_attr, undefined);
+});
+test('old Cookie extras are unnecessary when reusing an existing visitor on another official origin', () => {
+	const { runtime, cookies } = browser();
+	granted(runtime);
+	runtime.cookie =
+		'sealos_acquisition_v1=' +
+		encode({
+			version: 1,
+			realm: 'china',
+			visitor_id: runtime.randomId(),
+			consent: { analytics_storage: 'granted' },
+			platform_ids: { ga_client_id: '123.456' },
+			sea_attr: 'legacy-value',
+		});
+	runtime.randomId = () => {
+		throw new Error('existing visitor must be reused');
+	};
+	api.readAcquisitionContext(runtime);
+	const saved = payload(cookies);
+	assert.equal(saved.visitor_id, 'c85cd505-fb10-4ff9-a8f4-4ba89fbe6643');
+	assert.equal(saved.platform_ids, undefined);
+	assert.equal(saved.sea_attr, undefined);
+});
+test('maximum-length Unicode source fits the budget or is omitted while the core Cookie remains valid', () => {
+	const { runtime, cookies } = browser();
+	granted(runtime);
+	runtime.href =
+		'https://sealos.run/' +
+		'a'.repeat(230) +
+		'?utm_source=' +
+		'中'.repeat(100) +
+		'&utm_medium=' +
+		'中'.repeat(100) +
+		'&utm_campaign=' +
+		'中'.repeat(100);
+	runtime.referrer = `https://search.example/${'b'.repeat(230)}`;
+	api.readAcquisitionContext(runtime);
+	const saved = payload(cookies);
+	assert.ok(Buffer.byteLength(JSON.stringify(saved), 'utf8') <= 1800);
+	assert.equal(saved.visitor_id, runtime.randomId());
+	assert.equal(saved.consent.analytics_storage, 'granted');
+});
+
+test('download pages remain ordinary installer anchors when acquisition UI and handoff APIs are absent', async () => {
+	const downloads = {
+		macArm64: 'https://installer.example/sealos-arm64.dmg',
+		macX64: 'https://installer.example/sealos-x64.dmg',
+		windows: 'https://installer.example/sealos.exe',
+	};
+	for (const file of [
+		'app/[locale]/(invite)/invite/[code]/components/DownloadButtons.tsx',
+		'app/[locale]/(landing)/downloads/components/DownloadButtons.tsx',
+	]) {
+		const exports = {};
+		const jsx = (type, props) => ({ type, props });
+		const react = {
+			useState: (value) => [value, () => {}],
+			useRef: (current) => ({ current }),
+			useEffect: () => {},
+		};
+		const stub = new Proxy(
+			{},
+			{
+				get: (_target, key) =>
+					key === 'useTranslations'
+						? () => (key) => key
+						: key === 'AcquisitionChoice'
+							? () => null
+							: String(key),
+			},
+		);
+		vm.runInNewContext(
+			ts.transpileModule(await readFile(file, 'utf8'), {
+				compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
+			}).outputText,
+			{
+				exports,
+				require: (name) =>
+					name === 'react' ? react : name === 'react/jsx-runtime' ? { jsx, jsxs: jsx } : stub,
+				fetch: () => {
+					throw new Error('installer links cannot depend on a handoff API');
+				},
+			},
+		);
+		const anchors = [];
+		const walk = (node) => {
+			if (!node || typeof node !== 'object') return;
+			if (node.type === 'a') anchors.push(node.props);
+			for (const child of [node.props?.children].flat(Infinity)) walk(child);
+		};
+		walk(exports.DownloadButtons({ downloads, enabled: true }));
+		assert.ok(anchors.length >= 2, file);
+		for (const anchor of anchors) {
+			assert.ok(Object.values(downloads).includes(anchor.href));
+			assert.equal(anchor.download, true);
+			assert.equal(anchor.onClick, undefined);
+		}
+	}
 });

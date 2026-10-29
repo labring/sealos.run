@@ -14,11 +14,9 @@ export type AcquisitionSource = {
 export type AcquisitionContext = {
 	version: 1;
 	visitor_id?: string;
-	sea_attr?: string;
 	source?: AcquisitionSource;
 	realm: 'china';
 	consent: AcquisitionConsent;
-	platform_ids?: { ga_client_id?: string; rybbit_user_id?: string };
 };
 export type AcquisitionRuntime = {
 	storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
@@ -29,8 +27,6 @@ export type AcquisitionRuntime = {
 	consentUpdates: unknown[];
 	now: () => Date;
 	randomId: () => string;
-	rawAttribution?: () => string | undefined;
-	rybbitUserId?: () => string | null | undefined;
 };
 const VISITOR_KEY = 'sealos_acquisition_visitor_v1';
 const SOURCE_KEY = 'sealos_acquisition_source_v1';
@@ -39,7 +35,6 @@ const CONSENT_FIELDS = ['analytics_storage', 'ad_storage', 'ad_user_data', 'ad_p
 export const ACQUISITION_COOKIE = 'sealos_acquisition_v1';
 const COOKIE_DOMAIN = 'sealos.run';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const ID = /^[A-Za-z0-9_.:-]{1,128}$/;
 
 function readJson(runtime: AcquisitionRuntime, key: string): unknown {
 	try {
@@ -290,7 +285,6 @@ function writeSharedCookie(runtime: AcquisitionRuntime, context?: AcquisitionCon
 		let value = '';
 		if (context?.visitor_id) {
 			const payload = { ...context };
-			if (new TextEncoder().encode(JSON.stringify(payload)).length > 1800) delete payload.sea_attr;
 			if (new TextEncoder().encode(JSON.stringify(payload)).length > 1800) delete payload.source;
 			value = base64url(JSON.stringify(payload));
 		}
@@ -299,22 +293,6 @@ function writeSharedCookie(runtime: AcquisitionRuntime, context?: AcquisitionCon
 		);
 	} catch {
 		/* Cookie blocking cannot interrupt navigation. */
-	}
-}
-function encodedAttribution(runtime: AcquisitionRuntime, consent: AcquisitionConsent): string | undefined {
-	if (
-		consent.ad_storage !== 'granted' ||
-		consent.ad_user_data !== 'granted' ||
-		consent.ad_personalization !== 'granted'
-	)
-		return undefined;
-	try {
-		const raw = runtime.rawAttribution?.();
-		if (!raw || raw.length > 512 || !/^[A-Za-z0-9_-]+$/.test(raw)) return undefined;
-		const parsed = object(decode(raw));
-		return parsed && [2, 3].includes(Number(parsed['version'])) ? raw : undefined;
-	} catch {
-		return undefined;
 	}
 }
 export function readAcquisitionContext(runtime: AcquisitionRuntime): AcquisitionContext {
@@ -342,20 +320,6 @@ export function readAcquisitionContext(runtime: AcquisitionRuntime): Acquisition
 		/* Without durable storage, do not invent a persistent visitor. */
 	}
 	if (!context.visitor_id) return context;
-	const seaAttr = encodedAttribution(runtime, consent);
-	if (seaAttr) context.sea_attr = seaAttr;
-	const ga = runtime.cookie.match(/(?:^|;\s*)_ga=GA\d+\.\d+\.(\d{1,20}\.\d{1,20})(?:;|$)/)?.[1];
-	let rybbit: string | null | undefined;
-	try {
-		rybbit = runtime.rybbitUserId?.();
-	} catch {
-		/* Optional late SDK. */
-	}
-	if (ga || (rybbit && ID.test(rybbit)))
-		context.platform_ids = {
-			...(ga ? { ga_client_id: ga } : {}),
-			...(rybbit && ID.test(rybbit) ? { rybbit_user_id: rybbit } : {}),
-		};
 	writeSharedCookie(runtime, context);
 	return context;
 }
@@ -363,8 +327,6 @@ export function readAcquisitionContext(runtime: AcquisitionRuntime): Acquisition
 export function createBrowserAcquisitionRuntime(): AcquisitionRuntime {
 	const runtimeWindow = window as Window & {
 		dataLayer?: unknown[];
-		__sealosAttribution?: { encode?: () => string | undefined };
-		rybbit?: { getUserId?: () => string | null };
 	};
 	runtimeWindow.dataLayer = runtimeWindow.dataLayer || [];
 	return {
@@ -385,18 +347,5 @@ export function createBrowserAcquisitionRuntime(): AcquisitionRuntime {
 		consentUpdates: runtimeWindow.dataLayer,
 		now: () => new Date(),
 		randomId: () => crypto.randomUUID(),
-		rawAttribution: () => {
-			const encoded =
-				runtimeWindow.__sealosAttribution?.encode?.() ||
-				new URL(window.location.href).searchParams.get('sea_attr');
-			if (encoded) return encoded;
-			const stored = window.localStorage.getItem('sealos_attr_v2');
-			if (!stored) return undefined;
-			return btoa(Array.from(new TextEncoder().encode(stored), (byte) => String.fromCharCode(byte)).join(''))
-				.replace(/\+/g, '-')
-				.replace(/\//g, '_')
-				.replace(/=+$/, '');
-		},
-		rybbitUserId: () => runtimeWindow.rybbit?.getUserId?.(),
 	};
 }
