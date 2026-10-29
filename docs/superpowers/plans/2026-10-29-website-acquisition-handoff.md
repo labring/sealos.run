@@ -22,7 +22,7 @@
 ### Task 3: Delivery
 
 - [x] Run the repository type/lint/format/build checks and report any failure without masking it.
-- [ ] Review the diff for secrets, unrelated files and contract drift; commit only the task files.
-- [ ] Push an isolated branch and create a reviewable draft PR linked to #584 and the backend dependency.
+- [x] Review the diff for secrets, unrelated files and contract drift; commit only the task files.
+- [x] Push an isolated branch and create a reviewable draft PR linked to #584 and the backend dependency.
 
 Production China/Global OAuth, installation redemption and business conversion acceptance require the companion repositories and configured services; they are not claimed by local website checks.
