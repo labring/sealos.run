@@ -24,7 +24,6 @@ function browser() {
 		referrer: 'https://search.test/results?secret=private',
 		cookie: '_ga=GA1.1.12345.67890',
 		consentUpdates: [],
-		now: () => new Date('2026-10-29T00:00:00Z'),
 		randomId: () => 'c85cd505-fb10-4ff9-a8f4-4ba89fbe6643',
 	};
 	return { runtime, values, cookies };
@@ -65,8 +64,7 @@ test('consented visit survives navigation and preserves the first source', () =>
 		{ ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' },
 	]);
 	const first = api.readAcquisitionContext(runtime);
-	assert.equal(first.source.landing_page, 'https://sealos.run/downloads');
-	assert.equal(first.source.referrer, 'https://search.test/results');
+	assert.deepEqual(first.source, { source: 'campaign', medium: 'cpc', campaign: 'launch' });
 	assert.equal(JSON.stringify(first).includes('secret'), false);
 	runtime.href = 'https://sealos.run/downloads';
 	const after = api.readAcquisitionContext(runtime);
@@ -314,7 +312,9 @@ test('campaign PII and URL secrets are omitted from the shared snapshot', () => 
 		const saved = payload(cookies);
 		assert.equal(saved.source.campaign, undefined);
 		assert.equal(saved.source.referrer, undefined);
-		assert.equal(saved.source.landing_page, 'https://sealos.run/downloads');
+		assert.equal(saved.source.landing_page, undefined);
+		assert.equal(saved.source.timestamp, undefined);
+		assert.equal(JSON.stringify(saved).includes('secret'), false);
 	}
 });
 test('Cookie blocked storage cannot create an identity or affect downloads', () => {
@@ -572,4 +572,39 @@ test('download pages remain ordinary installer anchors when acquisition UI and h
 			assert.equal(anchor.onClick, undefined);
 		}
 	}
+});
+
+test('legacy first-touch URL and timestamp fields are discarded in both Cookie and localStorage', () => {
+	for (const location of ['localStorage', 'Cookie']) {
+		const { runtime, values, cookies } = browser();
+		granted(runtime);
+		const source = {
+			source: 'google',
+			medium: 'cpc',
+			campaign: 'legacy-launch',
+			landing_page: 'https://sealos.run/downloads?token=secret',
+			referrer: 'https://search.example/private?secret=true',
+			timestamp: '2026-10-29T00:00:00Z',
+		};
+		if (location === 'localStorage')
+			values.set('sealos_acquisition_source_v1', JSON.stringify({ version: 1, first_touch: source }));
+		else
+			runtime.cookie = `sealos_acquisition_v1=${encode({ version: 1, realm: 'china', visitor_id: runtime.randomId(), consent: { analytics_storage: 'granted' }, source })}`;
+		api.readAcquisitionContext(runtime);
+		const expected = { source: 'google', medium: 'cpc', campaign: 'legacy-launch' };
+		assert.deepEqual(payload(cookies).source, expected);
+		assert.deepEqual(JSON.parse(values.get('sealos_acquisition_source_v1')).first_touch, expected);
+		assert.equal(JSON.stringify(payload(cookies)).includes('secret'), false);
+		assert.equal(values.get('sealos_acquisition_source_v1').includes('secret'), false);
+	}
+});
+test('referrer hostname may derive source transiently without persisting a URL or time', () => {
+	const { runtime, values, cookies } = browser();
+	granted(runtime);
+	runtime.href = 'https://sealos.run/downloads?token=secret#fragment';
+	runtime.referrer = 'https://search.example/private?query=secret#fragment';
+	api.readAcquisitionContext(runtime);
+	assert.deepEqual(payload(cookies).source, { source: 'search.example' });
+	assert.deepEqual(JSON.parse(values.get('sealos_acquisition_source_v1')).first_touch, { source: 'search.example' });
+	assert.equal(JSON.stringify(payload(cookies)).includes('secret'), false);
 });
