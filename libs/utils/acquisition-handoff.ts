@@ -181,7 +181,7 @@ function containsAdIdentifier(value: unknown): boolean {
 	if (!record) return Array.isArray(value) && value.some(containsAdIdentifier);
 	return Object.entries(record).some(
 		([key, entry]) =>
-			(/^(click_value|gclid|gbraid|wbraid|msclkid|fbclid|ttclid|rdt_cid|li_fat_id|twclid|email|phone|user_data)$/i.test(
+			(/^(click_value|click_id_value|hashed_user_data|email_sha256|phone_sha256|gclid|gbraid|wbraid|msclkid|fbclid|ttclid|rdt_cid|li_fat_id|twclid|email|phone|user_data)$/i.test(
 				key,
 			) &&
 				!!entry) ||

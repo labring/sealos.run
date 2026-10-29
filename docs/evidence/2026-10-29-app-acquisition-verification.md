@@ -7,3 +7,5 @@
 - External OAuth bridge requests are mocked in browser smoke; no production token, production account binding, live GA4/Rybbit delivery, native deep-link redemption or ad-platform match is claimed.
 
 The first overseas build was interrupted by a local dev/build output collision; its generated output was preserved outside the worktree, and a clean isolated production rebuild passed. Generated caches and browser-session files are not part of the PR.
+
+Cross-repository review follow-up: the known advertising-field filter now covers the live GTM `click_id_value` field and `hashed_user_data`, `email_sha256`, `phone_sha256`. The new click-ID regression failed before the fix. All 11 behavioral tests and the TypeScript check pass after the fix; permission granted preserves the exact raw snapshot, while missing/revoked permission omits it. The large production build was not repeated for this key-list-only fix.

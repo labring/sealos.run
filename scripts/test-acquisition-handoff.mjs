@@ -201,3 +201,35 @@ test('first campaign A and later campaign B retain separate acquisition and acti
 	assert.equal(resumed.activation_source.campaign, 'B');
 	assert.equal(resumed.last_source.campaign, 'B');
 });
+
+test('actual GTM click_id_value respects advertising permission without rewriting raw attribution', () => {
+	const { runtime } = browser();
+	granted(runtime);
+	const raw = encode({
+		version: 3,
+		first_touch: { source: 'google', click_id_type: 'gclid', click_id_value: 'private-current-field' },
+	});
+	runtime.rawAttribution = () => raw;
+	assert.equal(api.readAcquisitionContext(runtime).sea_attr, undefined);
+	assert.equal(runtime.rawAttribution(), raw);
+	runtime.consentUpdates.push({ event: 'sealos_consent_update', ad_storage: 'granted', ad_user_data: 'granted' });
+	assert.equal(api.readAcquisitionContext(runtime).sea_attr, raw);
+	runtime.consentUpdates.push({ event: 'sealos_consent_update', ad_storage: 'denied' });
+	assert.equal(api.readAcquisitionContext(runtime).sea_attr, undefined);
+	assert.equal(runtime.rawAttribution(), raw);
+});
+
+test('known enhanced conversion fields require advertising permission', () => {
+	for (const key of ['hashed_user_data', 'email_sha256', 'phone_sha256']) {
+		const { runtime } = browser();
+		granted(runtime);
+		const raw = encode({ version: 3, first_touch: { source: 'google', extra: { [key]: 'synthetic-hash-only' } } });
+		runtime.rawAttribution = () => raw;
+		assert.equal(api.readAcquisitionContext(runtime).sea_attr, undefined, key);
+		runtime.consentUpdates.push({ event: 'sealos_consent_update', ad_storage: 'granted', ad_user_data: 'granted' });
+		assert.equal(api.readAcquisitionContext(runtime).sea_attr, raw, key);
+		runtime.consentUpdates.push({ event: 'sealos_consent_update', ad_user_data: 'denied' });
+		assert.equal(api.readAcquisitionContext(runtime).sea_attr, undefined, key);
+		assert.equal(runtime.rawAttribution(), raw, key);
+	}
+});
