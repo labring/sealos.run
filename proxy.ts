@@ -5,6 +5,6 @@ export default createNextIntlMiddleware(routing);
 
 export const config = {
 	matcher: [
-		'/((?!app-attribution(?:/|$)|api|_next/static|_next/image|appstore/icons/|images/|icons/|favicon/|favicon.ico|logo.svg|robots.txt|sitemap.xml|llms.txt|rss.xml).*)',
+		'/((?!api|_next/static|_next/image|appstore/icons/|images/|icons/|favicon/|favicon.ico|logo.svg|robots.txt|sitemap.xml|llms.txt|rss.xml).*)',
 	],
 };

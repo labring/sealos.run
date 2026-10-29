@@ -10,6 +10,7 @@ import {
 export function AcquisitionObserver() {
 	const observations = React.useRef<{
 		observedVisitor?: string;
+		identifiedVisitor?: string;
 		pending: Array<{ name: string; properties: Record<string, string> }>;
 	}>({ pending: [] });
 	React.useEffect(() => {
@@ -17,12 +18,24 @@ export function AcquisitionObserver() {
 		const pending = state.pending;
 		const runtimeWindow = window as Window & {
 			dataLayer?: unknown[];
-			rybbit?: { event?: (name: string, properties: Record<string, string>) => void };
+			rybbit?: {
+				identify?: (id: string) => void;
+				event?: (name: string, properties: Record<string, string>) => void;
+			};
 		};
 		const flush = () => {
 			if (readAcquisitionContext(createBrowserAcquisitionRuntime()).consent.analytics_storage !== 'granted') {
 				pending.length = 0;
 				return;
+			}
+			const context = readAcquisitionContext(createBrowserAcquisitionRuntime());
+			if (
+				context.visitor_id &&
+				runtimeWindow.rybbit?.identify &&
+				state.identifiedVisitor !== context.visitor_id
+			) {
+				runtimeWindow.rybbit.identify(context.visitor_id);
+				state.identifiedVisitor = context.visitor_id;
 			}
 			if (!runtimeWindow.rybbit?.event) return;
 			for (const item of pending.splice(0)) runtimeWindow.rybbit.event(item.name, item.properties);
@@ -42,6 +55,7 @@ export function AcquisitionObserver() {
 			const context = readAcquisitionContext(createBrowserAcquisitionRuntime());
 			if (!context.visitor_id) {
 				state.observedVisitor = undefined;
+				state.identifiedVisitor = undefined;
 				pending.length = 0;
 				return;
 			}

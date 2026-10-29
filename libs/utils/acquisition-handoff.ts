@@ -16,8 +16,7 @@ export type AcquisitionContext = {
 	visitor_id?: string;
 	sea_attr?: string;
 	source?: AcquisitionSource;
-	activation_source?: AcquisitionSource;
-	last_source?: AcquisitionSource;
+	realm: 'china';
 	consent: AcquisitionConsent;
 	platform_ids?: { ga_client_id?: string; rybbit_user_id?: string };
 };
@@ -26,6 +25,7 @@ export type AcquisitionRuntime = {
 	href: string;
 	referrer: string;
 	cookie: string;
+	writeCookie: (value: string) => void;
 	consentUpdates: unknown[];
 	now: () => Date;
 	randomId: () => string;
@@ -36,9 +36,10 @@ const VISITOR_KEY = 'sealos_acquisition_visitor_v1';
 const SOURCE_KEY = 'sealos_acquisition_source_v1';
 const CONSENT_KEY = 'sealos_acquisition_consent_v1';
 const CONSENT_FIELDS = ['analytics_storage', 'ad_storage', 'ad_user_data', 'ad_personalization'] as const;
-export const ACQUISITION_AUTHORITY = 'https://bja.sealos.run';
-const CAPABILITY = /^[A-Za-z0-9_.~-]{20,2048}$/;
-const ID = /^[A-Za-z0-9_.:-]{1,200}$/;
+export const ACQUISITION_COOKIE = 'sealos_acquisition_v1';
+const COOKIE_DOMAIN = 'sealos.run';
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ID = /^[A-Za-z0-9_.:-]{1,128}$/;
 
 function readJson(runtime: AcquisitionRuntime, key: string): unknown {
 	try {
@@ -179,7 +180,8 @@ export function subscribeAcquisitionConsent(listener: () => void): () => void {
 		window.removeEventListener('storage', storage);
 	};
 }
-function clearIdentity(runtime: AcquisitionRuntime): void {
+function clearIdentity(runtime: AcquisitionRuntime, eraseCookie = true): void {
+	if (eraseCookie) writeSharedCookie(runtime);
 	try {
 		runtime.storage.removeItem(VISITOR_KEY);
 		runtime.storage.removeItem(SOURCE_KEY);
@@ -187,44 +189,38 @@ function clearIdentity(runtime: AcquisitionRuntime): void {
 		/* Storage may be disabled. */
 	}
 }
-function bounded(value: string | null, max = 200): string | undefined {
-	return value && value.length <= max && !Array.from(value).some((character) => character.charCodeAt(0) < 32)
+function bounded(value: string | null, max = 100): string | undefined {
+	return value &&
+		value.length <= max &&
+		!Array.from(value).some((character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127)
 		? value
 		: undefined;
+}
+function label(value: string | null): string | undefined {
+	const safe = bounded(value);
+	return safe && /^[\p{L}\p{N} _.-]+$/u.test(safe) && !/\d{7,}/.test(safe) ? safe : undefined;
 }
 function publicPage(value: string): string | undefined {
 	try {
 		const url = new URL(value);
-		return ['https:', 'http:'].includes(url.protocol) ? `${url.origin}${url.pathname}`.slice(0, 500) : undefined;
+		return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password
+			? `${url.origin}${url.pathname}`.slice(0, 250)
+			: undefined;
 	} catch {
 		return undefined;
 	}
 }
 function captureSource(runtime: AcquisitionRuntime): AcquisitionSource {
-	let url = new URL(runtime.href);
+	const url = new URL(runtime.href);
 	const referrer = publicPage(runtime.referrer);
-	// A first-time explicit choice on the continuation page may use the same-
-	// origin download page as its landing context, never a credential-bearing query.
-	if (url.pathname.replace(/\/$/, '') === '/app-attribution' && referrer && new URL(referrer).origin === url.origin) {
-		try {
-			url = new URL(runtime.referrer);
-		} catch {
-			/* Use the current public page. */
-		}
-	}
-	let source = bounded(url.searchParams.get('utm_source'));
-	if (
-		!source &&
-		referrer &&
-		new URL(referrer).origin !== url.origin &&
-		new URL(referrer).origin !== ACQUISITION_AUTHORITY &&
-		url.pathname.replace(/\/$/, '') !== '/app-attribution'
-	)
-		source = new URL(referrer).hostname;
 	return {
-		source: source || 'direct',
-		medium: bounded(url.searchParams.get('utm_medium')),
-		campaign: bounded(url.searchParams.get('utm_campaign')),
+		source:
+			label(url.searchParams.get('utm_source')) ||
+			(referrer && new URL(referrer).hostname !== url.hostname
+				? bounded(new URL(referrer).hostname) || 'direct'
+				: 'direct'),
+		medium: label(url.searchParams.get('utm_medium')),
+		campaign: label(url.searchParams.get('utm_campaign')),
 		landing_page: publicPage(url.href) || url.origin,
 		referrer,
 		timestamp: runtime.now().toISOString(),
@@ -232,179 +228,136 @@ function captureSource(runtime: AcquisitionRuntime): AcquisitionSource {
 }
 function storedSource(value: unknown): AcquisitionSource | undefined {
 	const record = object(value);
-	const source = typeof record?.['source'] === 'string' ? bounded(record['source']) : undefined;
-	const landingPage = typeof record?.['landing_page'] === 'string' ? publicPage(record['landing_page']) : undefined;
-	const timestamp =
-		typeof record?.['timestamp'] === 'string' && Number.isFinite(Date.parse(record['timestamp']))
-			? record['timestamp']
-			: undefined;
-	if (!source || !landingPage || !timestamp) return undefined;
+	const source = typeof record?.['source'] === 'string' ? label(record['source']) : undefined;
+	const landing = typeof record?.['landing_page'] === 'string' ? publicPage(record['landing_page']) : undefined;
+	const timestamp = typeof record?.['timestamp'] === 'string' ? bounded(record['timestamp'], 30) : undefined;
+	if (!source || !landing || !timestamp || !Number.isFinite(Date.parse(timestamp))) return undefined;
 	return {
 		source,
-		landing_page: landingPage,
+		landing_page: landing,
 		timestamp,
-		medium: typeof record?.['medium'] === 'string' ? bounded(record['medium']) : undefined,
-		campaign: typeof record?.['campaign'] === 'string' ? bounded(record['campaign']) : undefined,
+		medium: typeof record?.['medium'] === 'string' ? label(record['medium']) : undefined,
+		campaign: typeof record?.['campaign'] === 'string' ? label(record['campaign']) : undefined,
 		referrer: typeof record?.['referrer'] === 'string' ? publicPage(record['referrer']) : undefined,
 	};
 }
-function containsAdIdentifier(value: unknown): boolean {
-	const record = object(value);
-	if (!record) return Array.isArray(value) && value.some(containsAdIdentifier);
-	return Object.entries(record).some(
-		([key, entry]) =>
-			(/^(click_value|click_id_value|hashed_user_data|email_sha256|phone_sha256|gclid|gbraid|wbraid|msclkid|fbclid|ttclid|rdt_cid|li_fat_id|twclid|email|phone|user_data)$/i.test(
-				key,
-			) &&
-				!!entry) ||
-			(typeof entry === 'object' && containsAdIdentifier(entry)),
+function base64url(value: string): string {
+	return btoa(Array.from(new TextEncoder().encode(value), (byte) => String.fromCharCode(byte)).join(''))
+		.replace(/\+/g, '-')
+		.replace(/\//g, '_')
+		.replace(/=+$/, '');
+}
+function decode(value: string): unknown {
+	return JSON.parse(
+		new TextDecoder('utf-8', { fatal: true }).decode(
+			Uint8Array.from(atob(value.replace(/-/g, '+').replace(/_/g, '/')), (char) => char.charCodeAt(0)),
+		),
 	);
 }
+function sharedContext(runtime: AcquisitionRuntime): Record<string, unknown> | undefined {
+	try {
+		const raw = runtime.cookie
+			.split(';')
+			.map((value) => value.trim())
+			.find((value) => value.startsWith(`${ACQUISITION_COOKIE}=`))
+			?.slice(ACQUISITION_COOKIE.length + 1);
+		if (!raw || raw.length > 2400 || !/^[A-Za-z0-9_-]+$/.test(raw)) return undefined;
+		const saved = object(decode(raw));
+		if (
+			saved?.['version'] !== 1 ||
+			saved['realm'] !== 'china' ||
+			typeof saved['visitor_id'] !== 'string' ||
+			!UUID.test(saved['visitor_id']) ||
+			object(saved['consent'])?.['analytics_storage'] !== 'granted'
+		)
+			return undefined;
+		return saved;
+	} catch {
+		return undefined;
+	}
+}
+function officialDomain(href: string): boolean {
+	try {
+		const url = new URL(href);
+		return url.protocol === 'https:' && [COOKIE_DOMAIN, `www.${COOKIE_DOMAIN}`].includes(url.hostname) && !url.port;
+	} catch {
+		return false;
+	}
+}
+function writeSharedCookie(runtime: AcquisitionRuntime, context?: AcquisitionContext): void {
+	if (!officialDomain(runtime.href)) return;
+	try {
+		let value = '';
+		if (context?.visitor_id) {
+			const payload = { ...context };
+			if (new TextEncoder().encode(JSON.stringify(payload)).length > 1800) delete payload.sea_attr;
+			if (new TextEncoder().encode(JSON.stringify(payload)).length > 1800) delete payload.source;
+			value = base64url(JSON.stringify(payload));
+		}
+		runtime.writeCookie(
+			`${ACQUISITION_COOKIE}=${value}; Domain=${COOKIE_DOMAIN}; Path=/; Secure; SameSite=Lax; Max-Age=${value ? 2592000 : 0}`,
+		);
+	} catch {
+		/* Cookie blocking cannot interrupt navigation. */
+	}
+}
 function encodedAttribution(runtime: AcquisitionRuntime, consent: AcquisitionConsent): string | undefined {
+	if (
+		consent.ad_storage !== 'granted' ||
+		consent.ad_user_data !== 'granted' ||
+		consent.ad_personalization !== 'granted'
+	)
+		return undefined;
 	try {
 		const raw = runtime.rawAttribution?.();
-		if (!raw || raw.length > 16384 || !/^[A-Za-z0-9_-]+$/.test(raw)) return undefined;
-		const decoded = object(
-			JSON.parse(
-				new TextDecoder().decode(
-					Uint8Array.from(atob(raw.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0)),
-				),
-			),
-		);
-		if (!decoded || ![2, 3].includes(Number(decoded['version']))) return undefined;
-		// Preserve accepted raw bytes. If they contain disallowed ad identifiers, omit
-		// the snapshot rather than silently rewriting a value covered by a hash.
-		if ((consent.ad_storage !== 'granted' || consent.ad_user_data !== 'granted') && containsAdIdentifier(decoded))
-			return undefined;
-		return raw;
+		if (!raw || raw.length > 512 || !/^[A-Za-z0-9_-]+$/.test(raw)) return undefined;
+		const parsed = object(decode(raw));
+		return parsed && [2, 3].includes(Number(parsed['version'])) ? raw : undefined;
 	} catch {
 		return undefined;
 	}
 }
 export function readAcquisitionContext(runtime: AcquisitionRuntime): AcquisitionContext {
 	const consent = readAcquisitionConsent(runtime);
-	const context: AcquisitionContext = { version: 1, consent };
+	const context: AcquisitionContext = { version: 1, realm: 'china', consent };
 	if (consent.analytics_storage !== 'granted') {
-		clearIdentity(runtime);
+		// Unknown consent on www must not erase a root-domain journey before a choice.
+		clearIdentity(runtime, consent.analytics_storage === 'denied');
 		return context;
 	}
 	try {
+		const shared = sharedContext(runtime);
 		let visitor = runtime.storage.getItem(VISITOR_KEY);
-		if (!visitor || !ID.test(visitor)) {
-			visitor = runtime.randomId();
+		if (!visitor || !UUID.test(visitor)) {
+			visitor = typeof shared?.['visitor_id'] === 'string' ? shared['visitor_id'] : runtime.randomId();
+			if (!UUID.test(visitor)) return context;
 			runtime.storage.setItem(VISITOR_KEY, visitor);
 		}
-		if (ID.test(visitor)) context.visitor_id = visitor;
-		const current = captureSource(runtime);
+		context.visitor_id = visitor;
 		const previous = object(readJson(runtime, SOURCE_KEY));
-		const source = storedSource(previous?.['first_touch']) || current;
-		const bridgePage = new URL(runtime.href).pathname.replace(/\/$/, '') === '/app-attribution';
-		const previousLast = storedSource(previous?.['last_touch']);
-		// OAuth roundtrips read the existing journey; they are not new campaigns.
-		const last = bridgePage && previousLast ? previousLast : current;
-		const lastNonDirect = last.source === 'direct' ? storedSource(previous?.['last_non_direct']) : last;
-		runtime.storage.setItem(
-			SOURCE_KEY,
-			JSON.stringify({ version: 1, first_touch: source, last_touch: last, last_non_direct: lastNonDirect }),
-		);
-		context.source = source;
-		context.last_source = last;
-		context.activation_source = lastNonDirect || last;
+		context.source =
+			storedSource(previous?.['first_touch']) || storedSource(shared?.['source']) || captureSource(runtime);
+		runtime.storage.setItem(SOURCE_KEY, JSON.stringify({ version: 1, first_touch: context.source }));
 	} catch {
 		/* Without durable storage, do not invent a persistent visitor. */
 	}
+	if (!context.visitor_id) return context;
 	const seaAttr = encodedAttribution(runtime, consent);
 	if (seaAttr) context.sea_attr = seaAttr;
-	const ga = runtime.cookie.match(/(?:^|;\s*)_ga=GA\d+\.\d+\.(\d+\.\d+)(?:;|$)/)?.[1];
+	const ga = runtime.cookie.match(/(?:^|;\s*)_ga=GA\d+\.\d+\.(\d{1,20}\.\d{1,20})(?:;|$)/)?.[1];
 	let rybbit: string | null | undefined;
 	try {
 		rybbit = runtime.rybbitUserId?.();
 	} catch {
-		/* A late third-party SDK is optional. */
+		/* Optional late SDK. */
 	}
 	if (ga || (rybbit && ID.test(rybbit)))
 		context.platform_ids = {
 			...(ga ? { ga_client_id: ga } : {}),
 			...(rybbit && ID.test(rybbit) ? { rybbit_user_id: rybbit } : {}),
 		};
+	writeSharedCookie(runtime, context);
 	return context;
-}
-export function getAcquisitionBridgeTarget(
-	href: string,
-): { handoff: string; endpoint: string; continuation: string } | undefined {
-	try {
-		const url = new URL(href);
-		const authority = new URL(url.searchParams.get('authority') || '');
-		const handoff = url.searchParams.get('handoff') || '';
-		if (
-			authority.href !== `${ACQUISITION_AUTHORITY}/` ||
-			authority.origin !== ACQUISITION_AUTHORITY ||
-			!CAPABILITY.test(handoff)
-		)
-			return undefined;
-		const endpoint = `${authority.origin}/api/auth/oauth2/code/attribution`;
-		return {
-			handoff,
-			endpoint,
-			continuation: `${endpoint}?handoff=${encodeURIComponent(handoff)}`,
-		};
-	} catch {
-		return undefined;
-	}
-}
-export async function completeAcquisitionBridge(
-	href: string,
-	runtime: AcquisitionRuntime,
-	request: typeof fetch = fetch,
-): Promise<string> {
-	const target = getAcquisitionBridgeTarget(href);
-	if (!target) throw new Error('Invalid acquisition handoff');
-	try {
-		await request(target.endpoint, {
-			method: 'POST',
-			credentials: 'omit',
-			referrerPolicy: 'no-referrer',
-			headers: { 'Content-Type': 'application/json' },
-			signal: AbortSignal.timeout(5000),
-			body: JSON.stringify({
-				...readAcquisitionContext(runtime),
-				handoff: target.handoff,
-			}),
-		});
-	} catch {
-		/* Analytics cannot prevent the original OAuth request from resuming. */
-	}
-	return target.continuation;
-}
-export async function issueAcquisitionAppLink(
-	runtime: AcquisitionRuntime,
-	request: typeof fetch = fetch,
-): Promise<string> {
-	const response = await request(`${ACQUISITION_AUTHORITY}/api/marketing/acquisition/issue`, {
-		method: 'POST',
-		credentials: 'omit',
-		referrerPolicy: 'no-referrer',
-		headers: { 'Content-Type': 'application/json' },
-		signal: AbortSignal.timeout(5000),
-		body: JSON.stringify(readAcquisitionContext(runtime)),
-	});
-	if (!response.ok) throw new Error('Unable to create acquisition handoff');
-	const result: unknown = await response.json();
-	const data = object(result);
-	const code = data?.['code'];
-	const expiresAt = data?.['expires_at'];
-	if (
-		typeof code !== 'string' ||
-		!CAPABILITY.test(code) ||
-		typeof expiresAt !== 'string' ||
-		!Number.isFinite(Date.parse(expiresAt)) ||
-		Date.parse(expiresAt) <= runtime.now().getTime()
-	)
-		throw new Error('Invalid acquisition handoff response');
-	const url = new URL('zcode://sealos/acquisition');
-	url.searchParams.set('code', code);
-	url.searchParams.set('authority', ACQUISITION_AUTHORITY);
-	return url.toString();
 }
 
 export function createBrowserAcquisitionRuntime(): AcquisitionRuntime {
@@ -424,6 +377,10 @@ export function createBrowserAcquisitionRuntime(): AcquisitionRuntime {
 		referrer: document.referrer,
 		get cookie() {
 			return document.cookie;
+		},
+		writeCookie: (value) => {
+			// biome-ignore lint/suspicious/noDocumentCookie: Synchronous update must finish before ordinary installer navigation; supports browsers without Cookie Store.
+			document.cookie = value;
 		},
 		consentUpdates: runtimeWindow.dataLayer,
 		now: () => new Date(),
