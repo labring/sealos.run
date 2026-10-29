@@ -40,7 +40,10 @@ export function AcquisitionObserver() {
 				state.identifiedVisitor = context.visitor_id;
 			}
 			if (!runtimeWindow.rybbit?.event) return;
-			for (const item of pending.splice(0)) runtimeWindow.rybbit.event(item.name, item.properties);
+			for (const item of pending.splice(0)) {
+				if (item.properties['visitor_id'] === context.visitor_id)
+					runtimeWindow.rybbit.event(item.name, item.properties);
+			}
 		};
 		const emit = (name: string) => {
 			const context = readAcquisitionContext(createBrowserAcquisitionRuntime());

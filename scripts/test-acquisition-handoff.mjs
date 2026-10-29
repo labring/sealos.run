@@ -384,7 +384,7 @@ function observerHarness() {
 			api.setAcquisitionAnalyticsConsent(runtime, allowed);
 			target.dispatchEvent(new Event('sealos_consent_update'));
 		},
-		ready: () => {
+		ready: (notify = true) => {
 			target.rybbit = {
 				identify: (id) => {
 					identified = id;
@@ -397,7 +397,7 @@ function observerHarness() {
 				},
 				event: (name, properties) => calls.push({ name, properties }),
 			};
-			target.dispatchEvent(new Event('sealos:analytics-ready'));
+			if (notify) target.dispatchEvent(new Event('sealos:analytics-ready'));
 		},
 		download: () =>
 			document.dispatchEvent(Object.defineProperty(new Event('click'), 'target', { value: new Anchor() })),
@@ -697,4 +697,23 @@ test('Rybbit component requires both public build settings and signals readiness
 			assert.deepEqual(signals, ['sealos:analytics-ready']);
 		}
 	}
+});
+
+test('direct download flush drops old journey A when SDK becomes available without a ready event', () => {
+	const h = observerHarness();
+	h.consent(true);
+	h.download();
+	assert.equal(h.calls.length, 0);
+	const visitor = '27c53b12-9f46-44dd-b1aa-c6fef8dca455';
+	h.runtime.cookie = `sealos_acquisition_v1=${encode({ version: 1, realm: 'china', visitor_id: visitor, consent: { analytics_storage: 'granted' }, source: { source: 'fresh-www' } })}`;
+	h.ready(false);
+	h.download();
+	assert.deepEqual(
+		h.calls.map((entry) => entry.name),
+		['identify', 'download_click'],
+	);
+	assert.equal(h.calls[0].id, visitor);
+	assert.equal(h.calls[1].properties.visitor_id, visitor);
+	assert.equal(h.calls[1].properties.source, 'fresh-www');
+	h.cleanup();
 });

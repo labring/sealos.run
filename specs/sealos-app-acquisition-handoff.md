@@ -13,7 +13,7 @@ sealos.run 匿名访问 → 用户同意分析 → 写入共享 Cookie → 直�
 - 只允许 HTTPS sealos.run / www.sealos.run 写入：Domain=sealos.run; Path=/; Secure; SameSite=Lax; Max-Age=2592000。控制台和租户子域不写这个 Cookie。解码内容最多 1800 UTF-8 字节；超出预算时省略 source，保留核心标识和同意状态。
 - 有效共享 Cookie 优先决定当前访客和首触；仅当本地 visitor_id 相同才允许用本地首触补全。没有有效共享 Cookie 时仍可复用本地访客；这不是跨源撤回同步。
 - source 只保留首触的 source、medium、campaign 三个标签，各最多 100 字符，拒绝 email、电话式长数字、控制字符和 URL。referrer 仅可瞬时解析 hostname 推导 source；Cookie 和本功能 localStorage 均不保存落地 URL、referrer URL 或 timestamp。旧 Cookie/首触副本重写时也只抽取三个标签。来源缺失时仍可关联，来源统计显示 direct 或未知。
-- 官网通过已有 Rybbit 发送 acquisition_visit / download_click，带 visitor_id、surface=website、source。identify(visitor_id) 只在同意后调用；SDK 迟到时最多排队 32 个事件；共享访客变化时丢弃旧旅程队列，避免在 identify 新访客后发送旧访客事件。Observer 同时负责及时更新 Cookie，SDK-ready 事件负责恢复发送。
+- 官网通过已有 Rybbit 发送 acquisition_visit / download_click，带 visitor_id、surface=website、source。identify(visitor_id) 只在同意后调用；SDK 迟到时最多排队 32 个事件；共享访客变化时丢弃旧旅程队列；实际 flush 发送处只发送 visitor_id 与当前有效访客相同的项，覆盖 SDK 尚未发出 ready、用户直接点击下载的路径，避免在 identify 新访客后发送旧访客事件。Observer 同时负责及时更新 Cookie，SDK-ready 事件负责恢复发送。
 - 拒绝或撤回会清理本功能新增的访客/来源 localStorage、共享 Cookie、排队事件及 Observer 设置的 Rybbit 身份。同源跨标签撤回优先于历史 grant，访客/来源写入不会触发 storage 循环。首次打开 www 但尚未选择时，不删除另一个官方源留下的有效 Cookie。
 
 ## 消融依据与边界
