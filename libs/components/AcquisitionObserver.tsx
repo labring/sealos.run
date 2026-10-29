@@ -1,7 +1,11 @@
 'use client';
 
 import React from 'react';
-import { createBrowserAcquisitionRuntime, readAcquisitionContext } from '@/libs/utils/acquisition-handoff';
+import {
+	createBrowserAcquisitionRuntime,
+	readAcquisitionContext,
+	subscribeAcquisitionConsent,
+} from '@/libs/utils/acquisition-handoff';
 
 export function AcquisitionObserver() {
 	const observations = React.useRef<{
@@ -53,11 +57,11 @@ export function AcquisitionObserver() {
 			if (target) emit('download_click');
 		};
 		visit();
-		window.addEventListener('sealos_consent_update', visit);
+		const unsubscribeConsent = subscribeAcquisitionConsent(visit);
 		window.addEventListener('sealos:analytics-ready', visit);
 		document.addEventListener('click', click, true);
 		return () => {
-			window.removeEventListener('sealos_consent_update', visit);
+			unsubscribeConsent();
 			window.removeEventListener('sealos:analytics-ready', visit);
 			document.removeEventListener('click', click, true);
 		};

@@ -52,43 +52,96 @@ function object(value: unknown): Record<string, unknown> | undefined {
 		? (value as Record<string, unknown>)
 		: undefined;
 }
-export function readAcquisitionConsent(runtime: AcquisitionRuntime): AcquisitionConsent {
-	const result: AcquisitionConsent = {
+type ConsentReadState = {
+	cursor: number;
+	lastEntry: unknown;
+	stored: string | null | undefined;
+	consent: AcquisitionConsent;
+};
+const consentReads = new WeakMap<unknown[], ConsentReadState>();
+function storedConsent(runtime: AcquisitionRuntime): string | null | undefined {
+	try {
+		return runtime.storage.getItem(CONSENT_KEY);
+	} catch {
+		return undefined;
+	}
+}
+function initialConsent(stored: string | null | undefined): AcquisitionConsent {
+	const consent: AcquisitionConsent = {
 		analytics_storage: 'unspecified',
 		ad_storage: 'unspecified',
 		ad_user_data: 'unspecified',
 		ad_personalization: 'unspecified',
 	};
-	const stored = object(readJson(runtime, CONSENT_KEY));
-	if (stored?.['analytics_storage'] === 'granted' || stored?.['analytics_storage'] === 'denied')
-		result.analytics_storage = stored['analytics_storage'];
-	for (const value of runtime.consentUpdates) {
-		// Consent Mode queues both dataLayer objects and gtag arguments objects.
+	try {
+		const saved = object(JSON.parse(stored || 'null'));
+		if (saved?.['analytics_storage'] === 'granted' || saved?.['analytics_storage'] === 'denied')
+			consent.analytics_storage = saved['analytics_storage'];
+	} catch {
+		/* An invalid stored decision grants nothing. */
+	}
+	return consent;
+}
+export function readAcquisitionConsent(runtime: AcquisitionRuntime): AcquisitionConsent {
+	const queue = runtime.consentUpdates;
+	const stored = storedConsent(runtime);
+	let state = consentReads.get(queue);
+	let updatesFrom = state?.cursor ?? 0;
+	const historyMoved = state && state.cursor > 0 && state.lastEntry !== queue[state.cursor - 1];
+	let historyOnly = false;
+	if (!state || state.stored !== stored) {
+		historyOnly = Boolean(state) || stored != null;
+		if (updatesFrom > queue.length) updatesFrom = 0;
+		// Persisted choices reset page state; old grants cannot undo a newer withdrawal.
+		state = {
+			cursor: historyOnly ? queue.length : 0,
+			lastEntry: queue.at(-1),
+			stored,
+			consent: initialConsent(stored),
+		};
+		consentReads.set(queue, state);
+	}
+	if (historyMoved || state.cursor > queue.length) {
+		// A rotated queue has unknown ordering: historical entries may only tighten permission.
+		historyOnly = true;
+		updatesFrom = 0;
+		state.cursor = queue.length;
+		state.lastEntry = queue.at(-1);
+	}
+	let updated = false;
+	for (const value of queue.slice(updatesFrom)) {
 		const item: Record<string, unknown> | undefined =
 			object(value) || (Array.isArray(value) ? { 0: value[0], 1: value[1], 2: value[2] } : undefined);
-		const command = item?.['0'];
 		const payload =
-			command === 'consent' && item?.['1'] === 'update'
+			item?.['0'] === 'consent' && item?.['1'] === 'update'
 				? object(item?.['2'])
 				: item?.['event'] === 'sealos_consent_update'
 					? item
 					: undefined;
 		if (!payload) continue;
 		for (const key of CONSENT_FIELDS) {
-			const state = payload[key];
-			if (state === 'granted' || state === 'denied' || state === 'unspecified') result[key] = state;
+			const value = payload[key];
+			if (value === 'granted' || value === 'denied' || value === 'unspecified') {
+				if (historyOnly && value !== 'denied') continue;
+				state.consent[key] = value;
+				updated = true;
+			}
 		}
 	}
-	// Persist an actual choice/update so the tracker-free OAuth bridge can read
-	// the same decision after a navigation to this website origin.
-	if (result.analytics_storage !== 'unspecified') {
+	state.cursor = queue.length;
+	state.lastEntry = queue.at(-1);
+	if (updated && state.consent.analytics_storage !== 'unspecified') {
 		try {
-			runtime.storage.setItem(CONSENT_KEY, JSON.stringify({ analytics_storage: result.analytics_storage }));
+			runtime.storage.setItem(
+				CONSENT_KEY,
+				JSON.stringify({ analytics_storage: state.consent.analytics_storage }),
+			);
 		} catch {
-			/* Optional browser storage. */
+			/* A blocked store must not prevent an explicit in-page choice. */
 		}
+		state.stored = storedConsent(runtime);
 	}
-	return result;
+	return { ...state.consent };
 }
 export function setAcquisitionAnalyticsConsent(runtime: AcquisitionRuntime, allowed: boolean): AcquisitionConsent {
 	const consent = {
@@ -104,8 +157,27 @@ export function setAcquisitionAnalyticsConsent(runtime: AcquisitionRuntime, allo
 		event: 'sealos_consent_update',
 		...Object.fromEntries(Object.entries(consent).filter(([, value]) => value !== 'unspecified')),
 	});
+	// Consume the local choice now so a later withdrawal cannot replay this grant.
+	consentReads.set(runtime.consentUpdates, {
+		cursor: runtime.consentUpdates.length,
+		lastEntry: runtime.consentUpdates.at(-1),
+		stored: storedConsent(runtime),
+		consent: { ...consent },
+	});
 	if (!allowed) clearIdentity(runtime);
 	return consent;
+}
+export function subscribeAcquisitionConsent(listener: () => void): () => void {
+	const storage = (event: StorageEvent) => {
+		// Ignore source/visitor writes so cross-tab updates cannot cause a read/write loop.
+		if (event.key === CONSENT_KEY || event.key === null) listener();
+	};
+	window.addEventListener('sealos_consent_update', listener);
+	window.addEventListener('storage', storage);
+	return () => {
+		window.removeEventListener('sealos_consent_update', listener);
+		window.removeEventListener('storage', storage);
+	};
 }
 function clearIdentity(runtime: AcquisitionRuntime): void {
 	try {

@@ -4,6 +4,7 @@ import {
 	createBrowserAcquisitionRuntime,
 	readAcquisitionConsent,
 	setAcquisitionAnalyticsConsent,
+	subscribeAcquisitionConsent,
 } from '@/libs/utils/acquisition-handoff';
 
 export function AcquisitionChoice() {
@@ -12,8 +13,7 @@ export function AcquisitionChoice() {
 		const sync = () =>
 			setAllowed(readAcquisitionConsent(createBrowserAcquisitionRuntime()).analytics_storage === 'granted');
 		sync();
-		window.addEventListener('sealos_consent_update', sync);
-		return () => window.removeEventListener('sealos_consent_update', sync);
+		return subscribeAcquisitionConsent(sync);
 	}, []);
 	return (
 		<label className='block text-sm'>

@@ -233,3 +233,106 @@ test('known enhanced conversion fields require advertising permission', () => {
 		assert.equal(runtime.rawAttribution(), raw, key);
 	}
 });
+
+test('cross-tab denial wins over stale grants even before the granting tab rereads its choice', () => {
+	const { runtime: tabA, values } = browser();
+	const { runtime: tabB } = browser();
+	tabB.storage = tabA.storage;
+	granted(tabA);
+	api.setAcquisitionAnalyticsConsent(tabB, false);
+	const after = api.readAcquisitionContext(tabA);
+	assert.equal(after.consent.analytics_storage, 'denied');
+	assert.equal(after.visitor_id, undefined);
+	assert.equal(after.platform_ids, undefined);
+	assert.equal(JSON.parse(values.get('sealos_acquisition_consent_v1')).analytics_storage, 'denied');
+});
+
+test('a persisted denial survives initial queue history but a newly observed update can grant again', () => {
+	const { runtime, values } = browser();
+	values.set('sealos_acquisition_consent_v1', JSON.stringify({ analytics_storage: 'denied' }));
+	runtime.consentUpdates.push({ event: 'sealos_consent_update', analytics_storage: 'granted' });
+	assert.equal(api.readAcquisitionContext(runtime).visitor_id, undefined);
+	runtime.consentUpdates.push(['consent', 'update', { analytics_storage: 'granted' }]);
+	assert.equal(api.readAcquisitionContext(runtime).visitor_id, 'visitor-12345678');
+	assert.equal(api.readAcquisitionConsent(runtime).analytics_storage, 'granted');
+});
+
+test('cross-tab revocation also invalidates cached advertising permission', () => {
+	const { runtime: tabA } = browser();
+	const { runtime: tabB } = browser();
+	tabB.storage = tabA.storage;
+	granted(tabA);
+	const raw = encode({ version: 3, first_touch: { source: 'google', click_id_value: 'synthetic-click' } });
+	tabA.rawAttribution = () => raw;
+	tabA.consentUpdates.push(['consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted' }]);
+	assert.equal(api.readAcquisitionContext(tabA).sea_attr, raw);
+	api.setAcquisitionAnalyticsConsent(tabB, false);
+	assert.equal(api.readAcquisitionContext(tabA).sea_attr, undefined);
+	tabA.consentUpdates.push(['consent', 'update', { analytics_storage: 'granted' }]);
+	const renewed = api.readAcquisitionContext(tabA);
+	assert.equal(renewed.consent.analytics_storage, 'granted');
+	assert.equal(renewed.consent.ad_user_data, 'unspecified');
+	assert.equal(renewed.sea_attr, undefined);
+});
+
+test('consent subscriptions ignore source and visitor storage writes and detach cleanly', () => {
+	const previousWindow = globalThis.window;
+	const target = new EventTarget();
+	globalThis.window = target;
+	try {
+		let calls = 0;
+		const unsubscribe = api.subscribeAcquisitionConsent(() => calls++);
+		const storage = (key) => target.dispatchEvent(Object.assign(new Event('storage'), { key }));
+		storage('sealos_acquisition_source_v1');
+		storage('sealos_acquisition_visitor_v1');
+		assert.equal(calls, 0);
+		storage('sealos_acquisition_consent_v1');
+		storage(null);
+		target.dispatchEvent(new Event('sealos_consent_update'));
+		assert.equal(calls, 3);
+		unsubscribe();
+		storage('sealos_acquisition_consent_v1');
+		assert.equal(calls, 3);
+	} finally {
+		if (previousWindow === undefined) delete globalThis.window;
+		else globalThis.window = previousWindow;
+	}
+});
+
+test('an already queued CMP denial remains fail-closed on a new page with a stored grant', () => {
+	const { runtime, values } = browser();
+	values.set('sealos_acquisition_consent_v1', JSON.stringify({ analytics_storage: 'granted' }));
+	runtime.consentUpdates.push(['consent', 'update', { analytics_storage: 'denied' }]);
+	assert.equal(api.readAcquisitionContext(runtime).visitor_id, undefined);
+	assert.equal(api.readAcquisitionConsent(runtime).analytics_storage, 'denied');
+});
+
+test('queue truncation cannot replay a grant that preceded a consumed denial', () => {
+	const { runtime } = browser();
+	granted(runtime);
+	runtime.consentUpdates.push(['consent', 'update', { analytics_storage: 'denied' }]);
+	assert.equal(api.readAcquisitionConsent(runtime).analytics_storage, 'denied');
+	runtime.consentUpdates.splice(1);
+	assert.equal(api.readAcquisitionContext(runtime).visitor_id, undefined);
+	runtime.consentUpdates.push(['consent', 'update', { analytics_storage: 'granted' }]);
+	assert.equal(api.readAcquisitionContext(runtime).visitor_id, 'visitor-12345678');
+});
+
+test('a newer cross-tab grant is not vetoed by already consumed denial history', () => {
+	const { runtime: tabA } = browser();
+	const { runtime: tabB } = browser();
+	tabB.storage = tabA.storage;
+	api.setAcquisitionAnalyticsConsent(tabA, false);
+	assert.equal(api.readAcquisitionConsent(tabB).analytics_storage, 'denied');
+	granted(tabB);
+	assert.equal(api.readAcquisitionConsent(tabA).analytics_storage, 'granted');
+	assert.equal(api.readAcquisitionConsent(tabB).analytics_storage, 'granted');
+});
+
+test('a bounded queue rotation with unchanged length cannot hide a new denial', () => {
+	const { runtime } = browser();
+	granted(runtime);
+	runtime.consentUpdates.splice(0, 1, ['consent', 'update', { analytics_storage: 'denied' }]);
+	assert.equal(api.readAcquisitionContext(runtime).visitor_id, undefined);
+	assert.equal(api.readAcquisitionConsent(runtime).analytics_storage, 'denied');
+});
