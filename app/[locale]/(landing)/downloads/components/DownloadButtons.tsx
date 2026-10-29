@@ -11,7 +11,6 @@ import {
 	DropdownMenuTrigger,
 } from '@/libs/components/ui/dropdown-menu';
 import { Icon } from '@/libs/components/ui/icon';
-import { Link } from '@/libs/i18n/navigation';
 import type { DesktopDownloads } from '@/libs/utils/desktop-downloads';
 import styles from '../sections/DownloadContent.module.css';
 
@@ -182,14 +181,6 @@ export function DownloadButtons({ downloads, enabled }: { downloads: DesktopDown
 					</a>
 				)}
 			</div>
-			<p>
-				<Link
-					href='/app-attribution'
-					className='text-sm underline'
-				>
-					安装完成，打开 Sealos 并继续
-				</Link>
-			</p>
 			{(!macUrl || !downloads.windows) && (
 				<p className={styles['downloadUnavailable']}>
 					{!macUrl && !downloads.windows

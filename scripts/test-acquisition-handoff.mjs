@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import vm from 'node:vm';
 import ts from 'typescript';
 
 const modulePath = 'libs/utils/acquisition-handoff.ts';
@@ -335,4 +336,137 @@ test('a bounded queue rotation with unchanged length cannot hide a new denial', 
 	runtime.consentUpdates.splice(0, 1, ['consent', 'update', { analytics_storage: 'denied' }]);
 	assert.equal(api.readAcquisitionContext(runtime).visitor_id, undefined);
 	assert.equal(api.readAcquisitionConsent(runtime).analytics_storage, 'denied');
+});
+
+// Execute the real control with browser and React boundaries supplied by the test.
+// Assertions cover outbound requests, navigation and consent rather than JSX structure.
+const choiceSource = await readFile('libs/components/AcquisitionChoice.tsx', 'utf8');
+function choiceHarness(request = async () => Response.json({ code: capability, expires_at: '2026-10-29T00:10:00Z' })) {
+	const { runtime, values } = browser();
+	const navigations = [];
+	const requests = [];
+	const states = [];
+	let cursor = 0;
+	const react = {
+		useState(initial) {
+			const index = cursor++;
+			if (!(index in states)) states[index] = initial;
+			return [
+				states[index],
+				(next) => {
+					states[index] = next;
+				},
+			];
+		},
+		useEffect() {},
+	};
+	const exports = {};
+	const componentApi = {
+		...api,
+		createBrowserAcquisitionRuntime: () => runtime,
+		issueAcquisitionAppLink: () =>
+			api.issueAcquisitionAppLink(runtime, async (...args) => {
+				requests.push({ url: args[0], payload: JSON.parse(args[1].body) });
+				return request(...args);
+			}),
+	};
+	const jsx = (type, props) => ({ type, props });
+	const componentCode = ts.transpileModule(choiceSource, {
+		compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
+	}).outputText;
+	vm.runInNewContext(componentCode, {
+		exports,
+		require: (name) =>
+			name === 'react' ? react : name === 'react/jsx-runtime' ? { jsx, jsxs: jsx } : componentApi,
+		window: { location: { assign: (url) => navigations.push(url) }, dispatchEvent() {} },
+		Event,
+	});
+	const find = (node, type) => {
+		if (!node || typeof node !== 'object') return;
+		if (node.type === type) return node;
+		for (const child of [node.props?.children].flat(Infinity)) {
+			const result = find(child, type);
+			if (result) return result;
+		}
+	};
+	const render = () => {
+		cursor = 0;
+		return exports.AcquisitionChoice();
+	};
+	return { runtime, values, navigations, requests, control: (type) => find(render(), type) };
+}
+
+test('direct open with unknown or denied consent uses the plain link without creating permission or an issue request', async () => {
+	for (const denied of [false, true]) {
+		const h = choiceHarness();
+		if (denied) api.setAcquisitionAnalyticsConsent(h.runtime, false);
+		const before = api.readAcquisitionConsent(h.runtime).analytics_storage;
+		await h.control('button').props.onClick();
+		assert.deepEqual(h.navigations, ['zcode://sealos/open']);
+		assert.equal(h.requests.length, 0);
+		assert.equal(api.readAcquisitionConsent(h.runtime).analytics_storage, before);
+		assert.equal(h.values.has('sealos_acquisition_visitor_v1'), false);
+	}
+});
+
+test('direct open with actual consent issues and opens a capability carrying the current visitor', async () => {
+	const h = choiceHarness();
+	granted(h.runtime);
+	await h.control('button').props.onClick();
+	assert.equal(h.requests.length, 1);
+	assert.equal(h.requests[0].payload.visitor_id, 'visitor-12345678');
+	assert.equal(h.requests[0].payload.consent.analytics_storage, 'granted');
+	assert.equal(new URL(h.navigations[0]).searchParams.get('code'), capability);
+	assert.equal(new URL(h.navigations[0]).pathname, '/acquisition');
+});
+
+test('direct open reads the latest decision at click time rather than a stale checkbox render', async () => {
+	const h = choiceHarness();
+	granted(h.runtime);
+	const button = h.control('button');
+	api.setAcquisitionAnalyticsConsent(h.runtime, false);
+	await button.props.onClick();
+	assert.equal(h.requests.length, 0);
+	assert.deepEqual(h.navigations, ['zcode://sealos/open']);
+});
+
+test('direct open falls back to the plain link when permission is revoked while issue is pending', async () => {
+	let respond;
+	const h = choiceHarness(
+		() =>
+			new Promise((resolve) => {
+				respond = resolve;
+			}),
+	);
+	granted(h.runtime);
+	const pendingOpen = h.control('button').props.onClick();
+	const busyButton = h.control('button');
+	assert.equal(busyButton.props['aria-disabled'], true);
+	await busyButton.props.onClick();
+	assert.equal(h.requests.length, 1);
+	api.setAcquisitionAnalyticsConsent(h.runtime, false);
+	respond(Response.json({ code: capability, expires_at: '2026-10-29T00:10:00Z' }));
+	await pendingOpen;
+	assert.deepEqual(h.navigations, ['zcode://sealos/open']);
+	assert.equal(api.readAcquisitionConsent(h.runtime).analytics_storage, 'denied');
+});
+
+test('direct open still opens the plain App link after issue failure', async () => {
+	const h = choiceHarness(async () => {
+		throw new Error('offline');
+	});
+	granted(h.runtime);
+	await h.control('button').props.onClick();
+	assert.deepEqual(h.navigations, ['zcode://sealos/open']);
+	assert.equal(h.control('button').props['aria-disabled'], false);
+});
+
+test('only an explicit checkbox change updates analytics permission', () => {
+	const h = choiceHarness();
+	h.control('input').props.onChange({ currentTarget: { checked: true } });
+	assert.equal(api.readAcquisitionConsent(h.runtime).analytics_storage, 'granted');
+	h.control('input').props.onChange({ currentTarget: { checked: false } });
+	assert.equal(api.readAcquisitionContext(h.runtime).visitor_id, undefined);
+	assert.equal(api.readAcquisitionConsent(h.runtime).analytics_storage, 'denied');
+	assert.equal(h.navigations.length, 0);
 });
