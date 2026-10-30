@@ -18,6 +18,9 @@ export function RybbitAnalytics() {
 			strategy='afterInteractive'
 			src={`${host}/api/script.js`}
 			data-site-id={RYBBIT_SITE_ID}
+			onReady={() => {
+				window.dispatchEvent(new Event('sealos:analytics-ready'));
+			}}
 		/>
 	);
 }
