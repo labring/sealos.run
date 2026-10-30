@@ -10,7 +10,6 @@ import {
 export function AcquisitionObserver() {
 	const observations = React.useRef<{
 		observedVisitor?: string;
-		identifiedVisitor?: string;
 		pending: Array<{ name: string; properties: Record<string, string> }>;
 	}>({ pending: [] });
 	React.useEffect(() => {
@@ -19,9 +18,6 @@ export function AcquisitionObserver() {
 		const runtimeWindow = window as Window & {
 			dataLayer?: unknown[];
 			rybbit?: {
-				identify?: (id: string) => void;
-				getUserId?: () => string | null;
-				clearUserId?: () => void;
 				event?: (name: string, properties: Record<string, string>) => void;
 			};
 		};
@@ -31,14 +27,7 @@ export function AcquisitionObserver() {
 				return;
 			}
 			const context = readAcquisitionContext(createBrowserAcquisitionRuntime());
-			if (
-				context.visitor_id &&
-				runtimeWindow.rybbit?.identify &&
-				state.identifiedVisitor !== context.visitor_id
-			) {
-				runtimeWindow.rybbit.identify(context.visitor_id);
-				state.identifiedVisitor = context.visitor_id;
-			}
+			// 访客 UUID 只作关联参数；提前 identify 会阻止首次账号识别回填匿名历史。
 			if (!runtimeWindow.rybbit?.event) return;
 			for (const item of pending.splice(0)) {
 				if (item.properties['visitor_id'] === context.visitor_id)
@@ -59,17 +48,12 @@ export function AcquisitionObserver() {
 		const visit = () => {
 			const context = readAcquisitionContext(createBrowserAcquisitionRuntime());
 			if (!context.visitor_id) {
-				const client = runtimeWindow.rybbit;
-				if (state.identifiedVisitor && (!client?.getUserId || client.getUserId() === state.identifiedVisitor)) {
-					client?.clearUserId?.();
-				}
 				state.observedVisitor = undefined;
-				state.identifiedVisitor = undefined;
 				pending.length = 0;
 				return;
 			}
 			if (state.observedVisitor !== context.visitor_id) {
-				// Queued events from an older journey must not inherit the new SDK identity.
+				// Queued events from an older journey must not inherit the new visitor.
 				pending.length = 0;
 				state.observedVisitor = context.visitor_id;
 				emit('acquisition_visit');

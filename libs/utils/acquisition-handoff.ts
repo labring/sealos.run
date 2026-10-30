@@ -22,6 +22,7 @@ export type AcquisitionRuntime = {
 	cookie: string;
 	writeCookie: (value: string) => void;
 	consentUpdates: unknown[];
+	analyticsEnabled?: boolean;
 	randomId: () => string;
 };
 const VISITOR_KEY = 'sealos_acquisition_visitor_v1';
@@ -49,6 +50,7 @@ type ConsentReadState = {
 	lastEntry: unknown;
 	stored: string | null | undefined;
 	consent: AcquisitionConsent;
+	analyticsUpdated: boolean;
 };
 const consentReads = new WeakMap<unknown[], ConsentReadState>();
 function storedConsent(runtime: AcquisitionRuntime): string | null | undefined {
@@ -85,11 +87,13 @@ export function readAcquisitionConsent(runtime: AcquisitionRuntime): Acquisition
 		historyOnly = Boolean(state) || stored != null;
 		if (updatesFrom > queue.length) updatesFrom = 0;
 		// Persisted choices reset page state; old grants cannot undo a newer withdrawal.
+		const consent = initialConsent(stored);
 		state = {
 			cursor: historyOnly ? queue.length : 0,
 			lastEntry: queue.at(-1),
 			stored,
-			consent: initialConsent(stored),
+			consent,
+			analyticsUpdated: consent.analytics_storage !== 'unspecified',
 		};
 		consentReads.set(queue, state);
 	}
@@ -116,6 +120,7 @@ export function readAcquisitionConsent(runtime: AcquisitionRuntime): Acquisition
 			if (value === 'granted' || value === 'denied' || value === 'unspecified') {
 				if (historyOnly && value !== 'denied') continue;
 				state.consent[key] = value;
+				if (key === 'analytics_storage') state.analyticsUpdated = true;
 				updated = true;
 			}
 		}
@@ -133,7 +138,15 @@ export function readAcquisitionConsent(runtime: AcquisitionRuntime): Acquisition
 		}
 		state.stored = storedConsent(runtime);
 	}
-	return { ...state.consent };
+	// Domestic analytics follows the configured Rybbit policy, not a fabricated user choice.
+	// Explicit updates (including unspecified) and saved refusals always take precedence.
+	return {
+		...state.consent,
+		analytics_storage:
+			!state.analyticsUpdated && runtime.analyticsEnabled && officialDomain(runtime.href)
+				? 'granted'
+				: state.consent.analytics_storage,
+	};
 }
 export function setAcquisitionAnalyticsConsent(runtime: AcquisitionRuntime, allowed: boolean): AcquisitionConsent {
 	const consent = {
@@ -155,20 +168,48 @@ export function setAcquisitionAnalyticsConsent(runtime: AcquisitionRuntime, allo
 		lastEntry: runtime.consentUpdates.at(-1),
 		stored: storedConsent(runtime),
 		consent: { ...consent },
+		analyticsUpdated: true,
 	});
 	if (!allowed) clearIdentity(runtime);
 	return consent;
 }
 export function subscribeAcquisitionConsent(listener: () => void): () => void {
+	const runtimeWindow = window as Window & { dataLayer?: unknown[] };
+	runtimeWindow.dataLayer ||= [];
+	const queue = runtimeWindow.dataLayer;
+	const previousPush = queue.push;
+	let active = true;
+	let scheduled = false;
+	const push = function (this: unknown[], ...items: unknown[]) {
+		const length = previousPush.apply(this, items);
+		const hasUpdate = items.some((value) => {
+			const item: Record<string, unknown> | undefined =
+				object(value) || (Array.isArray(value) ? { 0: value[0], 1: value[1] } : undefined);
+			return (
+				item?.['event'] === 'sealos_consent_update' || (item?.['0'] === 'consent' && item?.['1'] === 'update')
+			);
+		});
+		if (active && this === queue && hasUpdate && !scheduled) {
+			scheduled = true;
+			queueMicrotask(() => {
+				scheduled = false;
+				if (active) listener();
+			});
+		}
+		return length;
+	};
+	queue.push = push;
 	const storage = (event: StorageEvent) => {
 		// Ignore source/visitor writes so cross-tab updates cannot cause a read/write loop.
 		if (event.key === CONSENT_KEY || event.key === null) listener();
 	};
-	window.addEventListener('sealos_consent_update', listener);
-	window.addEventListener('storage', storage);
+	runtimeWindow.addEventListener('sealos_consent_update', listener);
+	runtimeWindow.addEventListener('storage', storage);
 	return () => {
-		window.removeEventListener('sealos_consent_update', listener);
-		window.removeEventListener('storage', storage);
+		active = false;
+		if (queue.push === push) queue.push = previousPush;
+		runtimeWindow.removeEventListener('sealos_consent_update', listener);
+		runtimeWindow.removeEventListener('storage', storage);
 	};
 }
 function clearIdentity(runtime: AcquisitionRuntime, eraseCookie = true): void {
@@ -336,6 +377,7 @@ export function createBrowserAcquisitionRuntime(): AcquisitionRuntime {
 			document.cookie = value;
 		},
 		consentUpdates: runtimeWindow.dataLayer,
+		analyticsEnabled: Boolean(process.env['NEXT_PUBLIC_RYBBIT_HOST'] && process.env['NEXT_PUBLIC_RYBBIT_SITE_ID']),
 		randomId: () => crypto.randomUUID(),
 	};
 }

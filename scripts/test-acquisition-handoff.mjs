@@ -31,6 +31,54 @@ function browser() {
 const granted = (runtime) => api.setAcquisitionAnalyticsConsent(runtime, true);
 const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
 
+test('configured domestic analytics starts a fresh visitor without a manual consent event', () => {
+	const { runtime, values, cookies } = browser();
+	runtime.analyticsEnabled = true;
+	const first = api.readAcquisitionContext(runtime);
+	assert.equal(first.visitor_id, runtime.randomId());
+	assert.equal(first.consent.analytics_storage, 'granted');
+	assert.equal(first.consent.ad_storage, 'unspecified');
+	assert.equal(first.consent.ad_user_data, 'unspecified');
+	assert.equal(first.consent.ad_personalization, 'unspecified');
+	assert.equal(payload(cookies).visitor_id, first.visitor_id);
+	assert.equal(values.has('sealos_acquisition_consent_v1'), false, 'configuration is not a saved user choice');
+	runtime.href = 'https://sealos.run/downloads?utm_source=later';
+	assert.equal(api.readAcquisitionContext(runtime).visitor_id, first.visitor_id);
+	assert.equal(api.readAcquisitionContext(runtime).source.source, 'campaign');
+});
+
+test('configured domestic analytics never overrides denial or an explicit unspecified update', () => {
+	for (const decision of ['denied', 'unspecified']) {
+		const { runtime, values, cookies } = browser();
+		runtime.analyticsEnabled = true;
+		api.readAcquisitionContext(runtime);
+		runtime.consentUpdates.push(['consent', 'update', { analytics_storage: decision }]);
+		assert.equal(api.readAcquisitionContext(runtime).visitor_id, undefined);
+		assert.equal(api.readAcquisitionConsent(runtime).analytics_storage, decision);
+		assert.equal(values.has('sealos_acquisition_visitor_v1'), false);
+		if (decision === 'denied') assert.match(cookies.at(-1), /Max-Age=0$/);
+	}
+	const { runtime, values } = browser();
+	runtime.analyticsEnabled = true;
+	values.set('sealos_acquisition_consent_v1', JSON.stringify({ analytics_storage: 'denied' }));
+	assert.equal(api.readAcquisitionContext(runtime).visitor_id, undefined);
+});
+
+test('domestic automatic initialization requires a configured tracker and an official website origin', () => {
+	for (const href of [
+		'https://sealos.io/',
+		'https://hzh.sealos.run/',
+		'http://sealos.run/',
+		'https://sealos.run:3000/',
+	]) {
+		const { runtime, values } = browser();
+		runtime.analyticsEnabled = true;
+		runtime.href = href;
+		assert.equal(api.readAcquisitionContext(runtime).visitor_id, undefined);
+		assert.equal(values.size, 0);
+	}
+});
+
 test('no identity or source before consent; declined consent deletes stored linkage', () => {
 	const { runtime, values } = browser();
 	assert.deepEqual(api.readAcquisitionContext(runtime), {
@@ -125,6 +173,28 @@ test('cross-tab revocation also invalidates cached advertising permission', () =
 	assert.equal(renewed.consent.ad_user_data, 'unspecified');
 	assert.equal(renewed.consent.ad_storage, 'unspecified');
 	assert.equal(renewed.consent.ad_personalization, 'unspecified');
+});
+
+test('a real Data Layer denial withdraws configured domestic linkage without a manual DOM event', async () => {
+	const previousWindow = globalThis.window;
+	const target = new EventTarget();
+	const { runtime, cookies } = browser();
+	runtime.analyticsEnabled = true;
+	target.dataLayer = runtime.consentUpdates;
+	globalThis.window = target;
+	try {
+		api.readAcquisitionContext(runtime);
+		const originalPush = target.dataLayer.push;
+		const unsubscribe = api.subscribeAcquisitionConsent(() => api.readAcquisitionContext(runtime));
+		target.dataLayer.push(['consent', 'update', { analytics_storage: 'denied' }]);
+		await Promise.resolve();
+		assert.match(cookies.at(-1), /Max-Age=0$/);
+		unsubscribe();
+		assert.equal(target.dataLayer.push, originalPush);
+	} finally {
+		if (previousWindow === undefined) delete globalThis.window;
+		else globalThis.window = previousWindow;
+	}
 });
 
 test('consent subscriptions ignore source and visitor storage writes and detach cleanly', () => {
@@ -276,8 +346,9 @@ test('unknown permission does not erase an existing root-domain journey before a
 
 // Exercise the installed observer: consent and SDK readiness can arrive in either order.
 const observerSource = await readFile('libs/components/AcquisitionObserver.tsx', 'utf8');
-function observerHarness() {
+function observerHarness(prepare = () => {}) {
 	const { runtime, cookies } = browser();
+	prepare(runtime);
 	const target = new EventTarget();
 	const document = new EventTarget();
 	const calls = [];
@@ -324,7 +395,9 @@ function observerHarness() {
 			api.setAcquisitionAnalyticsConsent(runtime, allowed);
 			target.dispatchEvent(new Event('sealos_consent_update'));
 		},
-		ready: (notify = true) => {
+		identity: () => identified,
+		ready: (notify = true, accountId) => {
+			identified = accountId;
 			target.rybbit = {
 				identify: (id) => {
 					identified = id;
@@ -344,6 +417,81 @@ function observerHarness() {
 		cleanup: () => cleanup(),
 	};
 }
+test('website visitor UUID never becomes an identified account or overwrites an existing account', () => {
+	for (const account of [undefined, 'account-uid']) {
+		const h = observerHarness((runtime) => {
+			runtime.analyticsEnabled = true;
+		});
+		h.ready(true, account);
+		h.download();
+		assert.equal(h.identity(), account);
+		assert.equal(
+			h.calls.some((entry) => ['identify', 'clearUserId'].includes(entry.name)),
+			false,
+		);
+		assert.equal(h.calls[0].properties.visitor_id, payload(h.cookies).visitor_id);
+		h.consent(false);
+		assert.equal(h.identity(), account);
+		assert.equal(
+			h.calls.some((entry) => ['identify', 'clearUserId'].includes(entry.name)),
+			false,
+		);
+		h.cleanup();
+	}
+});
+test('a fresh configured Rybbit journey writes its Cookie before SDK load and flushes the same visitor', () => {
+	const h = observerHarness((runtime) => {
+		runtime.analyticsEnabled = true;
+	});
+	const visitor = payload(h.cookies).visitor_id;
+	h.download();
+	assert.equal(h.calls.length, 0);
+	h.ready();
+	assert.deepEqual(
+		h.calls.map((entry) => entry.name),
+		['acquisition_visit', 'download_click'],
+	);
+	assert.equal(h.calls[0].properties.visitor_id, visitor);
+	assert.equal(h.calls[1].properties.visitor_id, visitor);
+	h.consent(false);
+	h.download();
+	assert.deepEqual(
+		h.calls.map((entry) => entry.name),
+		['acquisition_visit', 'download_click'],
+	);
+	assert.match(h.cookies.at(-1), /Max-Age=0$/);
+	h.cleanup();
+});
+
+test('browser initialization enables domestic linkage only when both actual build settings exist', () => {
+	const previousWindow = globalThis.window;
+	const previousDocument = globalThis.document;
+	const previousHost = process.env.NEXT_PUBLIC_RYBBIT_HOST;
+	const previousSite = process.env.NEXT_PUBLIC_RYBBIT_SITE_ID;
+	globalThis.window = { location: { href: 'https://sealos.run/' }, dataLayer: [] };
+	globalThis.document = { referrer: '', cookie: '' };
+	try {
+		for (const [host, siteId, enabled] of [
+			['https://analytics.example', 'test-site', true],
+			['', 'test-site', false],
+			['https://analytics.example', '', false],
+		]) {
+			process.env.NEXT_PUBLIC_RYBBIT_HOST = host;
+			process.env.NEXT_PUBLIC_RYBBIT_SITE_ID = siteId;
+			assert.equal(api.createBrowserAcquisitionRuntime().analyticsEnabled, enabled);
+		}
+	} finally {
+		if (previousWindow === undefined) delete globalThis.window;
+		else globalThis.window = previousWindow;
+		if (previousDocument === undefined) delete globalThis.document;
+		else globalThis.document = previousDocument;
+		if (previousHost === undefined) delete process.env.NEXT_PUBLIC_RYBBIT_HOST;
+		else process.env.NEXT_PUBLIC_RYBBIT_HOST = previousHost;
+		if (previousSite === undefined) delete process.env.NEXT_PUBLIC_RYBBIT_SITE_ID;
+		else process.env.NEXT_PUBLIC_RYBBIT_SITE_ID = previousSite;
+	}
+});
+
 test('consented visit and direct download queue until the existing Rybbit SDK is ready', () => {
 	const h = observerHarness();
 	h.consent(true);
@@ -352,13 +500,13 @@ test('consented visit and direct download queue until the existing Rybbit SDK is
 	h.ready();
 	assert.deepEqual(
 		h.calls.map((entry) => entry.name),
-		['identify', 'acquisition_visit', 'download_click'],
+		['acquisition_visit', 'download_click'],
 	);
 	const saved = payload(h.cookies);
-	assert.equal(h.calls[0].id, saved.visitor_id);
-	assert.equal(h.calls[2].properties.visitor_id, saved.visitor_id);
-	assert.equal(h.calls[2].properties.surface, 'website');
-	assert.equal(h.calls[2].properties.source, 'campaign');
+	assert.equal(h.calls[0].properties.visitor_id, saved.visitor_id);
+	assert.equal(h.calls[1].properties.visitor_id, saved.visitor_id);
+	assert.equal(h.calls[1].properties.surface, 'website');
+	assert.equal(h.calls[1].properties.source, 'campaign');
 	h.cleanup();
 });
 test('revocation before SDK readiness discards both queued visit and download events', () => {
@@ -373,7 +521,7 @@ test('revocation before SDK readiness discards both queued visit and download ev
 	h.cleanup();
 });
 
-test('withdrawal after Rybbit identify clears the SDK persistent identity and stops subsequent events', () => {
+test('withdrawal clears acquisition state and stops subsequent website events without owning account identity', () => {
 	const h = observerHarness();
 	h.consent(true);
 	h.ready();
@@ -381,7 +529,7 @@ test('withdrawal after Rybbit identify clears the SDK persistent identity and st
 	h.download();
 	assert.deepEqual(
 		h.calls.map((entry) => entry.name),
-		['identify', 'acquisition_visit', 'clearUserId'],
+		['acquisition_visit'],
 	);
 	assert.match(h.cookies.at(-1), /Max-Age=0$/);
 	h.cleanup();
@@ -586,7 +734,7 @@ test('local first touch remains available for the same shared visitor or when no
 	}
 });
 
-test('SDK-late queue cannot send an old journey A after identifying shared journey B', () => {
+test('SDK-late queue cannot send an old journey A after adopting shared journey B', () => {
 	const h = observerHarness();
 	h.consent(true);
 	h.download();
@@ -596,11 +744,10 @@ test('SDK-late queue cannot send an old journey A after identifying shared journ
 	h.ready();
 	assert.deepEqual(
 		h.calls.map((entry) => entry.name),
-		['identify', 'acquisition_visit'],
+		['acquisition_visit'],
 	);
-	assert.equal(h.calls[0].id, visitor);
-	assert.equal(h.calls[1].properties.visitor_id, visitor);
-	assert.equal(h.calls[1].properties.source, 'fresh-www');
+	assert.equal(h.calls[0].properties.visitor_id, visitor);
+	assert.equal(h.calls[0].properties.source, 'fresh-www');
 	h.cleanup();
 });
 
@@ -645,10 +792,9 @@ test('direct download flush drops old journey A when SDK becomes available witho
 	h.download();
 	assert.deepEqual(
 		h.calls.map((entry) => entry.name),
-		['identify', 'download_click'],
+		['download_click'],
 	);
-	assert.equal(h.calls[0].id, visitor);
-	assert.equal(h.calls[1].properties.visitor_id, visitor);
-	assert.equal(h.calls[1].properties.source, 'fresh-www');
+	assert.equal(h.calls[0].properties.visitor_id, visitor);
+	assert.equal(h.calls[0].properties.source, 'fresh-www');
 	h.cleanup();
 });
