@@ -395,7 +395,9 @@ function observerHarness(prepare = () => {}) {
 			api.setAcquisitionAnalyticsConsent(runtime, allowed);
 			target.dispatchEvent(new Event('sealos_consent_update'));
 		},
-		ready: (notify = true) => {
+		identity: () => identified,
+		ready: (notify = true, accountId) => {
+			identified = accountId;
 			target.rybbit = {
 				identify: (id) => {
 					identified = id;
@@ -415,6 +417,28 @@ function observerHarness(prepare = () => {}) {
 		cleanup: () => cleanup(),
 	};
 }
+test('website visitor UUID never becomes an identified account or overwrites an existing account', () => {
+	for (const account of [undefined, 'account-uid']) {
+		const h = observerHarness((runtime) => {
+			runtime.analyticsEnabled = true;
+		});
+		h.ready(true, account);
+		h.download();
+		assert.equal(h.identity(), account);
+		assert.equal(
+			h.calls.some((entry) => ['identify', 'clearUserId'].includes(entry.name)),
+			false,
+		);
+		assert.equal(h.calls[0].properties.visitor_id, payload(h.cookies).visitor_id);
+		h.consent(false);
+		assert.equal(h.identity(), account);
+		assert.equal(
+			h.calls.some((entry) => ['identify', 'clearUserId'].includes(entry.name)),
+			false,
+		);
+		h.cleanup();
+	}
+});
 test('a fresh configured Rybbit journey writes its Cookie before SDK load and flushes the same visitor', () => {
 	const h = observerHarness((runtime) => {
 		runtime.analyticsEnabled = true;
@@ -425,16 +449,15 @@ test('a fresh configured Rybbit journey writes its Cookie before SDK load and fl
 	h.ready();
 	assert.deepEqual(
 		h.calls.map((entry) => entry.name),
-		['identify', 'acquisition_visit', 'download_click'],
+		['acquisition_visit', 'download_click'],
 	);
-	assert.equal(h.calls[0].id, visitor);
+	assert.equal(h.calls[0].properties.visitor_id, visitor);
 	assert.equal(h.calls[1].properties.visitor_id, visitor);
-	assert.equal(h.calls[2].properties.visitor_id, visitor);
 	h.consent(false);
 	h.download();
 	assert.deepEqual(
 		h.calls.map((entry) => entry.name),
-		['identify', 'acquisition_visit', 'download_click', 'clearUserId'],
+		['acquisition_visit', 'download_click'],
 	);
 	assert.match(h.cookies.at(-1), /Max-Age=0$/);
 	h.cleanup();
@@ -477,13 +500,13 @@ test('consented visit and direct download queue until the existing Rybbit SDK is
 	h.ready();
 	assert.deepEqual(
 		h.calls.map((entry) => entry.name),
-		['identify', 'acquisition_visit', 'download_click'],
+		['acquisition_visit', 'download_click'],
 	);
 	const saved = payload(h.cookies);
-	assert.equal(h.calls[0].id, saved.visitor_id);
-	assert.equal(h.calls[2].properties.visitor_id, saved.visitor_id);
-	assert.equal(h.calls[2].properties.surface, 'website');
-	assert.equal(h.calls[2].properties.source, 'campaign');
+	assert.equal(h.calls[0].properties.visitor_id, saved.visitor_id);
+	assert.equal(h.calls[1].properties.visitor_id, saved.visitor_id);
+	assert.equal(h.calls[1].properties.surface, 'website');
+	assert.equal(h.calls[1].properties.source, 'campaign');
 	h.cleanup();
 });
 test('revocation before SDK readiness discards both queued visit and download events', () => {
@@ -498,7 +521,7 @@ test('revocation before SDK readiness discards both queued visit and download ev
 	h.cleanup();
 });
 
-test('withdrawal after Rybbit identify clears the SDK persistent identity and stops subsequent events', () => {
+test('withdrawal clears acquisition state and stops subsequent website events without owning account identity', () => {
 	const h = observerHarness();
 	h.consent(true);
 	h.ready();
@@ -506,7 +529,7 @@ test('withdrawal after Rybbit identify clears the SDK persistent identity and st
 	h.download();
 	assert.deepEqual(
 		h.calls.map((entry) => entry.name),
-		['identify', 'acquisition_visit', 'clearUserId'],
+		['acquisition_visit'],
 	);
 	assert.match(h.cookies.at(-1), /Max-Age=0$/);
 	h.cleanup();
@@ -711,7 +734,7 @@ test('local first touch remains available for the same shared visitor or when no
 	}
 });
 
-test('SDK-late queue cannot send an old journey A after identifying shared journey B', () => {
+test('SDK-late queue cannot send an old journey A after adopting shared journey B', () => {
 	const h = observerHarness();
 	h.consent(true);
 	h.download();
@@ -721,11 +744,10 @@ test('SDK-late queue cannot send an old journey A after identifying shared journ
 	h.ready();
 	assert.deepEqual(
 		h.calls.map((entry) => entry.name),
-		['identify', 'acquisition_visit'],
+		['acquisition_visit'],
 	);
-	assert.equal(h.calls[0].id, visitor);
-	assert.equal(h.calls[1].properties.visitor_id, visitor);
-	assert.equal(h.calls[1].properties.source, 'fresh-www');
+	assert.equal(h.calls[0].properties.visitor_id, visitor);
+	assert.equal(h.calls[0].properties.source, 'fresh-www');
 	h.cleanup();
 });
 
@@ -770,10 +792,9 @@ test('direct download flush drops old journey A when SDK becomes available witho
 	h.download();
 	assert.deepEqual(
 		h.calls.map((entry) => entry.name),
-		['identify', 'download_click'],
+		['download_click'],
 	);
-	assert.equal(h.calls[0].id, visitor);
-	assert.equal(h.calls[1].properties.visitor_id, visitor);
-	assert.equal(h.calls[1].properties.source, 'fresh-www');
+	assert.equal(h.calls[0].properties.visitor_id, visitor);
+	assert.equal(h.calls[0].properties.source, 'fresh-www');
 	h.cleanup();
 });
