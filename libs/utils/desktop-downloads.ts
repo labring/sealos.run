@@ -10,7 +10,7 @@ export type DesktopDownloadKey = 'macArm64' | 'macX64' | 'windows';
 
 export type DesktopDownloads = Partial<Record<DesktopDownloadKey, string>>;
 
-const MANIFEST_REVALIDATE_SECONDS = 3600;
+const MANIFEST_REVALIDATE_SECONDS = 300;
 
 // Manifest file entries live on their own line, e.g.
 // `  - url: releases/0.9.13/Sealos-Desktop-Preview-0.9.13-mac-arm64.dmg`.
