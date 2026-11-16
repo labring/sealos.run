@@ -1,3 +1,5 @@
+import { isDesktopInstallerUrl } from './desktop-download-feed';
+
 export type ConsentValue = 'granted' | 'denied' | 'unspecified';
 export type AcquisitionConsent = Record<
 	'analytics_storage' | 'ad_storage' | 'ad_user_data' | 'ad_personalization',
@@ -306,22 +308,96 @@ function officialDomain(href: string, domains: readonly string[] = OFFICIAL_DOMA
 		return false;
 	}
 }
+export function encodeAcquisitionCookie(context: AcquisitionContext): string {
+	if (!context.visitor_id) return '';
+	const payload = { ...context };
+	if (new TextEncoder().encode(JSON.stringify(payload)).length > 1800) delete payload.source;
+	return base64url(JSON.stringify(payload));
+}
+export function acquisitionCookieHeader(value: string): string {
+	return `${ACQUISITION_COOKIE}=${value}; Domain=${COOKIE_DOMAIN}; Path=/; Secure; SameSite=Lax; Max-Age=${value ? 2592000 : 0}`;
+}
 function writeSharedCookie(runtime: AcquisitionRuntime, context?: AcquisitionContext): void {
 	// A sealos.cn page cannot set a Domain=sealos.run cookie; the console contract stays on the legacy domain.
 	if (!officialDomain(runtime.href, [COOKIE_DOMAIN, `www.${COOKIE_DOMAIN}`])) return;
 	try {
-		let value = '';
-		if (context?.visitor_id) {
-			const payload = { ...context };
-			if (new TextEncoder().encode(JSON.stringify(payload)).length > 1800) delete payload.source;
-			value = base64url(JSON.stringify(payload));
-		}
-		runtime.writeCookie(
-			`${ACQUISITION_COOKIE}=${value}; Domain=${COOKIE_DOMAIN}; Path=/; Secure; SameSite=Lax; Max-Age=${value ? 2592000 : 0}`,
-		);
+		runtime.writeCookie(acquisitionCookieHeader(context ? encodeAcquisitionCookie(context) : ''));
 	} catch {
 		/* Cookie blocking cannot interrupt navigation. */
 	}
+}
+export const ACQUISITION_HANDOFF_URL = 'https://sealos.run/api/acquisition/handoff';
+/**
+ * Route a sealos.cn download through sealos.run so the response can write the
+ * shared acquisition Cookie before redirecting to the installer. Returns
+ * undefined when the click should keep the ordinary direct link.
+ */
+export function buildAcquisitionHandoffUrl(context: AcquisitionContext, installerUrl: string): string | undefined {
+	if (!isDesktopInstallerUrl(installerUrl)) return undefined;
+	const params = new URLSearchParams();
+	if (context.visitor_id) {
+		params.set('vid', context.visitor_id);
+		if (context.source) {
+			if (context.source.source) params.set('source', context.source.source);
+			if (context.source.medium) params.set('medium', context.source.medium);
+			if (context.source.campaign) params.set('campaign', context.source.campaign);
+		}
+	} else if (context.consent.analytics_storage === 'denied') {
+		params.set('clear', '1');
+	} else {
+		return undefined;
+	}
+	params.set('to', installerUrl);
+	return `${ACQUISITION_HANDOFF_URL}?${params.toString()}`;
+}
+/**
+ * Validate a handoff request and decide the redirect. The shared Cookie is
+ * only written when the request reaches this service on the sealos.run host;
+ * on any other host the installer redirect still applies without a Cookie.
+ */
+export function resolveAcquisitionHandoff(
+	requestUrl: string,
+	host: string | null,
+): { status: 302; location: string; setCookie?: string } | { status: 400 } {
+	let url: URL;
+	try {
+		url = new URL(requestUrl);
+	} catch {
+		return { status: 400 };
+	}
+	const to = url.searchParams.get('to') ?? '';
+	if (!isDesktopInstallerUrl(to)) return { status: 400 };
+	if (host !== 'sealos.run') return { status: 302, location: to };
+	if (url.searchParams.get('clear') === '1')
+		return { status: 302, location: to, setCookie: acquisitionCookieHeader('') };
+	const visitor = url.searchParams.get('vid');
+	if (visitor && UUID.test(visitor)) {
+		const context: AcquisitionContext = {
+			version: 1,
+			realm: 'china',
+			visitor_id: visitor,
+			consent: {
+				analytics_storage: 'granted',
+				ad_storage: 'unspecified',
+				ad_user_data: 'unspecified',
+				ad_personalization: 'unspecified',
+			},
+		};
+		const source = label(url.searchParams.get('source'));
+		if (source) {
+			context.source = {
+				source,
+				medium: label(url.searchParams.get('medium')),
+				campaign: label(url.searchParams.get('campaign')),
+			};
+		}
+		return {
+			status: 302,
+			location: to,
+			setCookie: acquisitionCookieHeader(encodeAcquisitionCookie(context)),
+		};
+	}
+	return { status: 302, location: to };
 }
 export function readAcquisitionContext(runtime: AcquisitionRuntime): AcquisitionContext {
 	const consent = readAcquisitionConsent(runtime);
