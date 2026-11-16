@@ -64,12 +64,29 @@ test('configured domestic analytics never overrides denial or an explicit unspec
 	assert.equal(api.readAcquisitionContext(runtime).visitor_id, undefined);
 });
 
+test('configured domestic analytics also activates on the sealos.cn marketing domain without writing the legacy Cookie', () => {
+	for (const href of ['https://sealos.cn/downloads', 'https://www.sealos.cn/downloads']) {
+		const { runtime, values, cookies } = browser();
+		runtime.analyticsEnabled = true;
+		runtime.href = href;
+		const context = api.readAcquisitionContext(runtime);
+		assert.equal(context.visitor_id, runtime.randomId());
+		assert.equal(context.consent.analytics_storage, 'granted');
+		assert.equal(cookies.length, 0, `${href} cannot set a Domain=sealos.run cookie`);
+		assert.equal(values.has('sealos_acquisition_consent_v1'), false);
+	}
+});
+
 test('domestic automatic initialization requires a configured tracker and an official website origin', () => {
 	for (const href of [
 		'https://sealos.io/',
 		'https://hzh.sealos.run/',
+		'https://tenant.sealos.cn/',
+		'https://sealos.cn.attacker.test/',
 		'http://sealos.run/',
+		'http://sealos.cn/',
 		'https://sealos.run:3000/',
+		'https://sealos.cn:3000/',
 	]) {
 		const { runtime, values } = browser();
 		runtime.analyticsEnabled = true;
@@ -288,11 +305,13 @@ test('official root/www Cookie shares a bounded UTF-8 visitor snapshot for conso
 	assert.equal(api.readAcquisitionContext(other).visitor_id, context.visitor_id);
 	assert.equal(payload(more).source.source, '搜索');
 });
-test('tenant, lookalike, insecure and development hosts cannot write shared Cookie', () => {
+test('tenant, lookalike, insecure, development and new-domain hosts cannot write shared Cookie', () => {
 	for (const host of [
 		'https://hzh.sealos.run',
 		'https://tenant.sealos.run',
 		'https://sealos.run.attacker.test',
+		'https://sealos.cn',
+		'https://www.sealos.cn',
 		'http://sealos.run',
 		'https://sealos.run:3000',
 	]) {

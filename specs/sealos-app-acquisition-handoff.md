@@ -8,9 +8,9 @@ sealos.run 匿名访问 → 根据已配置的国内 Rybbit 启用访客关联 �
 
 ## 官网契约
 
-- 国内官网在两个 Rybbit 构建参数均已配置、且当前页面为 HTTPS sealos.run / www.sealos.run 标准端口时，默认启用本功能的统计关联。此时有效 analytics_storage=granted，生成或复用随机 UUID visitor_id，并持久化首次来源；不必等待 SDK 加载完成或手动发出许可事件。这个国内部署策略不保存为用户同意记录，不新增提示或复选框，也不授予广告权限。已有拒绝和新收到的明确许可更新（包括 unspecified）优先于部署默认；缺少 Rybbit 配置时仍不自动关联。海外不使用这条默认策略。
+- 国内官网在两个 Rybbit 构建参数均已配置、且当前页面为 HTTPS sealos.run / www.sealos.run / sealos.cn / www.sealos.cn 标准端口时，默认启用本功能的统计关联。此时有效 analytics_storage=granted，生成或复用随机 UUID visitor_id，并持久化首次来源；不必等待 SDK 加载完成或手动发出许可事件。这个国内部署策略不保存为用户同意记录，不新增提示或复选框，也不授予广告权限。已有拒绝和新收到的明确许可更新（包括 unspecified）优先于部署默认；缺少 Rybbit 配置时仍不自动关联。海外不使用这条默认策略。
 - sealos_acquisition_v1 是无 padding 的 UTF-8 JSON Base64URL。只写 version=1、realm=china、visitor_id、四项 consent，以及可选 source；不写账号 token、userUid、平台别名或 sea_attr。旧 Cookie 带有多余字段时，只复用有效访客和来源，不重新保存额外字段。
-- 只允许 HTTPS sealos.run / www.sealos.run 写入：Domain=sealos.run; Path=/; Secure; SameSite=Lax; Max-Age=2592000。控制台和租户子域不写这个 Cookie。解码内容最多 1800 UTF-8 字节；超出预算时省略 source，保留核心标识和同意状态。
+- 只允许 HTTPS sealos.run / www.sealos.run 写入：Domain=sealos.run; Path=/; Secure; SameSite=Lax; Max-Age=2592000。控制台和租户子域不写这个 Cookie；sealos.cn 页面也不写（跨 TLD 无法设置 Domain=sealos.run）。解码内容最多 1800 UTF-8 字节；超出预算时省略 source，保留核心标识和同意状态。
 - 有效共享 Cookie 优先决定当前访客和首触；仅当本地 visitor_id 相同才允许用本地首触补全。没有有效共享 Cookie 时仍可复用本地访客；这不是跨源撤回同步。
 - source 只保留首触的 source、medium、campaign 三个标签，各最多 100 字符，拒绝 email、电话式长数字、控制字符和 URL。referrer 仅可瞬时解析 hostname 推导 source；Cookie 和本功能 localStorage 均不保存落地 URL、referrer URL 或 timestamp。旧 Cookie/首触副本重写时也只抽取三个标签。来源缺失时仍可关联，来源统计显示 direct 或未知。
 - 官网通过已有 Rybbit 发送 acquisition_visit / download_click，带 visitor_id、surface=website、source。visitor_id 仅是 Cookie/事件的关联键，绝不传入 identify，也不覆盖或清除 SDK 已有账号身份。首次账号 identify 由控制台在验证真实 userUid 后执行，App 登录后也使用相同 userUid；否则先 identify 访客 UUID 会将匿名历史提前归属为另一个已识别用户，后续切换账号 ID 不会重新回填这段历史。SDK 迟到时最多排队 32 个事件；共享访客变化时丢弃旧旅程队列；实际 flush 发送处只发送 visitor_id 与当前有效访客相同的项。Observer 负责及时更新 Cookie，SDK-ready 事件负责恢复发送。

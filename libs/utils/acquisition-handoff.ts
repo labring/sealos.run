@@ -31,6 +31,7 @@ const CONSENT_KEY = 'sealos_acquisition_consent_v1';
 const CONSENT_FIELDS = ['analytics_storage', 'ad_storage', 'ad_user_data', 'ad_personalization'] as const;
 export const ACQUISITION_COOKIE = 'sealos_acquisition_v1';
 const COOKIE_DOMAIN = 'sealos.run';
+const OFFICIAL_DOMAINS = ['sealos.run', 'www.sealos.run', 'sealos.cn', 'www.sealos.cn'];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function readJson(runtime: AcquisitionRuntime, key: string): unknown {
@@ -297,16 +298,17 @@ function sharedContext(runtime: AcquisitionRuntime): Record<string, unknown> | u
 		return undefined;
 	}
 }
-function officialDomain(href: string): boolean {
+function officialDomain(href: string, domains: readonly string[] = OFFICIAL_DOMAINS): boolean {
 	try {
 		const url = new URL(href);
-		return url.protocol === 'https:' && [COOKIE_DOMAIN, `www.${COOKIE_DOMAIN}`].includes(url.hostname) && !url.port;
+		return url.protocol === 'https:' && domains.includes(url.hostname) && !url.port;
 	} catch {
 		return false;
 	}
 }
 function writeSharedCookie(runtime: AcquisitionRuntime, context?: AcquisitionContext): void {
-	if (!officialDomain(runtime.href)) return;
+	// A sealos.cn page cannot set a Domain=sealos.run cookie; the console contract stays on the legacy domain.
+	if (!officialDomain(runtime.href, [COOKIE_DOMAIN, `www.${COOKIE_DOMAIN}`])) return;
 	try {
 		let value = '';
 		if (context?.visitor_id) {
