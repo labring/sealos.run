@@ -66,7 +66,7 @@ export function NavbarClient({ links, className, headerHeight = 64, desktopBreak
 										aria-expanded={isOpen}
 										onClick={() => setOpenedPanel(isOpen ? '' : item.href)}
 										className={cn(
-											'h-auto rounded-md bg-transparent px-5 py-2 text-sm font-normal transition-colors',
+											'h-auto rounded-md bg-transparent px-3 py-2 text-sm font-normal transition-colors xl:px-5',
 											isOpen
 												? 'bg-accent/50 text-accent-foreground'
 												: 'hover:bg-accent hover:text-accent-foreground',
@@ -84,7 +84,7 @@ export function NavbarClient({ links, className, headerHeight = 64, desktopBreak
 									href={item.href}
 									aria-current={pathname === item.href ? 'page' : undefined}
 									className={cn(
-										'hover:bg-accent hover:text-accent-foreground inline-flex h-auto rounded-md bg-transparent px-5 py-2 text-sm font-normal transition-colors',
+										'hover:bg-accent hover:text-accent-foreground inline-flex h-auto rounded-md bg-transparent px-3 py-2 text-sm font-normal transition-colors xl:px-5',
 										pathname === item.href && 'text-blue-600',
 									)}
 								>
