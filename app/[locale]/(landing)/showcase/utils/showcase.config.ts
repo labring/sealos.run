@@ -12,16 +12,12 @@ export type ShowcaseProject = {
 	author: string;
 	avatar: string;
 	role: string;
-	platform: string;
-	reach: string;
-	/** Link to the creator's social post; the "看原帖" button is hidden while null. */
-	postUrl: string | null;
 	prompt: string;
 	highlights: readonly { title: string; detail: string }[];
 };
 
-// TODO(待确认): 以下 6 个作品是 UI 原型里的示例数据（项目、作者、阅读量、线上地址均为虚构），
-// 封面图是 AI 生成的示意界面。上线前必须整体替换为真实入选项目：补全 url 与 postUrl，
+// TODO(待确认): 以下 6 个作品是 UI 原型里的示例数据（项目、作者、线上地址均为虚构），
+// 封面图是 AI 生成的示意界面。上线前必须整体替换为真实入选项目和站内作者信息，
 // 并把 assets/ 下的封面换成各项目的真实截图（3:2，建议 1200×800 的 webp）。
 export const showcaseProjects: readonly ShowcaseProject[] = [
 	{
@@ -33,9 +29,6 @@ export const showcaseProjects: readonly ShowcaseProject[] = [
 		author: '林深',
 		avatar: '林',
 		role: '独立开发者',
-		platform: '小红书',
-		reach: '2.4w 阅读',
-		postUrl: null,
 		prompt: '把本地修图项目上线，自动开通对象存储桶存客片原图、接入 AI 网关并绑定公网域名。',
 		highlights: [
 			{ title: '批量精修台', detail: '0.8 秒/张极速出片' },
@@ -52,9 +45,6 @@ export const showcaseProjects: readonly ShowcaseProject[] = [
 		author: '阿泽',
 		avatar: '泽',
 		role: '全栈工程师',
-		platform: 'B站',
-		reach: '3.1w 播放',
-		postUrl: null,
 		prompt: '一键拉起带 pgvector 向量插件的 PostgreSQL，配置大模型网关并发布线上服务。',
 		highlights: [
 			{ title: '模块拓扑图', detail: '秒级定位核心入口' },
@@ -71,9 +61,6 @@ export const showcaseProjects: readonly ShowcaseProject[] = [
 		author: 'Mia',
 		avatar: 'M',
 		role: '播客主理人',
-		platform: '小红书',
-		reach: '1.2w 阅读',
-		postUrl: null,
 		prompt: '将 Cursor 写好的播客解析工具打包上线，自动挂载 Redis 转写队列与持久化存储。',
 		highlights: [
 			{ title: '高光金句抓', detail: '12 秒提取核心段落' },
@@ -90,9 +77,6 @@ export const showcaseProjects: readonly ShowcaseProject[] = [
 		author: '老周',
 		avatar: '周',
 		role: '数字化顾问',
-		platform: '公众号',
-		reach: '5,600 阅读',
-		postUrl: null,
 		prompt: '对话生成手机端扫码巡检表单，自动初始化 PostgreSQL 表结构与企微机器人告警。',
 		highlights: [
 			{ title: '铭牌拍照建档', detail: '告别纸质手抄台账' },
@@ -109,9 +93,6 @@ export const showcaseProjects: readonly ShowcaseProject[] = [
 		author: '星夜',
 		avatar: '星',
 		role: '产品设计师',
-		platform: '小红书',
-		reach: '4,800 阅读',
-		postUrl: null,
 		prompt: '全程在 Sealos Desktop 对话生成前后端并自动注入 AI 网关，10 分钟拿到公网链接。',
 		highlights: [
 			{ title: '丝滑翻牌动效', detail: '完美适配手机端' },
@@ -128,9 +109,6 @@ export const showcaseProjects: readonly ShowcaseProject[] = [
 		author: '言午',
 		avatar: '言',
 		role: '独立设计师',
-		platform: '知乎',
-		reach: '3,600 阅读',
-		postUrl: null,
 		prompt: '本地前端写完丢给桌面端，3 分钟自动跑通 PostgreSQL 数据库与正式 HTTPS 域名。',
 		highlights: [
 			{ title: '清晰报价清单', detail: '支持多币种切换' },
@@ -146,9 +124,7 @@ export const bountyTracks = [
 	{ id: 'deep', label: '小红书 / B站 / 公众号 / 知乎' },
 	{ id: 'short', label: '抖音 / 视频号 / X' },
 ] as const;
-
 export type BountyTrack = (typeof bountyTracks)[number]['id'];
-
 export const bountyTiers: readonly {
 	level: string;
 	amount: string;
@@ -161,16 +137,8 @@ export const bountyTiers: readonly {
 		amount: '+¥58',
 		requirement: { deep: '3,000 阅读 · 30 互动', short: '6,000 播放 · 30 互动' },
 	},
-	{
-		level: 'Lv.2 热门',
-		amount: '+¥188',
-		requirement: { deep: '1w 阅读 · 100 互动', short: '2w 播放 · 100 互动' },
-	},
-	{
-		level: 'Lv.3 爆款',
-		amount: '+¥588',
-		requirement: { deep: '3w 阅读 · 300 互动', short: '6w 播放 · 300 互动' },
-	},
+	{ level: 'Lv.2 热门', amount: '+¥188', requirement: { deep: '1w 阅读 · 100 互动', short: '2w 播放 · 100 互动' } },
+	{ level: 'Lv.3 爆款', amount: '+¥588', requirement: { deep: '3w 阅读 · 300 互动', short: '6w 播放 · 300 互动' } },
 	{
 		level: 'Lv.4 破圈',
 		amount: '+¥1,888',
@@ -181,6 +149,6 @@ export const bountyTiers: readonly {
 
 export const showcaseLinks: { download: string; submitForm: string | null } = {
 	download: '/downloads',
-	// TODO(待确认): 填入飞书投稿表单链接。为 null 时页面不显示「提交作品」按钮。
+	// TODO(待确认): 填入飞书投稿表单链接并接通报名入口。
 	submitForm: null,
 };

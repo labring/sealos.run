@@ -74,15 +74,6 @@ export default async function ShowcaseProjectPage({ params }: PageProps) {
 						>
 							打开线上产品
 						</LandingOutlineButton>
-						{project.postUrl && (
-							<LandingOutlineButton
-								href={project.postUrl}
-								target='_blank'
-								rel='noreferrer'
-							>
-								看创作者原帖
-							</LandingOutlineButton>
-						)}
 					</div>
 
 					<Image
@@ -131,9 +122,7 @@ export default async function ShowcaseProjectPage({ params }: PageProps) {
 						</span>
 						<div className='min-w-0'>
 							<p className='font-medium'>@{project.author}</p>
-							<p className='text-muted-foreground mt-1 text-sm'>
-								{project.role} · {project.platform} {project.reach}
-							</p>
+							<p className='text-muted-foreground mt-1 text-sm'>{project.role}</p>
 						</div>
 					</div>
 					<ProjectVotePanel

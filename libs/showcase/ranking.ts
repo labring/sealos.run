@@ -30,3 +30,14 @@ export function votesToPodium(
 	}
 	return third.votes - project.votes + 1;
 }
+
+/**
+ * Vote gap shown on the podium: the leader's lead over second place, or how far
+ * any other rank trails the rank directly above it. Null without a neighbour.
+ */
+export function podiumGap(ranked: readonly { votes: number }[], rank: number): number | null {
+	const self = ranked[rank - 1];
+	const other = ranked[rank === 1 ? 1 : rank - 2];
+	if (!self || !other) return null;
+	return Math.abs(other.votes - self.votes);
+}

@@ -10,13 +10,13 @@ function describeStanding(ranked: readonly Ranked<ShowcaseProject>[], project: R
 	const leader = ranked[0];
 	const third = ranked[PODIUM_SIZE - 1];
 	if (project.rank > PODIUM_SIZE && third) {
-		return `再得 ${third.votes - project.votes + 1} 赞进入前三`;
+		return `再得 ${third.votes - project.votes + 1} 票进入前三`;
 	}
 	if (project.rank === 1) {
 		const lead = project.votes - (ranked[1]?.votes ?? 0);
-		return lead > 0 ? `目前排名第一，领先第 2 名 ${lead} 赞` : '目前排名第一';
+		return lead > 0 ? `目前排名第一，领先第 2 名 ${lead} 票` : '目前排名第一';
 	}
-	return leader ? `已进入前三，距第一名还差 ${leader.votes - project.votes + 1} 赞` : '';
+	return leader ? `已进入前三，距第一名还差 ${leader.votes - project.votes + 1} 票` : '';
 }
 
 type ProjectVotePanelProps = {
@@ -49,7 +49,7 @@ export function ProjectVotePanel({ projectId, initialSnapshot }: ProjectVotePane
 					<div className='flex items-baseline justify-between gap-4'>
 						<p>
 							<span className='text-5xl font-semibold tabular-nums'>{project.votes}</span>
-							<span className='text-muted-foreground ml-2'>赞</span>
+							<span className='text-muted-foreground ml-2'>票</span>
 						</p>
 						<span className='text-muted-foreground text-sm'>NO.{project.rank}</span>
 					</div>

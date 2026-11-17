@@ -1,62 +1,109 @@
 import Image from 'next/image';
 import { Link } from '@/libs/i18n/navigation';
-import { cn } from '@/libs/utils/styling';
+import css from '../sections/ShowcaseSection.module.css';
 import type { ShowcaseProject } from '../utils/showcase.config';
+import { ProjectAuthor } from './ProjectAuthor';
 import { VoteButton, type VoteButtonProps } from './VoteButton';
+
+const PLACES = ['人气冠军', '亚军', '季军'];
+const RIVALS = ['亚军', '冠军', '亚军'];
+const SPARKS = ['nw', 'ne', 'sw', 'se'];
 
 type ProjectCardProps = {
 	project: ShowcaseProject;
 	rank: number;
+	/** Lead over second place for the leader, otherwise distance to the rank above. */
+	gap: number | null;
 	vote: Omit<VoteButtonProps, 'name' | 'className'>;
 };
 
-/** A top-three project. The whole card links to the project page; the vote button sits above the link. */
-export function ProjectCard({ project, rank, vote }: ProjectCardProps) {
+function GapNote({ rank, gap }: { rank: number; gap: number }) {
+	const rival = RIVALS[rank - 1];
+	if (gap === 0) return <span>与{rival}同票</span>;
 	return (
-		<article className='bg-card hover:border-brand relative flex flex-col overflow-hidden rounded-2xl border transition-colors'>
-			<Image
-				src={project.cover}
-				alt={`${project.name} 界面预览`}
-				sizes='(min-width: 1024px) 33vw, 100vw'
-				className='aspect-3/2 w-full border-b object-cover object-top'
-			/>
+		<span>
+			{rank === 1 ? '领先' : '距'}
+			{rival} <em>{gap}</em> 票
+		</span>
+	);
+}
 
-			<div className='flex flex-1 flex-col gap-6 p-6'>
-				<div className='flex items-center justify-between gap-4 text-sm'>
-					<span
-						className={cn(
-							'rounded-full border px-3 py-1',
-							rank === 1 && 'bg-primary text-primary-foreground border-primary',
-						)}
-					>
-						NO.{rank}
+export function ProjectCard({ project, rank, gap, vote }: ProjectCardProps) {
+	return (
+		<li
+			className={css['slot']}
+			data-rank={rank}
+		>
+			<article
+				className={css['card']}
+				data-rank={rank}
+			>
+				<span
+					className={css['medal']}
+					data-medal
+					aria-hidden='true'
+				>
+					<span className={css['ribbon']} />
+					<span className={css['disc']}>
+						{rank}
+						{rank === 1 &&
+							SPARKS.map((id) => (
+								<span
+									key={id}
+									className={css['spark']}
+								/>
+							))}
 					</span>
-					<span className='text-muted-foreground truncate'>{new URL(project.url).host}</span>
+				</span>
+				<div className={css['cover']}>
+					<Image
+						src={project.cover}
+						alt={`${project.name} 界面预览`}
+						sizes='(min-width: 1280px) 480px, (min-width: 901px) 36vw, (min-width: 641px) 50vw, 100vw'
+					/>
 				</div>
-
-				<div>
-					<h3 className='text-xl font-medium'>
+				<div className={css['cardBody']}>
+					<span className={css['place']}>{PLACES[rank - 1]}</span>
+					<h3 className={css['cardTitle']}>
 						<Link
 							href={`/showcase/${project.id}`}
-							className='after:absolute after:inset-0'
+							className={css['projectLink']}
 						>
 							{project.name}
 						</Link>
 					</h3>
-					<p className='text-muted-foreground mt-3 leading-relaxed'>{project.summary}</p>
+					<p className={css['cardSummary']}>{project.summary}</p>
+					<ProjectAuthor project={project} />
+					<div className={css['score']}>
+						{vote.votes !== null && (
+							<p className={css['count']}>
+								<b>
+									{vote.votes}
+									<small>票</small>
+								</b>
+								{gap !== null && (
+									<GapNote
+										rank={rank}
+										gap={gap}
+									/>
+								)}
+							</p>
+						)}
+						<VoteButton
+							{...vote}
+							name={project.name}
+							className={css['cardVote']}
+						/>
+					</div>
 				</div>
-
-				<div className='mt-auto flex items-center justify-between gap-4'>
-					<p className='text-muted-foreground text-sm'>
-						@{project.author} · {project.platform} {project.reach}
-					</p>
-					<VoteButton
-						{...vote}
-						name={project.name}
-						className='relative z-10 shrink-0'
-					/>
-				</div>
+			</article>
+			<div
+				className={css['pedestal']}
+				aria-hidden='true'
+			>
+				<strong>{rank}</strong>
+				{PLACES[rank - 1]}
 			</div>
-		</article>
+		</li>
 	);
 }

@@ -18,21 +18,19 @@ export const metadata: Metadata = {
 	openGraph: { title, description, url: 'https://sealos.run/showcase', locale: 'zh_CN', type: 'website' },
 };
 
-type PageProps = {
-	searchParams: Promise<{ page?: string | string[] }>;
-};
+type PageProps = { searchParams: Promise<{ page?: string | string[]; q?: string | string[] }> };
 
 export default async function ShowcasePage({ searchParams }: PageProps) {
-	const { page } = await searchParams;
+	const { page, q } = await searchParams;
 	const cookieStore = await cookies();
 	const snapshot = await loadVoteSnapshot(parseVoterId(cookieStore.get(VOTER_COOKIE)?.value));
-
 	return (
 		<>
 			<HeroSection />
 			<ShowcaseSection
 				initialSnapshot={snapshot}
 				page={parsePage(page)}
+				query={typeof q === 'string' ? q.trim() : ''}
 			/>
 			<BountySection />
 		</>
