@@ -1,15 +1,26 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'node:test';
+import { pathToFileURL } from 'node:url';
 import vm from 'node:vm';
 import ts from 'typescript';
 
-const modulePath = 'libs/utils/acquisition-handoff.ts';
-const source = await readFile(modulePath, 'utf8');
-const code = ts.transpileModule(source, {
-	compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
-}).outputText;
-const api = await import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`);
+// Transpile the real modules into a temp dir so the relative
+// ./desktop-download-feed import resolves exactly like production code.
+const dir = await mkdtemp(join(tmpdir(), 'sealos-acquisition-'));
+const compile = async (file, name) => {
+	const code = ts
+		.transpileModule(await readFile(file, 'utf8'), {
+			compilerOptions: { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
+		})
+		.outputText.replaceAll("'./desktop-download-feed'", "'./desktop-download-feed.mjs'");
+	await writeFile(join(dir, name), code);
+};
+await compile('libs/utils/desktop-download-feed.ts', 'desktop-download-feed.mjs');
+await compile('libs/utils/acquisition-handoff.ts', 'acquisition-handoff.mjs');
+const api = await import(pathToFileURL(join(dir, 'acquisition-handoff.mjs')).href);
 function browser() {
 	const values = new Map();
 	const cookies = [];
@@ -384,10 +395,18 @@ function observerHarness(prepare = () => {}) {
 		compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true },
 	}).outputText;
 	class Anchor {
+		constructor(href) {
+			this.href = href;
+		}
 		closest() {
 			return this;
 		}
 	}
+	const assigned = [];
+	target.location = {
+		href: 'https://sealos.run/downloads',
+		assign: (url) => assigned.push(url),
+	};
 	vm.runInNewContext(componentCode, {
 		exports,
 		require: (name) =>
@@ -404,12 +423,18 @@ function observerHarness(prepare = () => {}) {
 		window: target,
 		document,
 		Element: Anchor,
+		HTMLAnchorElement: Anchor,
+		URL,
 	});
 	exports.AcquisitionObserver();
 	return {
 		runtime,
 		cookies,
 		calls,
+		assigned,
+		page: (href) => {
+			target.location.href = href;
+		},
 		consent: (allowed) => {
 			api.setAcquisitionAnalyticsConsent(runtime, allowed);
 			target.dispatchEvent(new Event('sealos_consent_update'));
@@ -431,8 +456,19 @@ function observerHarness(prepare = () => {}) {
 			};
 			if (notify) target.dispatchEvent(new Event('sealos:analytics-ready'));
 		},
-		download: () =>
-			document.dispatchEvent(Object.defineProperty(new Event('click'), 'target', { value: new Anchor() })),
+		download: (href, options = {}) => {
+			const event = Object.defineProperty(new Event('click', { cancelable: true }), 'target', {
+				value: new Anchor(href),
+			});
+			Object.assign(
+				event,
+				{ button: 0, metaKey: false, ctrlKey: false, shiftKey: false, altKey: false },
+				options,
+			);
+			if (options.prevent) event.preventDefault();
+			document.dispatchEvent(event);
+			return event;
+		},
 		cleanup: () => cleanup(),
 	};
 }
@@ -815,5 +851,197 @@ test('direct download flush drops old journey A when SDK becomes available witho
 	);
 	assert.equal(h.calls[0].properties.visitor_id, visitor);
 	assert.equal(h.calls[0].properties.source, 'fresh-www');
+	h.cleanup();
+});
+
+// --- sealos.run download handoff ---
+const INSTALLER = 'https://sealox.oss-cn-hangzhou.aliyuncs.com/app/releases/0.9.13/Sealos-Desktop-0.9.13-mac-arm64.dmg';
+const handoffUrl = (params) => `${api.ACQUISITION_HANDOFF_URL}?${new URLSearchParams(params)}`;
+const decodeSetCookie = (setCookie) =>
+	JSON.parse(
+		Buffer.from(setCookie.split(';')[0].slice('sealos_acquisition_v1='.length), 'base64url').toString('utf8'),
+	);
+const HANDOFF_VISITOR = '27c53b12-9f46-44dd-b1aa-c6fef8dca455';
+const HANDOFF_CONSENT = {
+	analytics_storage: 'granted',
+	ad_storage: 'unspecified',
+	ad_user_data: 'unspecified',
+	ad_personalization: 'unspecified',
+};
+
+test('handoff on the exact sealos.run host writes the shared Cookie and redirects to the installer', () => {
+	const result = api.resolveAcquisitionHandoff(
+		handoffUrl({ vid: HANDOFF_VISITOR, source: 'google', medium: 'cpc', campaign: 'launch', to: INSTALLER }),
+		'sealos.run',
+	);
+	assert.equal(result.status, 302);
+	assert.equal(result.location, INSTALLER);
+	assert.match(result.setCookie, /^sealos_acquisition_v1=[A-Za-z0-9_-]+;/);
+	assert.match(result.setCookie, /Domain=sealos\.run; Path=\/; Secure; SameSite=Lax; Max-Age=2592000/);
+	assert.deepEqual(decodeSetCookie(result.setCookie), {
+		version: 1,
+		realm: 'china',
+		visitor_id: HANDOFF_VISITOR,
+		consent: HANDOFF_CONSENT,
+		source: { source: 'google', medium: 'cpc', campaign: 'launch' },
+	});
+});
+
+test('handoff redirects without a Cookie on every non-exact host including the 301 fallback', () => {
+	for (const host of ['sealos.cn', 'www.sealos.cn', 'www.sealos.run', 'sealos.run:8443', null]) {
+		const result = api.resolveAcquisitionHandoff(
+			handoffUrl({ vid: HANDOFF_VISITOR, source: 'google', to: INSTALLER }),
+			host,
+		);
+		assert.deepEqual(result, { status: 302, location: INSTALLER }, String(host));
+	}
+	const clearedElsewhere = api.resolveAcquisitionHandoff(handoffUrl({ clear: '1', to: INSTALLER }), 'sealos.cn');
+	assert.deepEqual(clearedElsewhere, { status: 302, location: INSTALLER });
+});
+
+test('handoff rejects every non-installer redirect target', () => {
+	for (const to of [
+		'https://evil.test/app/releases/x.dmg',
+		'http://sealox.oss-cn-hangzhou.aliyuncs.com/app/releases/x.dmg',
+		'https://user:pass@sealox.oss-cn-hangzhou.aliyuncs.com/app/releases/x.dmg',
+		`${INSTALLER}?token=1`,
+		`${INSTALLER}#frag`,
+		'https://sealox.oss-cn-hangzhou.aliyuncs.com/app/other/x.dmg',
+		'https://sealox.oss-cn-hangzhou.aliyuncs.com/app/releases/x.zip',
+		'javascript:alert(1)',
+		'//evil.test/x.dmg',
+	]) {
+		assert.deepEqual(
+			api.resolveAcquisitionHandoff(handoffUrl({ vid: HANDOFF_VISITOR, to }), 'sealos.run'),
+			{ status: 400 },
+			to,
+		);
+	}
+	assert.deepEqual(api.resolveAcquisitionHandoff(handoffUrl({ vid: HANDOFF_VISITOR }), 'sealos.run'), {
+		status: 400,
+	});
+});
+
+test('handoff ignores invalid vid and unsanitary source labels but still redirects', () => {
+	for (const params of [
+		{ vid: 'not-a-uuid', to: INSTALLER },
+		{ source: 'google', to: INSTALLER },
+	]) {
+		assert.deepEqual(api.resolveAcquisitionHandoff(handoffUrl(params), 'sealos.run'), {
+			status: 302,
+			location: INSTALLER,
+		});
+	}
+	for (const source of ['someone@example.com', '13800138000', 'https://attacker.test/x']) {
+		const result = api.resolveAcquisitionHandoff(
+			handoffUrl({ vid: HANDOFF_VISITOR, source, to: INSTALLER }),
+			'sealos.run',
+		);
+		assert.equal(result.status, 302);
+		assert.equal(decodeSetCookie(result.setCookie).visitor_id, HANDOFF_VISITOR);
+		assert.equal(decodeSetCookie(result.setCookie).source, undefined, source);
+	}
+	const partial = api.resolveAcquisitionHandoff(
+		handoffUrl({ vid: HANDOFF_VISITOR, source: 'google', medium: 'https://evil.test/x', to: INSTALLER }),
+		'sealos.run',
+	);
+	assert.deepEqual(decodeSetCookie(partial.setCookie).source, { source: 'google' });
+});
+
+test('clear=1 expires the shared Cookie only on the exact sealos.run host', () => {
+	const result = api.resolveAcquisitionHandoff(handoffUrl({ clear: '1', to: INSTALLER }), 'sealos.run');
+	assert.equal(result.status, 302);
+	assert.equal(result.location, INSTALLER);
+	assert.match(result.setCookie, /^sealos_acquisition_v1=;/);
+	assert.match(result.setCookie, /Max-Age=0$/);
+});
+
+test('buildAcquisitionHandoffUrl only routes linked or denied contexts to the handoff endpoint', () => {
+	const consent = {
+		analytics_storage: 'unspecified',
+		ad_storage: 'unspecified',
+		ad_user_data: 'unspecified',
+		ad_personalization: 'unspecified',
+	};
+	const context = { version: 1, realm: 'china', consent };
+	assert.equal(api.buildAcquisitionHandoffUrl(context, INSTALLER), undefined);
+	const denied = api.buildAcquisitionHandoffUrl(
+		{ ...context, consent: { ...consent, analytics_storage: 'denied' } },
+		INSTALLER,
+	);
+	const deniedParams = new URL(denied).searchParams;
+	assert.equal(deniedParams.get('clear'), '1');
+	assert.equal(deniedParams.get('to'), INSTALLER);
+	const linked = api.buildAcquisitionHandoffUrl(
+		{ ...context, visitor_id: HANDOFF_VISITOR, source: { source: 'google', medium: 'cpc' } },
+		INSTALLER,
+	);
+	assert.ok(linked.startsWith(`${api.ACQUISITION_HANDOFF_URL}?`));
+	const params = new URL(linked).searchParams;
+	assert.equal(params.get('vid'), HANDOFF_VISITOR);
+	assert.equal(params.get('source'), 'google');
+	assert.equal(params.get('medium'), 'cpc');
+	assert.equal(params.get('campaign'), null);
+	assert.equal(params.get('to'), INSTALLER);
+	for (const value of ['https://evil.test/x.dmg', 'not a url', INSTALLER.replace('https:', 'http:')]) {
+		assert.equal(
+			api.buildAcquisitionHandoffUrl({ ...context, visitor_id: HANDOFF_VISITOR }, value),
+			undefined,
+			value,
+		);
+	}
+});
+
+test('observer sends a plain sealos.cn installer click through the sealos.run handoff', () => {
+	const h = observerHarness((runtime) => {
+		runtime.href = 'https://sealos.cn/downloads';
+	});
+	h.consent(true);
+	h.ready();
+	h.page('https://sealos.cn/downloads');
+	h.runtime.href = 'https://sealos.cn/downloads';
+	h.calls.length = 0;
+	const event = h.download(INSTALLER);
+	assert.equal(event.defaultPrevented, true);
+	assert.equal(h.assigned.length, 1);
+	const url = new URL(h.assigned[0]);
+	assert.equal(`${url.origin}${url.pathname}`, api.ACQUISITION_HANDOFF_URL);
+	assert.equal(url.searchParams.get('vid'), api.readAcquisitionContext(h.runtime).visitor_id);
+	assert.equal(url.searchParams.get('to'), INSTALLER);
+	assert.deepEqual(
+		h.calls.map((entry) => entry.name),
+		['download_click'],
+	);
+	h.cleanup();
+});
+
+test('observer never intercepts modified clicks, other pages, or non-installer links', () => {
+	const h = observerHarness();
+	h.consent(true);
+	h.ready();
+	for (const { page, href, options } of [
+		{ page: 'https://sealos.cn/downloads', href: INSTALLER, options: { metaKey: true } },
+		{ page: 'https://sealos.cn/downloads', href: INSTALLER, options: { ctrlKey: true } },
+		{ page: 'https://sealos.cn/downloads', href: INSTALLER, options: { shiftKey: true } },
+		{ page: 'https://www.sealos.cn/downloads', href: INSTALLER, options: { button: 1 } },
+		{ page: 'https://sealos.cn/downloads', href: INSTALLER, options: { prevent: true } },
+		{ page: 'https://sealos.cn/downloads', href: `${INSTALLER}?x=1`, options: {} },
+		{ page: 'https://sealos.cn/downloads', href: 'https://example.com/page', options: {} },
+		{ page: 'http://localhost:3000/downloads', href: INSTALLER, options: {} },
+		{ page: 'https://sealos.run/downloads', href: INSTALLER, options: {} },
+		{ page: 'https://sealos.cn:8443/downloads', href: INSTALLER, options: {} },
+	]) {
+		h.page(page);
+		h.runtime.href = page;
+		h.calls.length = 0;
+		const event = h.download(href, options);
+		assert.equal(event.defaultPrevented, Boolean(options.prevent), `${page} ${href}`);
+		assert.equal(h.assigned.length, 0, page);
+		assert.deepEqual(
+			h.calls.map((entry) => entry.name),
+			['download_click'],
+			`${page} ${href}`,
+		);
+	}
 	h.cleanup();
 });

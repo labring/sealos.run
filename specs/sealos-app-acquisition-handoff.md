@@ -2,7 +2,7 @@
 
 ## 最小链路
 
-sealos.run 匿名访问 → 根据已配置的国内 Rybbit 启用访客关联 → 写入共享 Cookie → 直接下载安装包 → App 在系统浏览器打开现有控制台 OAuth → 控制台将访客与经过认证的 userUid 关联 → Web / App 使用现有 Rybbit 目的地。
+sealos.cn 匿名访问 → 根据已配置的国内 Rybbit 启用访客关联 → 普通左键下载经 sealos.run 中转写入共享 Cookie 并 302 到安装包 → App 在系统浏览器打开现有控制台 OAuth → 控制台将访客与经过认证的 userUid 关联 → Web / App 使用现有 Rybbit 目的地。
 
 官网只负责访客标识、来源和下载事件。控制台发送 web_visitor_linked，App 发送 visitor_linked；登录后的账号标识均为同一个全局 userUid。App 的 installation_id 独立生成，不能用官网访客 ID 替代。Cookie 仅是浏览器观察到的营销上下文，不能用于认证、奖励或账单。
 
@@ -14,13 +14,15 @@ sealos.run 匿名访问 → 根据已配置的国内 Rybbit 启用访客关联 �
 - 有效共享 Cookie 优先决定当前访客和首触；仅当本地 visitor_id 相同才允许用本地首触补全。没有有效共享 Cookie 时仍可复用本地访客；这不是跨源撤回同步。
 - source 只保留首触的 source、medium、campaign 三个标签，各最多 100 字符，拒绝 email、电话式长数字、控制字符和 URL。referrer 仅可瞬时解析 hostname 推导 source；Cookie 和本功能 localStorage 均不保存落地 URL、referrer URL 或 timestamp。旧 Cookie/首触副本重写时也只抽取三个标签。来源缺失时仍可关联，来源统计显示 direct 或未知。
 - 官网通过已有 Rybbit 发送 acquisition_visit / download_click，带 visitor_id、surface=website、source。visitor_id 仅是 Cookie/事件的关联键，绝不传入 identify，也不覆盖或清除 SDK 已有账号身份。首次账号 identify 由控制台在验证真实 userUid 后执行，App 登录后也使用相同 userUid；否则先 identify 访客 UUID 会将匿名历史提前归属为另一个已识别用户，后续切换账号 ID 不会重新回填这段历史。SDK 迟到时最多排队 32 个事件；共享访客变化时丢弃旧旅程队列；实际 flush 发送处只发送 visitor_id 与当前有效访客相同的项。Observer 负责及时更新 Cookie，SDK-ready 事件负责恢复发送。
+- 下载交接端点为 https://sealos.run/api/acquisition/handoff，接受参数 vid、可选 source/medium/campaign、clear 与 to。to 只接受发布 feed releases/ 前缀下无凭据、无 query/hash 的 https .dmg/.exe 安装包地址，其余一律返回纯文本 400。仅当请求 Host 精确等于 sealos.run 时写 Cookie：vid 为合法 UUID 时写入与页面相同的编码格式，只保留通过 label 过滤的来源标签；clear=1 时写入 Max-Age=0 的空值 Cookie；其余情况不写。任何有效 to 都 302 到安装包，响应带 Cache-Control: no-store 与 Referrer-Policy: no-referrer。sealos.run 未被网关例外转发到本站时，请求被 301 到 sealos.cn 的同一路径，由同一实现照常 302 下载但不写 Cookie，下载不中断。
+- sealos.cn 页面不写共享 Cookie；普通左键点击安装包链接时改为导航到交接端点完成访客交接。中键、新标签页或带修饰键的点击仍走安装包直链，不经过中转也不写 Cookie。
 - 拒绝或撤回会清理本功能新增的访客/来源 localStorage、共享 Cookie 和排队事件。Observer 不拥有 SDK 的账号身份，不在撤回、共享访客变化或回访时设置/清除账号。同源跨标签撤回优先于历史 grant，访客/来源写入不会触发 storage 循环。订阅真实 dataLayer consent/update 和 sealos_consent_update 入队，微任务合并后通知 Observer，无须另发 DOM 事件；保留原 push 的 this、参数、返回值，以及迟到 GTM 的处理函数，卸载时停止通知。不明许可且未启用国内策略时，不删除另一个官方源留下的有效 Cookie。
 
 ## 消融依据与边界
 
 | 项目 | 移除后的影响 | 保留结论 |
 | --- | --- | --- |
-| 中转页、issue/redeem 请求、归因 deep link | 原安装包直链与 Cookie 独立工作 | 官网不实现这些路径 |
+| sealos.run 下载中转 | sealos.cn 页面不能写 Domain=sealos.run Cookie，访客无法交给控制台 | 保留；issue/redeem 请求与归因 deep link 仍不实现 |
 | Cookie | 官网与控制台无法交接访客，普通下载和登录仍可工作 | 关联必需 |
 | visitor_id | 后端拒绝归因元数据，避免猜测匹配 | 关联必需 |
 | source | 仍能将访客关联到账号，但缺少营销来源 | 可选，保留最小首触信息 |
@@ -29,11 +31,13 @@ sealos.run 匿名访问 → 根据已配置的国内 Rybbit 启用访客关联 �
 | 独立关联提示及复选框 | 国内使用已配置 Rybbit 的部署策略，明确拒绝仍优先 | 删除，不授予广告权限，也不伪造用户同意记录 |
 | Observer / SDK-ready | 分别失去 Cookie/事件生产者、迟到 SDK 的事件发送 | 保留 |
 
-完整匹配需要国内统计关联有效启用、同一浏览器 profile、Cookie 留存，以及配套控制台/App 接入；不同浏览器、清 Cookie 或拒绝时归因未知，不做指纹或推测，不阻塞下载或登录。root/www 的 localStorage 各自独立，现有撤回同步仅保证同源标签；跨源或跨设备需要共享 consent 管理。Rybbit 原生匿名历史归并取决于同一实例/站点、浏览器匿名身份连续、首次真实账号 identify 成功及服务端回填；Cookie 关联本身不等于历史已归并。曾被旧代码 identify 为访客 UUID 的历史不会由本次修复自动重写。生产验收应核对匿名官网历史、控制台及 App 登录后都归属于同一个 userUid，以及回访不覆盖该账号身份。
+完整匹配需要国内统计关联有效启用、同一浏览器 profile、Cookie 留存，以及配套控制台/App 接入；不同浏览器、清 Cookie 或拒绝时归因未知，不做指纹或推测，不阻塞下载或登录。中键、新标签页或带修饰键的下载点击走直链，不写共享 Cookie；浏览器反弹跟踪防护可能清除 sealos.run 写入的共享 Cookie（未验证）。root/www 的 localStorage 各自独立，现有撤回同步仅保证同源标签；跨源或跨设备需要共享 consent 管理。Rybbit 原生匿名历史归并取决于同一实例/站点、浏览器匿名身份连续、首次真实账号 identify 成功及服务端回填；Cookie 关联本身不等于历史已归并。曾被旧代码 identify 为访客 UUID 的历史不会由本次修复自动重写。生产验收应核对匿名官网历史、控制台及 App 登录后都归属于同一个 userUid，以及回访不覆盖该账号身份。
 
 官网无需新数据库、登录网页、归因服务或额外安装按钮。国内清理不改变海外现有 sea_attr URL 协议。生产验收仍需实际官网 → 安装包 → 系统浏览器 OAuth → App 的双端事件与 Rybbit 报表核对，单元测试或 Cookie 存在不代表完整转化链已验收。
 
 ## 发布配置前提
+
+网关必须把 sealos.run 主机上恰好 /api/acquisition/handoff 路径的请求保留 Host 转发到本站服务。验证：curl -sI https://sealos.run/api/acquisition/handoff 不得 301 到 sealos.cn，而 curl -sI https://sealos.run/ 仍须 301。
 
 国内官网构建需核对 NEXT_PUBLIC_RYBBIT_HOST / NEXT_PUBLIC_RYBBIT_SITE_ID；Docker builder 通过同名 ARG/ENV 传入，没有固定默认值，docker run -e 不能覆盖已经内联的浏览器值；任一缺失时，现有 RybbitAnalytics 不加载 SDK，也不会自动初始化关联。外部明确 granted 的兼容路径仍可写 Cookie，但没有 SDK 就不能发送官网 Rybbit 事件。
 
@@ -41,4 +45,4 @@ App 的 SEALOS_PRODUCT_ANALYTICS_UPSTREAM_BASE_URL / SEALOS_PRODUCT_ANALYTICS_SI
 
 ## 验证入口
 
-node scripts/test-acquisition-handoff.mjs 覆盖同意/撤回、跨标签、域名与大小边界、旧 Cookie 兼容、实际 Observer 和下载直链消融。pnpm typecheck、pnpm lint:check、pnpm format:check、pnpm build 覆盖仓库集成。跨仓核对必须使用真实 writer 输出和现有控制台 parser，确认可选字段缺失不会阻断核心关联；不把一次性测试快照写进仓库。
+node scripts/test-acquisition-handoff.mjs 覆盖同意/撤回、跨标签、域名与大小边界、旧 Cookie 兼容、实际 Observer 和下载直链消融；同一脚本覆盖交接端点的 to 校验、sealos.run 主机判定、vid/clear 写 Cookie、交接 URL 构造与观察者点击拦截。pnpm typecheck、pnpm lint:check、pnpm format:check、pnpm build 覆盖仓库集成。跨仓核对必须使用真实 writer 输出和现有控制台 parser，确认可选字段缺失不会阻断核心关联；不把一次性测试快照写进仓库。

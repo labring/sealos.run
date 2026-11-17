@@ -2,6 +2,7 @@
 
 import React from 'react';
 import {
+	buildAcquisitionHandoffUrl,
 	createBrowserAcquisitionRuntime,
 	readAcquisitionContext,
 	subscribeAcquisitionConsent,
@@ -63,7 +64,34 @@ export function AcquisitionObserver() {
 		const click = (event: MouseEvent) => {
 			const target =
 				event.target instanceof Element ? event.target.closest('a[download], a[data-desktop-download]') : null;
-			if (target) emit('download_click');
+			if (!target) return;
+			emit('download_click');
+			if (
+				event.button !== 0 ||
+				event.metaKey ||
+				event.ctrlKey ||
+				event.shiftKey ||
+				event.altKey ||
+				event.defaultPrevented ||
+				!(target instanceof HTMLAnchorElement)
+			)
+				return;
+			let page: URL;
+			try {
+				page = new URL(window.location.href);
+			} catch {
+				return;
+			}
+			if (page.protocol !== 'https:' || !['sealos.cn', 'www.sealos.cn'].includes(page.hostname) || page.port)
+				return;
+			// sealos.cn 页面无法写入 Domain=sealos.run 的关联 Cookie，普通左键下载改经 sealos.run 中转以交接访客。
+			const handoff = buildAcquisitionHandoffUrl(
+				readAcquisitionContext(createBrowserAcquisitionRuntime()),
+				target.href,
+			);
+			if (!handoff) return;
+			event.preventDefault();
+			window.location.assign(handoff);
 		};
 		visit();
 		const unsubscribeConsent = subscribeAcquisitionConsent(visit);
