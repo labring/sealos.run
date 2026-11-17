@@ -1,0 +1,240 @@
+.wrapper {
+	--step-duration: 5s;
+	--scene-height: 190px;
+	--deploy-scene-height: 132px;
+	--motion-play-state: running;
+	--scene-play-state: running;
+	width: 100%;
+	max-width: 460px;
+	margin: 0 0 0 auto;
+}
+/* Reserve the larger scene's space without adding empty space inside the first card. */
+.wrapper::after {
+	display: block;
+	height: 0;
+	transition: height 320ms ease;
+	content: "";
+}
+.wrapper:has(.step:first-child[data-active="true"])::after {
+	height: calc(var(--scene-height) - var(--deploy-scene-height));
+}
+.wrapper[data-paused="true"],
+.wrapper:has(.trigger:focus-visible, .action:focus-visible) {
+	--motion-play-state: paused;
+}
+.wrapper[data-suspended="true"] {
+	--scene-play-state: paused;
+}
+.steps {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.step {
+	position: relative;
+	overflow: hidden;
+	padding: 18px 20px;
+	border: 1px solid #e5e5e5;
+	border-radius: 18px;
+	background: #fff;
+	box-shadow:
+		0 3px 7px #0000000c,
+		0 10px 24px #00000007;
+}
+.step + .step {
+	margin-top: 18px;
+}
+.line {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+.trigger {
+	display: flex;
+	flex: 1;
+	min-width: 0;
+	min-height: 44px;
+	gap: 8px;
+	padding: 0;
+	border: 0;
+	background: none;
+	text-align: left;
+	font: inherit;
+	cursor: pointer;
+}
+.number {
+	margin-top: 2px;
+	color: #005bff;
+	font-size: 12px;
+	line-height: 20px;
+}
+.copy {
+	flex: 1;
+	min-width: 0;
+}
+.title {
+	display: block;
+	font-size: 15px;
+	font-weight: 500;
+	line-height: 24px;
+}
+.description {
+	display: block;
+	margin-top: 3px;
+	color: #686873;
+	font-size: 12px;
+	line-height: 19px;
+	text-wrap: pretty;
+}
+.action {
+	padding: 8px 14px;
+	border: 1px solid #a1a1aa;
+	border-radius: 999px;
+	font-size: 12px;
+	white-space: nowrap;
+	transition:
+		color 160ms,
+		border-color 160ms;
+}
+.action:hover {
+	color: #005bff;
+	border-color: #005bff;
+}
+.trigger:focus-visible,
+.action:focus-visible,
+.playback button:focus-visible {
+	outline: 2px solid #005bff;
+	outline-offset: 3px;
+}
+.chevron {
+	width: 16px;
+	height: 16px;
+	color: #a1a1aa;
+	transition: transform 320ms;
+}
+.step[data-active="true"] .chevron {
+	transform: rotate(180deg);
+}
+.panel {
+	display: grid;
+	grid-template-rows: 0fr;
+	opacity: 0;
+	transition:
+		grid-template-rows 320ms ease,
+		opacity 200ms ease;
+}
+.step[data-active="true"] .panel {
+	grid-template-rows: 1fr;
+	opacity: 1;
+}
+.panelClip {
+	min-height: 0;
+	overflow: hidden;
+}
+.stage {
+	position: relative;
+	height: var(--scene-height);
+	padding-top: 14px;
+	pointer-events: none;
+	user-select: none;
+}
+.step:first-child .stage {
+	height: var(--deploy-scene-height);
+}
+.progress {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	height: 3px;
+	background: #f4f4f5;
+}
+.progress span {
+	display: block;
+	height: 100%;
+	background: #005bff;
+	transform: scaleX(0);
+	transform-origin: left;
+}
+.step[data-active="true"] .progress span {
+	animation: step-progress var(--step-duration) linear both;
+	animation-play-state: var(--motion-play-state);
+}
+.playback {
+	display: flex;
+	min-height: 28px;
+	justify-content: flex-end;
+	margin-top: 8px;
+}
+.playback button {
+	display: flex;
+	min-height: 28px;
+	align-items: center;
+	gap: 5px;
+	padding: 2px 5px;
+	border-radius: 5px;
+	color: #686873;
+	font-size: 11px;
+	cursor: pointer;
+}
+.playback button:hover {
+	color: #005bff;
+}
+.playback button span {
+	width: 12px;
+	text-align: center;
+}
+@keyframes step-progress {
+	to {
+		transform: scaleX(1);
+	}
+}
+@media (hover: hover) {
+	.steps:hover {
+		--motion-play-state: paused;
+	}
+}
+@media (max-width: 767px) {
+	.wrapper {
+		max-width: 480px;
+		margin-inline: auto;
+	}
+	.step {
+		padding: 16px;
+	}
+	.action {
+		min-height: 44px;
+		padding-inline: 12px;
+	}
+	.title {
+		font-size: 14px;
+	}
+	.playback button {
+		min-height: 44px;
+	}
+}
+@media (max-width: 390px) {
+	.line {
+		gap: 6px;
+	}
+	.action {
+		max-width: 72px;
+		padding: 6px 10px;
+		white-space: normal;
+		text-align: center;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.wrapper::after,
+	.panel,
+	.chevron {
+		transition: none;
+	}
+	.step[data-active="true"] .progress span {
+		animation: none;
+		transform: scaleX(1);
+	}
+	.playback {
+		visibility: hidden;
+	}
+}

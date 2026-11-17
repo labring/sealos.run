@@ -1,0 +1,594 @@
+.scene {
+	position: relative;
+	height: 100%;
+}
+.entry,
+.cursor,
+.cursor::after,
+.platform,
+.postTitle,
+.insertedTags span,
+.tag,
+.tierBar,
+.maximum,
+.arrowLine,
+.arrowHead {
+	animation-fill-mode: both;
+	animation-play-state: var(--scene-play-state);
+}
+.entries {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 6px;
+	padding: 4px 2px;
+}
+.entry {
+	height: 50px;
+	padding: 7px 8px;
+	border: 1px solid #e4e4e7;
+	border-radius: 9px;
+	background: #fafafa;
+	box-shadow: 0 3px 7px #00000005;
+}
+.entryHead {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 11px;
+	font-weight: 500;
+	white-space: nowrap;
+}
+.entryIcon {
+	width: 17px;
+	height: 17px;
+	flex-shrink: 0;
+	color: #005bff;
+}
+.entryIcon img {
+	width: 100%;
+	height: 100%;
+}
+.entryDetail {
+	display: block;
+	margin-top: 4px;
+	color: #686873;
+	font-size: 9px;
+	line-height: 12px;
+	white-space: nowrap;
+}
+.deployAction {
+	position: relative;
+	align-self: center;
+	justify-self: center;
+	padding: 9px 14px;
+	border-radius: 999px;
+	background: #005bff;
+	color: #fff;
+	font-size: 11px;
+}
+.cursor {
+	position: absolute;
+	z-index: 3;
+	width: 21px;
+	height: 25px;
+	filter: drop-shadow(0 2px 2px #00000020);
+}
+.cursor svg {
+	width: 100%;
+	height: 100%;
+}
+.cursor::after {
+	position: absolute;
+	top: -6px;
+	left: -6px;
+	width: 19px;
+	height: 19px;
+	border: 2px solid #005bff;
+	border-radius: 50%;
+	opacity: 0;
+	content: "";
+}
+.deployCursor {
+	top: 50%;
+	left: 55%;
+}
+.scene[data-active="true"] .entry {
+	animation-name: entry-appear;
+	animation-duration: 480ms;
+	animation-delay: calc(100ms + var(--order) * 160ms);
+	animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.scene[data-active="true"] .deployCursor {
+	animation-name: deploy-cursor;
+	animation-duration: var(--step-duration);
+}
+.scene[data-active="true"] .deployCursor::after {
+	animation-name: deploy-click;
+	animation-duration: var(--step-duration);
+}
+.platforms {
+	position: absolute;
+	inset: 0;
+}
+.platform {
+	--from-x: 130px;
+	--from-y: 60px;
+	--tilt: -14deg;
+	position: absolute;
+	width: 40px;
+	height: 40px;
+	transform: rotate(var(--tilt));
+}
+.platform .platformMark {
+	width: 100%;
+	height: 100%;
+	border-radius: 11px;
+	box-shadow: 0 2px 6px #0000000a;
+}
+.platform:nth-child(1) {
+	top: 4px;
+	left: 2%;
+}
+.platform:nth-child(2) {
+	--from-y: 0px;
+	--tilt: 12deg;
+	top: 62px;
+	left: 1%;
+}
+.platform:nth-child(3) {
+	--from-y: -60px;
+	--tilt: -12deg;
+	top: 120px;
+	left: 2%;
+}
+.platform:nth-child(4) {
+	--from-x: -130px;
+	--tilt: 13deg;
+	top: 4px;
+	right: 1%;
+}
+.platform:nth-child(5) {
+	--from-x: -130px;
+	--from-y: 0px;
+	--tilt: -15deg;
+	top: 62px;
+	right: 0;
+}
+.platform:nth-child(6) {
+	--from-x: -130px;
+	--from-y: -60px;
+	--tilt: 12deg;
+	top: 120px;
+	right: 1%;
+}
+.scene[data-active="true"] .platform {
+	animation-name: platform-emerge;
+	animation-duration: 650ms;
+	animation-delay: calc(180ms + var(--order) * 75ms);
+	animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.post {
+	position: relative;
+	z-index: 1;
+	width: 72%;
+	margin-inline: auto;
+	padding: 9px;
+	border: 1px solid #e4e4e7;
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 5px 14px #00000012;
+	transform: rotate(1deg);
+}
+.preview {
+	width: 100%;
+	height: 85px;
+	border: 1px solid #f0f0f0;
+	border-radius: 7px;
+	object-fit: cover;
+	object-position: top;
+}
+.postTitle {
+	width: fit-content;
+	margin: 7px 0 3px;
+	color: #3f3f46;
+	font-size: 11px;
+	line-height: 17px;
+	white-space: nowrap;
+}
+.insertedTags {
+	display: flex;
+	min-height: 13px;
+	gap: 4px;
+	color: #3f3f46;
+	font-size: 8px;
+	line-height: 12px;
+	white-space: nowrap;
+}
+.tags {
+	--first-tag-center: calc((100% - 8px) / 6);
+	--last-tag-center: calc(100% - (100% - 8px) / 6);
+	position: relative;
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 4px;
+	margin-top: 5px;
+}
+.tag {
+	padding: 3px 1px;
+	border-radius: 4px;
+	background: #eff6ff;
+	color: #3f3f46;
+	font-size: 8px;
+	line-height: 11px;
+	text-align: center;
+	white-space: nowrap;
+}
+.shareCursor {
+	top: 50%;
+	left: var(--first-tag-center);
+	width: 24px;
+	height: 28px;
+	transform: translate(-3px, -2px);
+}
+.scene[data-active="true"] .postTitle {
+	animation-name: type-post;
+	animation-duration: var(--step-duration);
+	animation-timing-function: steps(15, end);
+}
+.scene[data-active="true"] .insertedTags span {
+	animation-name: insert-tag;
+	animation-duration: var(--step-duration);
+	animation-delay: calc(var(--order) * var(--step-duration) * 0.15);
+}
+.scene[data-active="true"] .tag {
+	animation-name: tap-tag;
+	animation-duration: var(--step-duration);
+	animation-delay: calc(var(--order) * var(--step-duration) * 0.15);
+}
+.scene[data-active="true"] .shareCursor {
+	animation-name: share-cursor;
+	animation-duration: var(--step-duration);
+}
+.scene[data-active="true"] .shareCursor::after {
+	animation-name: tag-clicks;
+	animation-duration: var(--step-duration);
+}
+.rewardChart {
+	display: flex;
+	height: 100%;
+	align-items: flex-end;
+	gap: 14px;
+	padding: 16px 8px 2px;
+}
+.tier {
+	position: relative;
+	display: flex;
+	flex: 1;
+	min-width: 0;
+	align-items: center;
+	flex-direction: column;
+	gap: 7px;
+}
+.tierBar {
+	width: 100%;
+	max-width: 45px;
+	height: calc(24px + var(--order) * 23px);
+	border-radius: 4px 4px 0 0;
+	background: #005bff;
+	transform-origin: bottom;
+}
+.tierLabel {
+	color: #686873;
+	font-size: 10px;
+	line-height: 14px;
+	white-space: nowrap;
+}
+.maximum {
+	color: #171717;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 16px;
+}
+.growthArrow {
+	position: absolute;
+	top: -8px;
+	left: 3%;
+	/* Keep the arrow clear of the amount, including on narrow cards. */
+	width: calc(100% - 72px);
+	height: 136px;
+	stroke: #005bff;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+.arrowLine {
+	stroke-dasharray: 360;
+}
+.scene[data-active="true"] .tierBar {
+	animation-name: rise-tier;
+	animation-duration: 700ms;
+	animation-delay: calc(100ms + var(--order) * 180ms);
+	animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.scene[data-active="true"] .maximum {
+	animation-name: show-maximum;
+	animation-duration: 500ms;
+	animation-delay: 1300ms;
+}
+.scene[data-active="true"] .arrowLine {
+	animation-name: draw-arrow;
+	animation-duration: 1100ms;
+	animation-delay: 1700ms;
+	animation-timing-function: ease-out;
+}
+.scene[data-active="true"] .arrowHead {
+	animation-name: show-maximum;
+	animation-duration: 200ms;
+	animation-delay: 2700ms;
+}
+@keyframes entry-appear {
+	from {
+		opacity: 0;
+		transform: translateY(12px) scale(0.96);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+@keyframes deploy-cursor {
+	0%,
+	25% {
+		opacity: 0;
+		transform: translate(35px, 24px);
+	}
+	40%,
+	54% {
+		opacity: 1;
+		transform: translate(0, 0);
+	}
+	58% {
+		opacity: 1;
+		transform: scale(0.85);
+	}
+	64%,
+	80% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	100% {
+		opacity: 0;
+		transform: scale(1);
+	}
+}
+@keyframes deploy-click {
+	0%,
+	55%,
+	70%,
+	100% {
+		opacity: 0;
+		transform: scale(0.5);
+	}
+	58% {
+		opacity: 0.8;
+		transform: scale(0.7);
+	}
+	68% {
+		opacity: 0;
+		transform: scale(1.8);
+	}
+}
+@keyframes platform-emerge {
+	from {
+		opacity: 0;
+		transform: translate(var(--from-x), var(--from-y)) scale(0.5);
+	}
+	to {
+		opacity: 1;
+		transform: rotate(var(--tilt));
+	}
+}
+@keyframes type-post {
+	0%,
+	18% {
+		clip-path: inset(0 100% 0 0);
+	}
+	45%,
+	100% {
+		clip-path: inset(0);
+	}
+}
+@keyframes insert-tag {
+	0%,
+	59% {
+		opacity: 0;
+		transform: translateY(3px);
+	}
+	62%,
+	100% {
+		opacity: 1;
+		transform: none;
+	}
+}
+@keyframes tap-tag {
+	0%,
+	54%,
+	64%,
+	100% {
+		background: #eff6ff;
+		transform: none;
+	}
+	58% {
+		background: #cfe1ff;
+		transform: scale(0.94);
+	}
+}
+@keyframes share-cursor {
+	0%,
+	47% {
+		opacity: 0;
+		left: var(--first-tag-center);
+		transform: translate(-3px, 14px);
+	}
+	55%,
+	63% {
+		opacity: 1;
+		left: var(--first-tag-center);
+		transform: translate(-3px, -2px);
+	}
+	70%,
+	78% {
+		opacity: 1;
+		left: 50%;
+		transform: translate(-3px, -2px);
+	}
+	85%,
+	94% {
+		opacity: 1;
+		left: var(--last-tag-center);
+		transform: translate(-3px, -2px);
+	}
+	100% {
+		opacity: 0;
+		left: var(--last-tag-center);
+		transform: translate(-3px, -2px);
+	}
+}
+@keyframes tag-clicks {
+	0%,
+	54%,
+	64%,
+	69%,
+	79%,
+	84%,
+	94%,
+	100% {
+		opacity: 0;
+		transform: scale(0.5);
+	}
+	57%,
+	72%,
+	87% {
+		opacity: 0.8;
+		transform: scale(0.7);
+	}
+	62%,
+	77%,
+	92% {
+		opacity: 0;
+		transform: scale(1.6);
+	}
+}
+@keyframes rise-tier {
+	from {
+		transform: scaleY(0);
+	}
+	to {
+		transform: scaleY(1);
+	}
+}
+@keyframes show-maximum {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+@keyframes draw-arrow {
+	from {
+		stroke-dashoffset: 360;
+	}
+	to {
+		stroke-dashoffset: 0;
+	}
+}
+@media (max-width: 767px) {
+	.entryHead {
+		gap: 4px;
+		font-size: 10px;
+	}
+	.entryIcon {
+		width: 14px;
+		height: 14px;
+	}
+	.entryDetail {
+		font-size: 8px;
+	}
+	.platform {
+		--from-x: 90px;
+		width: 34px;
+		height: 34px;
+	}
+	.platform:nth-child(n + 4) {
+		--from-x: -90px;
+	}
+	.post {
+		width: 74%;
+	}
+	.insertedTags,
+	.tag {
+		font-size: 7px;
+	}
+	.rewardChart {
+		gap: 10px;
+		padding-inline: 2px;
+	}
+	.maximum {
+		font-size: 11px;
+	}
+}
+@media (max-width: 360px) {
+	.entry {
+		padding: 5px 1px;
+	}
+	.entryHead {
+		gap: 3px;
+		font-size: 9px;
+	}
+	.entryIcon {
+		width: 12px;
+		height: 12px;
+	}
+	.entryDetail {
+		margin-top: 3px;
+		font-size: 8px;
+		line-height: 10px;
+		white-space: normal;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.scene[data-active]
+		:is(
+			.entry,
+			.cursor,
+			.platform,
+			.postTitle,
+			.insertedTags span,
+			.tag,
+			.tierBar,
+			.maximum,
+			.arrowLine,
+			.arrowHead
+		),
+	.scene[data-active] .cursor::after {
+		animation: none;
+	}
+	.cursor {
+		display: none;
+	}
+	.postTitle {
+		clip-path: none;
+	}
+	.insertedTags span {
+		opacity: 1;
+		transform: none;
+	}
+	.arrowLine {
+		stroke-dashoffset: 0;
+	}
+	.arrowHead,
+	.maximum {
+		opacity: 1;
+	}
+}
