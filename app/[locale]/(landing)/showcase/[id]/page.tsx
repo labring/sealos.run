@@ -6,23 +6,30 @@ import { FlatArrowLeftIcon } from '@/assets/icons';
 import { LandingOutlineButton } from '@/libs/components/LandingOutlineButton';
 import { Icon } from '@/libs/components/ui/icon';
 import { Link } from '@/libs/i18n/navigation';
-import { loadVoteSnapshot } from '@/libs/showcase/snapshot';
+import { standingOf } from '@/libs/showcase/board';
+import { loadBoard, loadVoted } from '@/libs/showcase/load';
+import { avatarOf } from '@/libs/showcase/project';
 import { parseVoterId, VOTER_COOKIE } from '@/libs/showcase/vote-request';
-import { showcaseLinks, showcaseProjects } from '../utils/showcase.config';
+import { showcaseLinks } from '../utils/showcase.config';
 import { ProjectVotePanel } from './components/ProjectVotePanel';
 
 type PageProps = {
 	params: Promise<{ id: string }>;
 };
 
-const findProject = (id: string) => showcaseProjects.find((project) => project.id === id);
+const findProject = async (id: string) => {
+	const board = await loadBoard();
+	const project = board?.projects.find((item) => item.id === id);
+	return board && project ? { project, standing: standingOf(board.projects, board.counts, id) } : null;
+};
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
 	const { id } = await params;
-	const project = findProject(id);
-	if (!project) {
+	const found = await findProject(id);
+	if (!found) {
 		return {};
 	}
+	const { project } = found;
 	const title = `${project.name} — Vibe Coding 作品馆`;
 	return {
 		title,
@@ -40,13 +47,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ShowcaseProjectPage({ params }: PageProps) {
 	const { id } = await params;
-	const project = findProject(id);
-	if (!project) {
+	const found = await findProject(id);
+	if (!found?.standing) {
 		notFound();
 	}
+	const { project, standing } = found;
 
 	const cookieStore = await cookies();
-	const snapshot = await loadVoteSnapshot(parseVoterId(cookieStore.get(VOTER_COOKIE)?.value));
+	const voted = await loadVoted(parseVoterId(cookieStore.get(VOTER_COOKIE)?.value));
 
 	return (
 		<div className='container mx-auto px-6 pt-12 sm:pt-16'>
@@ -77,7 +85,10 @@ export default async function ShowcaseProjectPage({ params }: PageProps) {
 					</div>
 
 					<Image
-						src={project.cover}
+						src={project.coverUrl}
+						width={1200}
+						height={800}
+						unoptimized
 						alt={`${project.name} 界面预览`}
 						priority
 						sizes='(min-width: 1024px) 66vw, 100vw'
@@ -118,7 +129,7 @@ export default async function ShowcaseProjectPage({ params }: PageProps) {
 							className='bg-primary text-primary-foreground flex size-12 shrink-0 items-center justify-center rounded-full text-lg font-medium'
 							aria-hidden='true'
 						>
-							{project.avatar}
+							{avatarOf(project.author)}
 						</span>
 						<div className='min-w-0'>
 							<p className='font-medium'>@{project.author}</p>
@@ -127,7 +138,8 @@ export default async function ShowcaseProjectPage({ params }: PageProps) {
 					</div>
 					<ProjectVotePanel
 						projectId={project.id}
-						initialSnapshot={snapshot}
+						standing={standing}
+						voted={voted.includes(project.id)}
 					/>
 				</div>
 			</div>

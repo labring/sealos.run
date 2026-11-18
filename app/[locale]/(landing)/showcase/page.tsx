@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
+import { buildBoardPage } from '@/libs/showcase/board';
+import { loadBoard, loadVoted } from '@/libs/showcase/load';
 import { parsePage } from '@/libs/showcase/pagination';
-import { loadVoteSnapshot } from '@/libs/showcase/snapshot';
 import { parseVoterId, VOTER_COOKIE } from '@/libs/showcase/vote-request';
 import { BountySection } from './sections/BountySection';
 import { HeroSection } from './sections/HeroSection';
@@ -18,19 +19,27 @@ export const metadata: Metadata = {
 	openGraph: { title, description, url: 'https://sealos.run/showcase', locale: 'zh_CN', type: 'website' },
 };
 
+const PAGE_SIZE = 10;
 type PageProps = { searchParams: Promise<{ page?: string | string[]; q?: string | string[] }> };
 
 export default async function ShowcasePage({ searchParams }: PageProps) {
 	const { page, q } = await searchParams;
+	const query = typeof q === 'string' ? q.trim() : '';
 	const cookieStore = await cookies();
-	const snapshot = await loadVoteSnapshot(parseVoterId(cookieStore.get(VOTER_COOKIE)?.value));
+	const [board, voted] = await Promise.all([
+		loadBoard(),
+		loadVoted(parseVoterId(cookieStore.get(VOTER_COOKIE)?.value)),
+	]);
 	return (
 		<>
 			<HeroSection />
 			<ShowcaseSection
-				initialSnapshot={snapshot}
-				page={parsePage(page)}
-				query={typeof q === 'string' ? q.trim() : ''}
+				board={
+					board &&
+					buildBoardPage(board.projects, board.counts, { page: parsePage(page), query, pageSize: PAGE_SIZE })
+				}
+				voted={voted}
+				query={query}
 			/>
 			<BountySection />
 		</>

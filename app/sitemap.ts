@@ -1,8 +1,11 @@
 import type { MetadataRoute } from 'next';
-import { showcaseProjectIds } from '@/app/[locale]/(landing)/showcase/utils/showcase.config';
 import { getAllPosts } from '@/libs/blog/utils';
+import { loadBoard } from '@/libs/showcase/load';
 
 const SITE_URL = 'https://sealos.run';
+
+// Listed showcase projects come from the database, which does not exist at build time.
+export const revalidate = 3600;
 
 const staticRoutes: Array<{
 	path: string;
@@ -90,7 +93,7 @@ const docsRoutes: Array<{
 	},
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	const now = new Date();
 
 	const staticEntries: MetadataRoute.Sitemap = staticRoutes.map((route) => ({
@@ -114,7 +117,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 		priority: 0.6,
 	}));
 
-	const showcaseEntries: MetadataRoute.Sitemap = showcaseProjectIds.map((id) => ({
+	const showcaseEntries: MetadataRoute.Sitemap = ((await loadBoard())?.projects ?? []).map(({ id }) => ({
 		url: `${SITE_URL}/showcase/${id}`,
 		lastModified: now,
 		changeFrequency: 'daily',
