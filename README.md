@@ -42,6 +42,16 @@ pnpm format:check
 pnpm build
 ```
 
+## 作品馆点赞
+
+`/showcase` 的点赞数据存放在 PostgreSQL，通过**运行时**环境变量 `SHOWCASE_DATABASE_URL` 连接（不是构建参数，`docker run -e` 即可生效）。首次部署先建表：
+
+```bash
+psql "$SHOWCASE_DATABASE_URL" -f db/showcase.sql
+```
+
+未配置该变量或数据库不可达时，作品馆仍可访问，但不显示点赞数与前三名，点赞按钮不可用。本地测试：`SHOWCASE_TEST_DATABASE_URL=postgres://localhost/<库名> pnpm test:showcase`。
+
 ## 部署
 
 项目支持多种部署方式：

@@ -1,0 +1,148 @@
+.hero {
+	position: relative;
+	overflow: hidden;
+	padding: 64px 24px 72px;
+	background: #fafafa;
+}
+.grid {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	background-image:
+		linear-gradient(#0000000b 1px, transparent 1px), linear-gradient(90deg, #0000000b 1px, transparent 1px);
+	background-size: 58px 58px;
+	background-position: center top;
+	mask-image: linear-gradient(#000 55%, transparent);
+}
+.inner {
+	position: relative;
+	display: grid;
+	width: 100%;
+	max-width: 1280px;
+	grid-template-columns: minmax(0, 1fr) minmax(360px, 460px);
+	align-items: center;
+	gap: 64px;
+	margin-inline: auto;
+}
+.copy {
+	min-width: 0;
+	padding-bottom: 12px;
+}
+.eyebrow {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px 16px;
+	margin: 0 0 28px;
+	color: #686873;
+	font-size: 14px;
+}
+.eyebrow p {
+	margin: 0;
+}
+.rules {
+	color: #686873;
+	font-size: 12px;
+	line-height: 20px;
+	text-decoration: underline;
+	text-decoration-color: #d4d4d8;
+	text-underline-offset: 4px;
+	white-space: nowrap;
+}
+.rules:hover {
+	color: #005bff;
+	text-decoration-color: currentColor;
+}
+.rules:focus-visible {
+	border-radius: 2px;
+	outline: 2px solid #005bff;
+	outline-offset: 4px;
+}
+.heading {
+	position: relative;
+}
+.heading h1 {
+	position: relative;
+	z-index: 1;
+	margin: 0;
+	font-size: clamp(40px, 4vw, 56px);
+	font-weight: 600;
+	line-height: 1.2;
+	letter-spacing: -0.03em;
+}
+.heading h1 span {
+	color: #005bff;
+	white-space: nowrap;
+}
+.arrow {
+	position: absolute;
+	top: 25%;
+	left: 74%;
+	width: 175px;
+	height: auto;
+}
+.description {
+	max-width: 640px;
+	margin: 30px 0 0;
+	color: #71717a;
+	font-size: 15px;
+	line-height: 1.8;
+	text-wrap: pretty;
+}
+.actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin-top: 30px;
+}
+
+@media (max-width: 1199px) {
+	.inner {
+		gap: 40px;
+	}
+	.arrow {
+		left: 82%;
+		width: 125px;
+		top: 30%;
+	}
+}
+@media (max-width: 1023px) {
+	.inner {
+		grid-template-columns: minmax(0, 1fr) minmax(320px, 390px);
+		gap: 28px;
+	}
+	.arrow {
+		display: none;
+	}
+	.heading h1 {
+		font-size: 38px;
+	}
+	.description {
+		font-size: 14px;
+	}
+	.actions {
+		gap: 12px;
+	}
+}
+@media (max-width: 767px) {
+	.hero {
+		padding: 44px 24px 48px;
+	}
+	.inner {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 36px;
+	}
+	.eyebrow {
+		margin-bottom: 22px;
+		font-size: 13px;
+	}
+	.heading h1 {
+		font-size: clamp(31px, 8.6vw, 42px);
+	}
+	.description {
+		margin-top: 22px;
+	}
+	.actions {
+		margin-top: 24px;
+	}
+}

@@ -96,6 +96,10 @@ export const Config = (() => {
 						href: '/downloads',
 					},
 					{
+						textI18nKey: t('components.navbar.links.showcase'),
+						href: '/showcase',
+					},
+					{
 						textI18nKey: t('components.navbar.links.pricing'),
 						href: '/pricing/payg',
 					},
