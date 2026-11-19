@@ -1,52 +1,54 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { showcaseProjectIds } from '@/app/[locale]/(landing)/showcase/utils/showcase.config';
+import type { PoolClient } from 'pg';
+import { parseAuthConfig, readSession, SESSION_COOKIE } from '@/libs/showcase/auth';
 import { getShowcasePool } from '@/libs/showcase/db';
-import { parseVoteRequest, parseVoterId, VOTER_COOKIE } from '@/libs/showcase/vote-request';
-import { castVote, readVoteSnapshot } from '@/libs/showcase/votes';
+import { createRateLimiter } from '@/libs/showcase/rate-limit';
+import { clientIp, parseVoteRequest } from '@/libs/showcase/vote-request';
+import { castVote } from '@/libs/showcase/votes';
 
-// TODO(待确认): 目前是匿名点赞，用 Cookie 里的随机访客 ID 去重（每个访客每个作品 1 票）。
-// 清除 Cookie 或用脚本直接请求即可重复投票，没有登录校验与限流。
-// 是否改为「登录 Sealos 账号限赞 1 次」待产品确认；改造时 voter_id 换成账号 ID 即可沿用现有表。
-
-const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
+const allowRequest = createRateLimiter({ limit: 10, windowMs: 60_000 });
 
 export async function POST(request: Request) {
+	const config = parseAuthConfig(process.env);
+	const pool = getShowcasePool();
+	if (!config || !pool) return NextResponse.json({ error: 'unavailable' }, { status: 503 });
+	if (request.headers.get('origin') !== new URL(config.callback).origin) {
+		return NextResponse.json({ error: 'invalid_origin' }, { status: 403 });
+	}
+	const voterId = readSession(
+		(await cookies()).get(SESSION_COOKIE)?.value,
+		config.secret,
+		Math.floor(Date.now() / 1000),
+	);
+	if (!voterId) return NextResponse.json({ error: 'login_required' }, { status: 401 });
+	const ip = clientIp(request.headers);
+	if (!ip) return NextResponse.json({ error: 'unavailable' }, { status: 503 });
+	if (!allowRequest(ip)) return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+
 	let body: unknown;
 	try {
 		body = await request.json();
 	} catch {
 		return NextResponse.json({ error: 'invalid_request' }, { status: 400 });
 	}
-	const vote = parseVoteRequest(body, showcaseProjectIds);
-	if (!vote) {
-		return NextResponse.json({ error: 'invalid_request' }, { status: 400 });
-	}
-
-	const pool = getShowcasePool();
-	if (!pool) {
-		return NextResponse.json({ error: 'unavailable' }, { status: 503 });
-	}
-
-	const cookieStore = await cookies();
-	const voterId = parseVoterId(cookieStore.get(VOTER_COOKIE)?.value) ?? crypto.randomUUID();
-
-	let snapshot: Awaited<ReturnType<typeof readVoteSnapshot>>;
+	const vote = parseVoteRequest(body);
+	if (!vote) return NextResponse.json({ error: 'invalid_request' }, { status: 400 });
+	let db: PoolClient | undefined;
 	try {
-		await castVote(pool, vote.projectId, voterId);
-		snapshot = await readVoteSnapshot(pool, voterId);
+		db = await pool.connect();
+		const result = await castVote(db, { projectId: vote.projectId, voterId });
+		if (result.status === 'unknown_project') return NextResponse.json({ error: 'not_found' }, { status: 404 });
+		if (result.status === 'daily_limit') {
+			return NextResponse.json({ error: 'daily_limit', projectId: result.projectId }, { status: 409 });
+		}
+		return NextResponse.json({ projectId: vote.projectId, votes: result.votes });
 	} catch (error) {
 		console.error('[showcase] failed to record vote', error);
+		db?.release(true);
+		db = undefined;
 		return NextResponse.json({ error: 'unavailable' }, { status: 503 });
+	} finally {
+		db?.release();
 	}
-
-	const response = NextResponse.json(snapshot);
-	response.cookies.set(VOTER_COOKIE, voterId, {
-		httpOnly: true,
-		sameSite: 'lax',
-		secure: process.env.NODE_ENV === 'production',
-		path: '/',
-		maxAge: ONE_YEAR_SECONDS,
-	});
-	return response;
 }

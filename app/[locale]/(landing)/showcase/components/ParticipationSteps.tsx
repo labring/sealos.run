@@ -20,7 +20,11 @@ const steps = [
 		description: '在小红书、B站、公众号、知乎、抖音、视频号或 X 发帖，露出桌面端界面，带上活动话题。',
 		Scene: SharingScene,
 	},
-	{ title: '提交作品，领现金', description: '首作保底 ¥20，按阅读量最高再领 ¥1,888。', Scene: RewardScene },
+	{
+		title: '提交作品，领现金',
+		description: '首次按要求发帖可领 ¥20，流量与互动达标最高再领 ¥1,888。',
+		Scene: RewardScene,
+	},
 ];
 
 export function ParticipationSteps() {
@@ -30,7 +34,7 @@ export function ParticipationSteps() {
 	const [reducedMotion, setReducedMotion] = React.useState(true);
 	const root = React.useRef<HTMLDivElement>(null);
 	const visible = useInView(root, { amount: 0.35 });
-	const id = React.useId();
+	const id = 'showcase-participation';
 	const suspended = !visible || !pageVisible || reducedMotion;
 	const paused = manuallyPaused || suspended;
 
@@ -146,7 +150,6 @@ export function ParticipationSteps() {
 					onClick={() => setManuallyPaused((previous) => !previous)}
 				>
 					<span aria-hidden='true'>{manuallyPaused ? '▶' : 'Ⅱ'}</span>
-					{manuallyPaused ? '继续轮播' : '暂停轮播'}
 				</button>
 			</div>
 		</div>

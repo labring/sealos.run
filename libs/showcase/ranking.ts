@@ -1,7 +1,14 @@
 export type VoteCounts = Record<string, number>;
 
-/** Vote totals plus the projects the current visitor has already voted for. */
-export type VoteSnapshot = { counts: VoteCounts; voted: string[] };
+/** Live totals and the current account's allowance for the Beijing calendar day. */
+export type VoteSnapshot = {
+	counts: VoteCounts;
+	day: string;
+	/** Milliseconds until the database's next Beijing calendar day. */
+	nextResetInMs: number;
+	account: 'unavailable' | 'anonymous' | 'ready' | 'spent';
+	votedProjectId: string | null;
+};
 
 export type Ranked<T> = T & { votes: number; rank: number };
 

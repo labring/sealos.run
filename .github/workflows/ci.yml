@@ -13,6 +13,17 @@ jobs:
   check:
     name: CI
     runs-on: ubuntu-latest
+    services:
+      showcase-db:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: showcase_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: showcase_test
+        ports:
+          - '127.0.0.1:5432:5432'
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 3s --health-retries 10
 
     steps:
       - name: Checkout repository
@@ -38,6 +49,11 @@ jobs:
           rm -rf content/content
           mkdir -p content/content
           cp -R content-debug/. content/content/
+
+      - name: Test showcase publication and voting
+        env:
+          SHOWCASE_TEST_DATABASE_URL: postgresql://showcase_test@127.0.0.1:5432/showcase_test
+        run: pnpm test:showcase
 
       - name: Run typecheck
         run: pnpm typecheck

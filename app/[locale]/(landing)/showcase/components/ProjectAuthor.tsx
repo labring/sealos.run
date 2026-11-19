@@ -1,5 +1,5 @@
+import { avatarOf, type ShowcaseProject } from '@/libs/showcase/project';
 import css from '../sections/ShowcaseSection.module.css';
-import type { ShowcaseProject } from '../utils/showcase.config';
 
 export function ProjectAuthor({ project }: { project: ShowcaseProject }) {
 	return (
@@ -8,10 +8,10 @@ export function ProjectAuthor({ project }: { project: ShowcaseProject }) {
 				className={css['avatar']}
 				aria-hidden='true'
 			>
-				{project.avatar}
+				{avatarOf(project.author)}
 			</span>
 			<span className={css['authorName']}>@{project.author}</span>
-			<span className={css['authorRole']}>{project.role}</span>
+			{project.role && <span className={css['authorRole']}>{project.role}</span>}
 		</span>
 	);
 }
