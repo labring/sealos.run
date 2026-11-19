@@ -27,7 +27,7 @@ export function ShowcaseSearch({ query, votingOpen }: { query: string; votingOpe
 		>
 			<h3 className={css['listTitle']}>
 				更多作品
-				{votingOpen && <small>为喜欢的作品点赞，帮它冲进前三</small>}
+				{votingOpen && <small>为喜欢的作品投票，帮它冲进前三</small>}
 			</h3>
 			<div className={css['search']}>
 				<input

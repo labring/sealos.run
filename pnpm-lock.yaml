@@ -40,6 +40,9 @@ importers:
       '@streamdown/cjk':
         specifier: 1.0.3
         version: 1.0.3(@types/mdast@4.0.4)(micromark-util-types@2.0.2)(micromark@4.0.2)(react@19.2.3)(unified@11.0.5)
+      aws4fetch:
+        specifier: ^1.0.20
+        version: 1.0.20
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -2442,6 +2445,12 @@ packages:
         integrity: sha512-LElXdjswlqjWrPpJFg1Fx4wpkOCxj1TDHlSV4PlaRxHGWko024xICaa97ZkMfs6DRKlCguiAI+rbXv5GWwXIkg==,
       }
     hasBin: true
+
+  aws4fetch@1.0.20:
+    resolution:
+      {
+        integrity: sha512-/djoAN709iY65ETD6LKCtyyEI04XIBP5xVvfmNxsEP0uJB5tyaGBztSryRr4HqMStr9R06PisQE7m9zDTXKu6g==,
+      }
 
   babel-plugin-react-compiler@1.0.0:
     resolution:
@@ -6221,6 +6230,8 @@ snapshots:
       tslib: 2.8.1
 
   astring@1.9.0: {}
+
+  aws4fetch@1.0.20: {}
 
   babel-plugin-react-compiler@1.0.0:
     dependencies:

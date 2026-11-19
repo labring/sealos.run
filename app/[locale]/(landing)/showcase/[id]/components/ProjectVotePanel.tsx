@@ -2,36 +2,37 @@
 
 import React from 'react';
 import { Button } from '@/libs/components/ui/button';
-import { PODIUM_SIZE, type Ranked, rankProjects, type VoteSnapshot } from '@/libs/showcase/ranking';
-import { type ShowcaseProject, showcaseProjects } from '../../utils/showcase.config';
+import type { Standing } from '@/libs/showcase/board';
+import type { VoteSnapshot } from '@/libs/showcase/ranking';
 import { useVotes } from '../../utils/useVotes';
 
-function describeStanding(ranked: readonly Ranked<ShowcaseProject>[], project: Ranked<ShowcaseProject>): string {
-	const leader = ranked[0];
-	const third = ranked[PODIUM_SIZE - 1];
-	if (project.rank > PODIUM_SIZE && third) {
-		return `再得 ${third.votes - project.votes + 1} 票进入前三`;
+function describeStanding({ rank, lead, toLeader, toPodium }: Standing): string {
+	if (toPodium !== null) {
+		return `再得 ${toPodium} 票进入前三`;
 	}
-	if (project.rank === 1) {
-		const lead = project.votes - (ranked[1]?.votes ?? 0);
-		return lead > 0 ? `目前排名第一，领先第 2 名 ${lead} 票` : '目前排名第一';
+	if (rank === 1) {
+		return lead ? `目前排名第一，领先第 2 名 ${lead} 票` : '目前排名第一';
 	}
-	return leader ? `已进入前三，距第一名还差 ${leader.votes - project.votes + 1} 票` : '';
+	return toLeader === null ? '' : `已进入前三，距第一名还差 ${toLeader} 票`;
 }
 
 type ProjectVotePanelProps = {
 	projectId: string;
-	/** Null when votes are unavailable. */
-	initialSnapshot: VoteSnapshot | null;
+	/** Rank and votes as the server last saw them. */
+	standing: Standing | null;
+	/** The account's daily voting allowance. */
+	voting: VoteSnapshot | null;
 };
 
-export function ProjectVotePanel({ projectId, initialSnapshot }: ProjectVotePanelProps) {
-	const { snapshot, pendingId, failedId, vote } = useVotes(initialSnapshot);
+export function ProjectVotePanel({ projectId, standing, voting }: ProjectVotePanelProps) {
+	const { snapshot, pendingId, failures, vote } = useVotes(voting);
 	const [copyState, setCopyState] = React.useState<'idle' | 'copied' | 'failed'>('idle');
 
-	const ranked = snapshot ? rankProjects(showcaseProjects, snapshot.counts) : null;
-	const project = ranked?.find((item) => item.id === projectId);
-	const voted = snapshot?.voted.includes(projectId) ?? false;
+	const votes = snapshot?.counts[projectId] ?? standing?.votes;
+	const spent = snapshot?.account === 'spent';
+	const voted = spent && snapshot.votedProjectId === projectId;
+	const unavailable = !snapshot || snapshot.account === 'unavailable';
+	const failure = failures[projectId];
 
 	const copyLink = async () => {
 		try {
@@ -44,36 +45,45 @@ export function ProjectVotePanel({ projectId, initialSnapshot }: ProjectVotePane
 
 	return (
 		<aside className='bg-card rounded-2xl border p-6'>
-			{ranked && project && (
+			{standing && (
 				<>
 					<div className='flex items-baseline justify-between gap-4'>
 						<p>
-							<span className='text-5xl font-semibold tabular-nums'>{project.votes}</span>
+							<span className='text-5xl font-semibold tabular-nums'>{votes}</span>
 							<span className='text-muted-foreground ml-2'>票</span>
 						</p>
-						<span className='text-muted-foreground text-sm'>NO.{project.rank}</span>
+						{standing.rank !== null && (
+							<span className='text-muted-foreground text-sm'>NO.{standing.rank}</span>
+						)}
 					</div>
-					<p className='text-muted-foreground mt-3 text-sm'>{describeStanding(ranked, project)}</p>
+					<p className='text-muted-foreground mt-3 text-sm'>{describeStanding(standing)}</p>
 				</>
 			)}
 
 			<Button
 				className='mt-6 h-11 w-full first:mt-0 disabled:opacity-100'
-				variant={voted || !snapshot ? 'secondary' : 'default'}
-				disabled={!snapshot || voted || pendingId !== null}
+				variant={spent || unavailable || failure?.blocked ? 'secondary' : 'default'}
+				disabled={unavailable || spent || pendingId !== null || failure?.blocked}
 				onClick={() => vote(projectId)}
 			>
-				{!snapshot ? '点赞暂时不可用，请稍后再来' : voted ? '已为它点赞' : '为它点赞'}
+				{unavailable
+					? '投票暂时不可用'
+					: voted
+						? '今天已为它投票'
+						: spent
+							? '今天的票已投出'
+							: snapshot.account === 'anonymous'
+								? '登录后投票'
+								: '为它投票'}
 			</Button>
-			{failedId === projectId && (
-				<output className='text-destructive mt-2 block text-sm'>没点成功，请再试一次</output>
-			)}
+			{snapshot && <p className='text-muted-foreground mt-2 text-sm'>每个账号每天一票，北京时间 0 点更新。</p>}
+			{snapshot && failure && <output className='text-destructive mt-2 block text-sm'>{failure.message}</output>}
 
 			<div className='mt-6 border-t pt-6'>
-				<p className='font-medium'>邀请朋友来点赞</p>
-				<p className='text-muted-foreground mt-1 text-sm'>
-					复制链接发到群聊或朋友圈，朋友打开就能给这个作品点赞。
-				</p>
+				<p className='font-medium'>{unavailable ? '分享作品' : '邀请朋友来投票'}</p>
+				{!unavailable && (
+					<p className='text-muted-foreground mt-1 text-sm'>复制链接发给朋友，登录后就能为这个作品投票。</p>
+				)}
 				<Button
 					variant='outline'
 					className='mt-4 h-11 w-full'

@@ -3,22 +3,28 @@
 import React from 'react';
 import { Button } from '@/libs/components/ui/button';
 import { useRouter } from '@/libs/i18n/navigation';
-import { searchProjects } from '@/libs/showcase/filters';
-import { paginate } from '@/libs/showcase/pagination';
-import { PODIUM_SIZE, podiumGap, rankProjects, type VoteSnapshot, votesToPodium } from '@/libs/showcase/ranking';
+import type { BoardPage } from '@/libs/showcase/board';
+import type { ShowcaseProject } from '@/libs/showcase/project';
+import type { VoteSnapshot } from '@/libs/showcase/ranking';
 import { Pagination } from '../components/Pagination';
 import { ProjectCard } from '../components/ProjectCard';
 import { ProjectRow } from '../components/ProjectRow';
 import { ShowcaseSearch } from '../components/ShowcaseSearch';
-import { showcaseProjects } from '../utils/showcase.config';
 import { useVotes } from '../utils/useVotes';
 import css from './ShowcaseSection.module.css';
 
-const PAGE_SIZE = 10;
-type ShowcaseSectionProps = { initialSnapshot: VoteSnapshot | null; page: number; query: string };
+type ShowcaseSectionProps = {
+	/** Null when the published catalog is unavailable. */
+	board: BoardPage<ShowcaseProject> | null;
+	/** The account's voting allowance and live counts. */
+	voting: VoteSnapshot | null;
+	query: string;
+};
 
-export function ShowcaseSection({ initialSnapshot, page, query }: ShowcaseSectionProps) {
-	const { snapshot, pendingId, failedId, vote } = useVotes(initialSnapshot);
+export function ShowcaseSection({ board, voting, query }: ShowcaseSectionProps) {
+	const shown = board ? [...board.podium, ...board.rows] : [];
+	const { snapshot, pendingId, failures, vote } = useVotes(voting);
+	const page = board?.page ?? 1;
 	const router = useRouter();
 	const listRef = React.useRef<HTMLElement>(null);
 	const listKey = JSON.stringify([page, query]);
@@ -35,17 +41,17 @@ export function ShowcaseSection({ initialSnapshot, page, query }: ShowcaseSectio
 		});
 	}, [listKey]);
 
-	const ranked = rankProjects(showcaseProjects, snapshot?.counts ?? {});
-	const topThree = snapshot ? ranked.slice(0, PODIUM_SIZE) : [];
-	const rest = snapshot ? ranked.slice(PODIUM_SIZE) : ranked;
-	const matches = searchProjects(rest, query);
-	const featuredMatches = searchProjects(topThree, query).length;
-	const rows = paginate(matches, page, PAGE_SIZE);
+	const topThree = board?.podium ?? [];
+	const rows = board?.rows ?? [];
+	const featuredMatches = board?.featuredMatches ?? 0;
+	const isEmpty = shown.length === 0 && !query;
 	const voteProps = (id: string) => ({
 		votes: snapshot ? (snapshot.counts[id] ?? 0) : null,
-		voted: snapshot?.voted.includes(id) ?? false,
+		voted: snapshot?.account === 'spent' && snapshot.votedProjectId === id,
+		spent: snapshot?.account === 'spent',
+		authUnavailable: snapshot?.account === 'unavailable',
 		busy: pendingId !== null,
-		failed: failedId === id,
+		failure: failures[id],
 		onVote: () => vote(id),
 	});
 
@@ -58,74 +64,95 @@ export function ShowcaseSection({ initialSnapshot, page, query }: ShowcaseSectio
 				<div className={css['heading']}>
 					<h2>造物主作品馆</h2>
 					<p>
-						{snapshot
-							? '全部在线真实运行，点赞前三名置顶展示'
-							: '全部在线真实运行。点赞暂时不可用，请稍后再来为喜欢的作品助力'}
+						{!board
+							? '作品馆暂时打不开，请稍后再来'
+							: snapshot && snapshot.account !== 'unavailable'
+								? '登录后每天可投一票，前三名置顶展示'
+								: '投票暂时不可用，你仍然可以浏览和体验作品。'}
 					</p>
 				</div>
 				{topThree.length > 0 && (
 					<ol
 						className={css['podium']}
-						aria-label='点赞前三名'
+						aria-label='投票前三名'
 					>
 						{topThree.map((project) => (
 							<ProjectCard
 								key={project.id}
 								project={project}
 								rank={project.rank}
-								gap={podiumGap(ranked, project.rank)}
+								gap={project.gap}
 								vote={voteProps(project.id)}
 							/>
 						))}
 					</ol>
 				)}
-				<ShowcaseSearch
-					query={query}
-					votingOpen={snapshot !== null}
-				/>
-				<section
-					ref={listRef}
-					className={css['table']}
-					aria-label='更多作品'
-				>
-					<output className='sr-only'>
-						找到 {matches.length} 个其他作品，上方前三名中有 {featuredMatches} 个匹配作品。
-					</output>
-					{rows.items.length > 0 ? (
-						<ol className={css['list']}>
-							{rows.items.map((project) => (
-								<ProjectRow
-									key={project.id}
-									project={project}
-									position={snapshot ? project.rank : null}
-									toPodium={snapshot ? votesToPodium(ranked, project.id) : null}
-									thirdVotes={snapshot ? (ranked[PODIUM_SIZE - 1]?.votes ?? null) : null}
-									vote={voteProps(project.id)}
-								/>
-							))}
-						</ol>
-					) : (
-						<div className={css['empty']}>
-							<strong>{featuredMatches ? '匹配作品已在前三名展示' : '暂无匹配作品'}</strong>
-							<p>{featuredMatches ? '可在上方作品卡片中查看详情。' : '试试其他作品名或作者名。'}</p>
-							{query && (
-								<Button
-									variant='outline'
-									onClick={() => {
-										router.push('/showcase', { scroll: false });
-										document.getElementById('showcase-search')?.focus({ preventScroll: true });
-									}}
-								>
-									清除搜索
-								</Button>
+				{board && (
+					<>
+						<ShowcaseSearch
+							query={query}
+							votingOpen={snapshot !== null && snapshot.account !== 'unavailable'}
+						/>
+						<section
+							hidden={!query && rows.length === 0 && topThree.length > 0}
+							ref={listRef}
+							className={css['table']}
+							aria-label='更多作品'
+						>
+							<output className='sr-only'>
+								找到 {board?.matchCount ?? 0} 个其他作品，上方前三名中有 {featuredMatches} 个匹配作品。
+							</output>
+							{rows.length > 0 ? (
+								<ol className={css['list']}>
+									{rows.map((project) => (
+										<ProjectRow
+											key={project.id}
+											project={project}
+											position={project.rank}
+											toPodium={project.toPodium}
+											thirdVotes={(board?.podiumThreshold ?? 1) - 1}
+											vote={voteProps(project.id)}
+										/>
+									))}
+								</ol>
+							) : (
+								<div className={css['empty']}>
+									<strong>
+										{isEmpty
+											? '作品即将上架'
+											: featuredMatches
+												? '匹配作品已在前三名展示'
+												: '暂无匹配作品'}
+									</strong>
+									<p>
+										{isEmpty
+											? '第一批作品正在审核，很快就能在这里看到。'
+											: featuredMatches
+												? '可在上方作品卡片中查看详情。'
+												: '试试其他作品名或作者名。'}
+									</p>
+									{query && (
+										<Button
+											variant='outline'
+											onClick={() => {
+												router.push('/showcase', { scroll: false });
+												document
+													.getElementById('showcase-search')
+													?.focus({ preventScroll: true });
+											}}
+										>
+											清除搜索
+										</Button>
+									)}
+								</div>
 							)}
-						</div>
-					)}
-				</section>
-				{rows.pageCount > 1 && (
+						</section>
+					</>
+				)}
+				{board && board.pageCount > 1 && (
 					<Pagination
-						page={rows.page}
-						pageCount={rows.pageCount}
+						page={board.page}
+						pageCount={board.pageCount}
 						query={query}
 					/>
 				)}

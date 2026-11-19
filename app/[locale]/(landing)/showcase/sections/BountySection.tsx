@@ -3,7 +3,7 @@
 import { useInView } from 'motion/react';
 import React from 'react';
 import { cn } from '@/libs/utils/styling';
-import { type BountyTrack, bountyTiers, bountyTracks } from '../utils/showcase.config';
+import { type BountyTrack, bountyTiers, bountyTracks, showcaseLinks } from '../utils/showcase.config';
 import css from './BountySection.module.css';
 
 export function BountySection() {
@@ -20,7 +20,7 @@ export function BountySection() {
 			<div className={css['container']}>
 				<header className={css['heading']}>
 					<h2>纯现金创作激励</h2>
-					<p>首作 ¥20 保底与传播奖直接叠加，新项目不限次数</p>
+					<p>首次发帖领 ¥20，流量达标再赢高额现金。</p>
 				</header>
 				<fieldset
 					className={css['tracks']}
@@ -56,6 +56,15 @@ export function BountySection() {
 				</ol>
 				<p className={css['note']}>
 					活动截止 12 月 31 日 · 线上链接与帖子公开保留满 7 天 · 单项目取最高单篇于 1 月统一结算
+					{' · '}
+					<a
+						href={showcaseLinks.applicationForm}
+						target='_blank'
+						rel='noopener noreferrer'
+						className='underline'
+					>
+						申请奖励
+					</a>
 				</p>
 			</div>
 		</section>

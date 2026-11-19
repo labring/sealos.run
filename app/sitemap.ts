@@ -1,5 +1,4 @@
 import type { MetadataRoute } from 'next';
-import { showcaseProjectIds } from '@/app/[locale]/(landing)/showcase/utils/showcase.config';
 import { getAllPosts } from '@/libs/blog/utils';
 
 const SITE_URL = 'https://sealos.run';
@@ -114,12 +113,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
 		priority: 0.6,
 	}));
 
-	const showcaseEntries: MetadataRoute.Sitemap = showcaseProjectIds.map((id) => ({
-		url: `${SITE_URL}/showcase/${id}`,
-		lastModified: now,
-		changeFrequency: 'daily',
-		priority: 0.6,
-	}));
-
-	return [...staticEntries, ...docsEntries, ...blogEntries, ...showcaseEntries];
+	return [...staticEntries, ...docsEntries, ...blogEntries];
 }

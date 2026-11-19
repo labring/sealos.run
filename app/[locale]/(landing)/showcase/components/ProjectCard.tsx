@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { Link } from '@/libs/i18n/navigation';
+import type { ShowcaseProject } from '@/libs/showcase/project';
 import css from '../sections/ShowcaseSection.module.css';
-import type { ShowcaseProject } from '../utils/showcase.config';
 import { ProjectAuthor } from './ProjectAuthor';
 import { VoteButton, type VoteButtonProps } from './VoteButton';
 
@@ -57,7 +57,10 @@ export function ProjectCard({ project, rank, gap, vote }: ProjectCardProps) {
 				</span>
 				<div className={css['cover']}>
 					<Image
-						src={project.cover}
+						src={project.coverUrl}
+						width={1200}
+						height={800}
+						unoptimized
 						alt={`${project.name} 界面预览`}
 						sizes='(min-width: 1280px) 480px, (min-width: 901px) 36vw, (min-width: 641px) 50vw, 100vw'
 					/>

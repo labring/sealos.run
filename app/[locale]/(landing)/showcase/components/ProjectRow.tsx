@@ -2,8 +2,8 @@ import Image from 'next/image';
 import { ChevronUpIcon } from '@/assets/icons';
 import { Icon } from '@/libs/components/ui/icon';
 import { Link } from '@/libs/i18n/navigation';
+import type { ShowcaseProject } from '@/libs/showcase/project';
 import css from '../sections/ShowcaseSection.module.css';
-import type { ShowcaseProject } from '../utils/showcase.config';
 import { ProjectAuthor } from './ProjectAuthor';
 import { VoteButton, type VoteButtonProps } from './VoteButton';
 
@@ -32,7 +32,10 @@ export function ProjectRow({ project, position, toPodium, thirdVotes, vote }: Pr
 			</span>
 			<div className={css['rowCover']}>
 				<Image
-					src={project.cover}
+					src={project.coverUrl}
+					width={1200}
+					height={800}
+					unoptimized
 					alt=''
 					sizes='(min-width: 1101px) 208px, (min-width: 641px) 160px, 112px'
 					className={css['thumbnail']}
