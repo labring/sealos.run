@@ -1,7 +1,6 @@
 import Image from 'next/image';
 import { LandingOutlineButton } from '@/libs/components/LandingOutlineButton';
 import { Button } from '@/libs/components/ui/button';
-import { Link } from '@/libs/i18n/navigation';
 import { participationArrow } from '../assets';
 import { ParticipationSteps } from '../components/ParticipationSteps';
 import { showcaseLinks } from '../utils/showcase.config';
@@ -18,12 +17,12 @@ export function HeroSection() {
 				<div className={css['copy']}>
 					<div className={css['eyebrow']}>
 						<p>Vibe Coding 造物主计划 · 第一季</p>
-						<Link
-							href='#bounty'
+						<a
+							href='https://mp.weixin.qq.com/s/VOM26qbm3XxJFbTWMe7WSg'
 							className={css['rules']}
 						>
 							查看奖励规则
-						</Link>
+						</a>
 					</div>
 					<div className={css['heading']}>
 						<h1>
