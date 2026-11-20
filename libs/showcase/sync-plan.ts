@@ -17,7 +17,7 @@ export const FIELDS = {
 } as const;
 
 export type FeishuRecord = { record_id: string; fields: Record<string, unknown> };
-export type CoverFile = { token: string; url: string | null };
+export type CoverFile = { recordId: string; token: string; url: string | null };
 export type ListedRow = {
 	id: string;
 	name: string;
@@ -101,12 +101,16 @@ export function parseSocialLinks(value: string): string[] {
 	];
 }
 
-function publicImages(value: unknown): CoverFile[] {
+function publicImages(recordId: string, value: unknown): CoverFile[] {
 	if (!Array.isArray(value)) return [];
 	const files = new Map<string, CoverFile>();
 	for (const file of value) {
 		if (!file || typeof file.file_token !== 'string' || !file.file_token) return [];
-		files.set(file.file_token, { token: file.file_token, url: typeof file.url === 'string' ? file.url : null });
+		files.set(file.file_token, {
+			recordId,
+			token: file.file_token,
+			url: typeof file.url === 'string' ? file.url : null,
+		});
 	}
 	return Array.from(files.values());
 }
@@ -120,7 +124,7 @@ export function parseRecord({ record_id: id, fields }: FeishuRecord): ParsedReco
 	const summary = textOf(fields[FIELDS.summary]);
 	const author = textOf(fields[FIELDS.nickname]);
 	const url = parseUrl(textOf(fields[FIELDS.url]));
-	const images = publicImages(fields[FIELDS.cover]);
+	const images = publicImages(id, fields[FIELDS.cover]);
 	const missing = [
 		!name && FIELDS.name,
 		!summary && FIELDS.summary,

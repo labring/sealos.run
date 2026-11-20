@@ -41,11 +41,36 @@ export function fetchRecords(config: FeishuConfig, token: string): Promise<Feish
 	);
 }
 
-export async function downloadCover(cover: CoverFile, token: string): Promise<Buffer> {
-	const url = cover.url
-		? new URL(cover.url)
-		: new URL(`${API}/drive/v1/medias/${encodeURIComponent(cover.token)}/download`);
-	if (url.origin !== 'https://open.feishu.cn') throw new Error('飞书附件地址无效');
+/** The record-scoped credential that authorizes Base attachment downloads. */
+function attachmentExtra(data: unknown, recordId: string, fileToken: string): string | null {
+	if (!data || typeof data !== 'object') return null;
+	const attachments = (data as Record<string, unknown>)['attachments'];
+	if (!attachments || typeof attachments !== 'object') return null;
+	const files = (attachments as Record<string, unknown>)[recordId];
+	if (!files || typeof files !== 'object') return null;
+	for (const list of Object.values(files)) {
+		if (!Array.isArray(list)) continue;
+		for (const file of list) {
+			const entry = file && typeof file === 'object' ? (file as Record<string, unknown>) : null;
+			if (entry && entry['file_token'] === fileToken && typeof entry['extra_info'] === 'string')
+				return entry['extra_info'] as string;
+		}
+	}
+	return null;
+}
+
+export async function downloadCover(config: FeishuConfig, cover: CoverFile, token: string): Promise<Buffer> {
+	const body = await call(
+		`/base/v3/bases/${encodeURIComponent(config.baseToken)}/tables/${encodeURIComponent(config.tableId)}/get_attachments`,
+		{
+			method: 'POST',
+			headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+			body: JSON.stringify({ record_id_list: [cover.recordId] }),
+		},
+	);
+	const extra = attachmentExtra(body['data'], cover.recordId, cover.token);
+	const url = new URL(`${API}/drive/v1/medias/${encodeURIComponent(cover.token)}/download`);
+	if (extra) url.searchParams.set('extra', extra);
 	const response = await fetch(url, {
 		headers: { authorization: `Bearer ${token}` },
 		signal: AbortSignal.timeout(TIMEOUT_MS),
