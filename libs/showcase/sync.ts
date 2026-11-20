@@ -51,6 +51,9 @@ function readConfig(): { feishu: FeishuConfig; storage: StorageConfig } | { miss
 
 /** One pinned PostgreSQL session owns the lock through publication and alert delivery. */
 export async function runSync({ force }: { force: boolean }): Promise<SyncResult> {
+	if (process.env['SHOWCASE_SYNC_ENABLED'] !== '1') {
+		return { status: 'unconfigured', missing: ['SHOWCASE_SYNC_ENABLED'] };
+	}
 	const pool = getShowcasePool();
 	const config = readConfig();
 	if (!pool || 'missing' in config) {

@@ -36,9 +36,10 @@ async function publicColumns(get: GetPage): Promise<Map<string, string>> {
 		if (total !== undefined && total !== page.total) throw new Error('飞书字段在分页读取时发生变化');
 		total = page.total;
 		for (const { id, name } of page.fields) {
-			if (columns.has(id) || names.has(name)) throw new Error('飞书返回的字段重复');
+			const redacted = name === '无权限访问字段';
+			if (columns.has(id) || (!redacted && names.has(name))) throw new Error('飞书返回的字段重复');
 			columns.set(id, name);
-			names.add(name);
+			if (!redacted) names.add(name);
 		}
 		if (columns.size === total) break;
 		if (columns.size > total || !page.fields.length) throw new Error('飞书字段分页不完整');
