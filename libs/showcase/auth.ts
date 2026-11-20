@@ -7,6 +7,8 @@ export const SESSION_COOKIE = 'showcase_session';
 export type AuthConfig = { origin: string; clientId: string; callback: string; secret: string; secure: boolean };
 
 export function parseAuthConfig(env: Record<string, string | undefined>): AuthConfig | null {
+	// Kill switch: SHOWCASE_VOTING_DISABLED=1 turns voting off even when auth is fully configured.
+	if (env['SHOWCASE_VOTING_DISABLED'] === '1') return null;
 	const { SHOWCASE_AUTH_ORIGIN, SHOWCASE_AUTH_CLIENT_ID, SHOWCASE_AUTH_CALLBACK_URL, SHOWCASE_AUTH_SECRET } = env;
 	if (
 		!SHOWCASE_AUTH_ORIGIN ||
