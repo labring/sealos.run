@@ -68,7 +68,7 @@ export function ShowcaseSection({ board, voting, query }: ShowcaseSectionProps) 
 							? '作品馆暂时打不开，请稍后再来'
 							: snapshot && snapshot.account !== 'unavailable'
 								? '登录后每天可投一票，前三名置顶展示'
-								: '投票暂时不可用，你仍然可以浏览和体验作品。'}
+								: '投票功能暂未开放'}
 					</p>
 				</div>
 				{topThree.length > 0 && (
