@@ -36,7 +36,7 @@ export type ParsedRecord =
 	| { id: string; listed: true; row: ListedRow }
 	| { id: string; listed: true; name: string; problem: string };
 
-/** Text of a Feishu cell: plain string, number, rich-text segments, or a link cell. */
+/** Text of a Feishu cell: plain string, number, rich-text segments, select options, or a link cell. */
 export function textOf(value: unknown): string {
 	if (value == null) return '';
 	if (typeof value === 'string') return value.trim();
@@ -44,6 +44,7 @@ export function textOf(value: unknown): string {
 	if (Array.isArray(value)) {
 		return value
 			.map((part) => {
+				if (typeof part === 'string') return part;
 				if (!part || typeof part !== 'object' || typeof part.text !== 'string')
 					throw new Error('文本字段格式无效');
 				return part.text;
