@@ -46,7 +46,7 @@ test('parseRecord reads a ticked row and ignores an unticked one', () => {
 			prompt: '',
 			highlights: 3,
 			sortWeight: 5,
-			images: [{ token: 'tok1', url: 'https://open.feishu.cn/x' }],
+			images: [{ token: 'tok1' }],
 		},
 	);
 	assert.deepEqual(parseRecord({ record_id: 'rec2', fields: { ...fields, [FIELDS.listed]: false } }), {

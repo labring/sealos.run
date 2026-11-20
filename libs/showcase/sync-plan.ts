@@ -17,7 +17,7 @@ export const FIELDS = {
 } as const;
 
 export type FeishuRecord = { record_id: string; fields: Record<string, unknown> };
-export type CoverFile = { token: string; url: string | null };
+export type CoverFile = { token: string };
 export type ListedRow = {
 	id: string;
 	name: string;
@@ -106,7 +106,7 @@ function publicImages(value: unknown): CoverFile[] {
 	const files = new Map<string, CoverFile>();
 	for (const file of value) {
 		if (!file || typeof file.file_token !== 'string' || !file.file_token) return [];
-		files.set(file.file_token, { token: file.file_token, url: typeof file.url === 'string' ? file.url : null });
+		files.set(file.file_token, { token: file.file_token });
 	}
 	return Array.from(files.values());
 }

@@ -41,11 +41,42 @@ export function fetchRecords(config: FeishuConfig, token: string): Promise<Feish
 	);
 }
 
-export async function downloadCover(cover: CoverFile, token: string): Promise<Buffer> {
-	const url = cover.url
-		? new URL(cover.url)
-		: new URL(`${API}/drive/v1/medias/${encodeURIComponent(cover.token)}/download`);
-	if (url.origin !== 'https://open.feishu.cn') throw new Error('飞书附件地址无效');
+/** Find the authorization for one specific attachment in a Base record. */
+function attachmentExtra(data: unknown, recordId: string, fileToken: string): string | null {
+	if (!data || typeof data !== 'object') return null;
+	const attachments = (data as Record<string, unknown>)['attachments'];
+	if (!attachments || typeof attachments !== 'object') return null;
+	const fields = (attachments as Record<string, unknown>)[recordId];
+	if (!fields || typeof fields !== 'object') return null;
+	for (const files of Object.values(fields)) {
+		if (!Array.isArray(files)) continue;
+		for (const file of files) {
+			if (!file || typeof file !== 'object') continue;
+			const entry = file as Record<string, unknown>;
+			if (entry['file_token'] === fileToken && typeof entry['extra_info'] === 'string' && entry['extra_info']) {
+				return entry['extra_info'];
+			}
+		}
+	}
+	return null;
+}
+
+export async function downloadCover(
+	cover: CoverFile,
+	token: string,
+	config: FeishuConfig,
+	recordId: string,
+): Promise<Buffer> {
+	const table = `/base/v3/bases/${encodeURIComponent(config.baseToken)}/tables/${encodeURIComponent(config.tableId)}`;
+	const body = await call(`${table}/get_attachments`, {
+		method: 'POST',
+		headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+		body: JSON.stringify({ record_id_list: [recordId] }),
+	});
+	const extra = attachmentExtra(body['data'], recordId, cover.token);
+	if (!extra) throw new Error('飞书附件授权信息缺失');
+	const url = new URL(`${API}/drive/v1/medias/${encodeURIComponent(cover.token)}/download`);
+	url.searchParams.set('extra', extra);
 	const response = await fetch(url, {
 		headers: { authorization: `Bearer ${token}` },
 		signal: AbortSignal.timeout(TIMEOUT_MS),

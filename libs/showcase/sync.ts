@@ -81,7 +81,7 @@ export async function runSync({ force }: { force: boolean }): Promise<SyncResult
 							config.storage,
 							id,
 							image.token,
-							await toCoverImage(await downloadCover(image, token)),
+							await toCoverImage(await downloadCover(image, token, config.feishu, id)),
 						),
 					publish: (projects) => publishCatalog(config.storage, projects),
 					notify: chatId ? (message) => sendGroupText(config.feishu, chatId, message) : undefined,
