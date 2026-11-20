@@ -75,7 +75,7 @@ pnpm build
 
 3. 配置测试环境的同步开关、飞书应用、数据库和对象存储。仅测试 Deployment 设置 `SHOWCASE_SYNC_ENABLED=1`，正式环境保持未设置；同步调度器运行在官网 Node 进程中，不需要 CronJob。飞书应用需要读取字段、目标表的全部记录和公开图片。确认应用已加入目标 Base、权限已发布，并使用应用身份核对整表读取权限。读取记录返回 `99991672` 时，检查 `base:record:retrieve` 权限。行级权限隐藏的记录也会在同步时消失，可能触发作品删除。测试数据库需先执行迁移；对象存储需允许官网写入 `showcase/`，访客需能匿名读取目录及 `showcase/covers/` 图片；`SHOWCASE_S3_ENDPOINT` 应使用可信 HTTPS 地址，`SHOWCASE_S3_PUBLIC_BASE_URL` 必须明确设置为访客可访问的测试桶地址。正式环境不要配置测试桶地址；如需要读取作品目录，必须使用独立的正式存储桶。`SHOWCASE_SYNC_SECRET` 仅供手动调用同步接口使用，内部调度不依赖它。
 
-4. 在 Sealos 授权服务注册支持 Authorization Code 和 PKCE 的客户端，并将官网 `/api/showcase/auth/callback` 的完整 HTTPS 地址加入客户端回调地址。为所有官网实例配置一致的 `SHOWCASE_AUTH_ORIGIN`、`SHOWCASE_AUTH_CLIENT_ID`、`SHOWCASE_AUTH_CALLBACK_URL` 和至少 32 字节的随机 `SHOWCASE_AUTH_SECRET`，确认授权服务及客户端已启用。更换签名密钥会使已有登录会话失效。
+4. 在 Sealos 授权服务注册支持 Authorization Code 和 PKCE 的客户端，并将官网 `/api/showcase/auth/callback` 的完整 HTTPS 地址加入客户端回调地址。为所有官网实例配置一致的 `SHOWCASE_AUTH_ORIGIN`、`SHOWCASE_AUTH_CLIENT_ID`、`SHOWCASE_AUTH_CALLBACK_URL` 和至少 32 字节的随机 `SHOWCASE_AUTH_SECRET`，确认授权服务及客户端已启用。更换签名密钥会使已有登录会话失效。先上线展示、暂不开放投票时，设置 `SHOWCASE_VOTING_DISABLED=1`：无论授权配置是否齐全，投票区块都会显示为暂不可用，投票接口返回 503；删除该变量并重新部署即可恢复投票。
 
 5. 核对反向代理：投票请求的 Origin 须与 `SHOWCASE_AUTH_CALLBACK_URL` 的 origin 一致；代理应覆盖客户端可伪造的 IP 请求头并传入可信的 `x-real-ip` 或 `x-forwarded-for`。投票请求限频为每个官网进程每 IP 每分钟 10 次，未取得 IP 时投票接口返回 503。
 

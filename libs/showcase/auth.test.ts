@@ -32,6 +32,7 @@ test('OAuth configuration rejects insecure or incomplete deployment settings', (
 		NODE_ENV: 'production',
 	};
 	assert.ok(auth.parseAuthConfig(env));
+	assert.equal(auth.parseAuthConfig({ ...env, SHOWCASE_VOTING_DISABLED: '1' }), null);
 	assert.equal(auth.parseAuthConfig({ ...env, SHOWCASE_AUTH_SECRET: 'short' }), null);
 	assert.equal(auth.parseAuthConfig({ ...env, SHOWCASE_AUTH_CLIENT_ID: '' }), null);
 	assert.equal(auth.parseAuthConfig({ ...env, SHOWCASE_AUTH_ORIGIN: 'http://bja.sealos.run' }), null);
