@@ -67,7 +67,7 @@ export function ProjectVotePanel({ projectId, standing, voting }: ProjectVotePan
 				onClick={() => vote(projectId)}
 			>
 				{unavailable
-					? '投票暂时不可用'
+					? '投票功能暂未开放'
 					: voted
 						? '今天已为它投票'
 						: spent
